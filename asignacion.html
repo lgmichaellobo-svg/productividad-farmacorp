@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Asignación - Farmacorp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+
+    <!-- Menú Lateral (resumido) -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-10">
+        <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i class="fa-solid fa-pills"></i></div>
+            <h1 class="text-lg font-bold text-white">Farmacorp</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-1 mt-4">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition"><i class="fa-solid fa-house w-5"></i> Inicio</a>
+            <a href="asignacion.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-md transition"><i class="fa-solid fa-calendar-check w-5"></i> Asignaciones</a>
+        </nav>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">Registrar Nueva Asignación</h2>
+            <a href="app.html" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+        </header>
+
+        <div class="p-6 md:p-10 flex-1 max-w-4xl mx-auto w-full">
+            <form id="formAsignacion" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Fecha</label>
+                        <input type="date" id="fechaAsig" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Encargado</label>
+                        <select id="encargadoAsig" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Bodega</label>
+                        <select id="bodegaAsig" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Tipo de Negocio</label>
+                        <select id="negocioAsig" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg">
+                    Guardar Asignación
+                </button>
+            </form>
+            <div id="mensaje" class="mt-4 text-center font-bold hidden"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
+        const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
+        const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Cargar listas en los selectores
+        async function cargarDatos() {
+            // Cargar Encargados
+            const { data: encargados } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'encargado');
+            if (encargados) {
+                const select = document.getElementById('encargadoAsig');
+                select.innerHTML = '<option value="">Seleccione...</option>';
+                encargados.forEach(u => select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
+            }
+
+            // Cargar Bodegas
+            const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre');
+            if (bodegas) {
+                const select = document.getElementById('bodegaAsig');
+                select.innerHTML = '<option value="">Seleccione...</option>';
+                bodegas.forEach(b => select.innerHTML += `<option value="${b.id}">${b.nombre}</option>`);
+            }
+
+            // Cargar Negocios
+            const { data: negocios } = await _supabase.from('tipos_negocio').select('id, nombre');
+            if (negocios) {
+                const select = document.getElementById('negocioAsig');
+                select.innerHTML = '<option value="">Seleccione...</option>';
+                negocios.forEach(n => select.innerHTML += `<option value="${n.id}">${n.nombre}</option>`);
+            }
+        }
+
+        // Guardar la asignación
+        document.getElementById('formAsignacion').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Guardando...';
+
+            const nuevaAsignacion = {
+                fecha: document.getElementById('fechaAsig').value,
+                encargado_id: document.getElementById('encargadoAsig').value,
+                bodega_id: document.getElementById('bodegaAsig').value,
+                negocio_id: document.getElementById('negocioAsig').value
+            };
+
+            const { error } = await _supabase.from('asignaciones').insert([nuevaAsignacion]);
+
+            const msg = document.getElementById('mensaje');
+            if (error) {
+                msg.innerText = 'Error: ' + error.message;
+                msg.className = 'mt-4 text-center text-red-600 font-bold block';
+                btn.innerText = 'Guardar Asignación';
+            } else {
+                msg.innerText = '¡Asignación guardada con éxito!';
+                msg.className = 'mt-4 text-center text-green-600 font-bold block';
+                btn.innerText = 'Guardar Asignación';
+                e.target.reset(); // Limpiar formulario
+            }
+        });
+
+        cargarDatos();
+    </script>
+</body>
+</html>
