@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productividad - Farmacorp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+
+    <!-- Menú Lateral -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-10">
+        <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg">
+                <i class="fa-solid fa-pills text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-wide">Farmacorp</h1>
+            </div>
+        </div>
+        <nav class="flex-1 p-4 space-y-1 mt-4">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fa-solid fa-house w-5"></i> Inicio
+            </a>
+            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-md transition">
+                <i class="fa-solid fa-chart-line w-5"></i> Productividad
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fa-solid fa-boxes-stacked w-5"></i> Verificación
+            </a>
+            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fa-solid fa-file-excel w-5"></i> Excel Automatizados
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+            <h2 class="text-xl font-bold text-slate-800">Registro de Productividad</h2>
+            <a href="app.html" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </header>
+
+        <div class="p-6 md:p-10 flex-1 max-w-4xl mx-auto w-full">
+            
+            <!-- Formulario de Fecha y Encargado -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">Datos de la Jornada</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Fecha de trabajo</label>
+                        <input type="date" id="fecha" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Encargado</label>
+                        <select id="encargado" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition">
+                            <option value="">Seleccione un encargado...</option>
+                            <!-- Se llenará desde la base de datos -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Panel de Autocompletado -->
+                <div id="panelAuto" class="hidden mt-6 bg-blue-50 border border-blue-100 p-6 rounded-xl">
+                    <p class="text-sm text-blue-800 font-semibold mb-4"><i class="fa-solid fa-wand-magic-sparkles"></i> Datos autocompletados de la asignación:</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div><span class="text-slate-500 block">Bodega</span> <span id="infoBodega" class="font-bold text-slate-800">-</span></div>
+                        <div><span class="text-slate-500 block">Negocio</span> <span id="infoNegocio" class="font-bold text-slate-800">-</span></div>
+                        <div><span class="text-slate-500 block">Asistentes</span> <span id="infoAsistentes" class="font-bold text-slate-800">-</span></div>
+                        <div><span class="text-slate-500 block">Meta Encargado</span> <span id="infoMeta" class="font-bold text-slate-800">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
+        const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
+        const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 1. Cargar la lista de encargados en el select
+        async function cargarEncargados() {
+            const { data, error } = await _supabase
+                .from('usuarios')
+                .select('id, nombre')
+                .eq('rol', 'encargado');
+            
+            if (data) {
+                const select = document.getElementById('encargado');
+                data.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.text = user.nombre;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // 2. Lógica para autocompletar cuando eligen fecha y encargado
+        document.getElementById('encargado').addEventListener('change', async (e) => {
+            const encargadoId = e.target.value;
+            const fecha = document.getElementById('fecha').value;
+            const panel = document.getElementById('panelAuto');
+
+            if (!encargadoId || !fecha) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            // Buscar la asignación en la base de datos
+            const { data: asignacion, error } = await _supabase
+                .from('asignaciones')
+                .select(`
+                    id,
+                    bodegas (nombre),
+                    tipos_negocio (nombre)
+                `)
+                .eq('encargado_id', encargadoId)
+                .eq('fecha', fecha)
+                .single();
+
+            if (asignacion) {
+                // Si hay asignación, mostramos los datos
+                panel.classList.remove('hidden');
+                document.getElementById('infoBodega').innerText = asignacion.bodegas.nombre;
+                document.getElementById('infoNegocio').innerText = asignacion.tipos_negocio.nombre;
+                
+                // (Aquí buscaremos los asistentes y metas en el siguiente paso)
+                document.getElementById('infoAsistentes').innerText = "Cargando...";
+                document.getElementById('infoMeta').innerText = "Calculando...";
+            } else {
+                // Si no hay asignación, avisamos (por ahora lo dejamos oculto)
+                panel.classList.add('hidden');
+                alert("No hay asignación registrada para este encargado en esta fecha.");
+            }
+        });
+
+        // Ejecutar al cargar la página
+        cargarEncargados();
+    </script>
+</body>
+</html>
