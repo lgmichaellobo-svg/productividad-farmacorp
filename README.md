@@ -1,0 +1,2 @@
+# productividad-farmacorp
+INVENTARIO
