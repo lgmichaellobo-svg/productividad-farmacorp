@@ -33,13 +33,13 @@
         <div id="mensaje" class="mt-4 text-center text-sm hidden"></div>
     </div>
 
-    <!-- Cargamos Supabase de forma moderna -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-        // ⚠️ AQUÍ VA TU URL Y TU LLAVE REAL
-        const SUPABASE_URL = 'https://wwwurjfenenlvrhmakmso.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3dXJmamVuZW5sdnJod2FrbXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNDYwNjcsImV4cCI6MjEwNzkyMjA2N30.6uF72qMAvsmKzeY5VsHlrum4qNblyhy5zEwNjEC29w4'; 
+        // URL corregida (con la letra 'f')
+        const SUPABASE_URL = 'https://wwwurfjenenlvrhmakmso.supabase.co';
+        // Tu llave Anon real
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3d3JmamVuZW5sdnJod2FrbXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNDYwNjcsImV4cCI6MjEwNzkyMjA2N30.6uF72qMAvsmKzeY5VsHlrum4qNblyhy5zEwNjEC29w4'; 
 
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
