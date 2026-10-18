@@ -5,60 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente moderna e íconos profesionales -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans h-screen flex overflow-hidden">
+<body class="bg-slate-100 h-screen flex overflow-hidden">
 
-    <!-- Menú Lateral (Oculto en celulares) -->
-    <aside class="w-64 bg-blue-900 text-white flex-col hidden md:flex">
-        <div class="p-6 text-center border-b border-blue-800">
-            <h1 class="text-xl font-bold">Farmacorp</h1>
-            <p class="text-xs text-blue-300 mt-1">Sistema de Gestión</p>
+    <!-- Menú Lateral Premium -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-10">
+        <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg">
+                <i class="fa-solid fa-pills text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-wide">Farmacorp</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest">Sistema Interno</p>
+            </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="#" class="block px-4 py-2 bg-blue-800 rounded-lg text-white font-medium">Inicio</a>
-            <a href="#" class="block px-4 py-2 hover:bg-blue-800 rounded-lg text-blue-100 transition">Productividad</a>
-            <a href="#" class="block px-4 py-2 hover:bg-blue-800 rounded-lg text-blue-100 transition">Verificación Inventario</a>
-            <a href="#" class="block px-4 py-2 hover:bg-blue-800 rounded-lg text-blue-100 transition">Excel Automatizados</a>
-            <a href="#" class="block px-4 py-2 hover:bg-blue-800 rounded-lg text-blue-100 transition">Configuración</a>
+        <nav class="flex-1 p-4 space-y-1 mt-4">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-md transition">
+                <i class="fa-solid fa-house w-5"></i> Inicio
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fa-solid fa-chart-line w-5"></i> Productividad
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fa-solid fa-boxes-stacked w-5"></i> Verificación
+            </a>
+            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fa-solid fa-file-excel w-5"></i> Excel Automatizados
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition mt-auto">
+                <i class="fa-solid fa-gear w-5"></i> Configuración
+            </a>
         </nav>
-        <div class="p-4 border-t border-blue-800">
-            <button id="btnLogout" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition font-medium">Cerrar Sesión</button>
+        <div class="p-4 border-t border-slate-800">
+            <button id="btnLogout" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-2.5 rounded-xl transition font-medium">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+            </button>
         </div>
     </aside>
 
     <!-- Contenido Principal -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <!-- Barra Superior -->
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center md:justify-end">
-            <div class="flex items-center gap-3">
-                <span class="text-sm font-medium text-gray-700" id="userEmail">Cargando...</span>
-                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">A</div>
+        <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex justify-between items-center shadow-sm">
+            <h2 class="text-xl font-bold text-slate-800 hidden md:block">Resumen General</h2>
+            <div class="flex items-center gap-4 ml-auto">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-slate-500">Bienvenido</p>
+                    <p class="text-sm font-semibold text-slate-800" id="userEmail">Cargando...</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center font-bold shadow-md">
+                    <i class="fa-solid fa-user"></i>
+                </div>
             </div>
         </header>
 
         <!-- Área de Trabajo -->
-        <div class="p-6 md:p-8 flex-1">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Bienvenido al Sistema</h2>
+        <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Tarjeta 1 -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition">
-                    <div class="text-3xl mb-3">📊</div>
-                    <h3 class="text-lg font-bold text-gray-800">Productividad</h3>
-                    <p class="text-sm text-gray-500 mt-1">Registrar SKU por persona y gestionar equipos.</p>
-                </div>
-                <!-- Tarjeta 2 -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition">
-                    <div class="text-3xl mb-3">📦</div>
-                    <h3 class="text-lg font-bold text-gray-800">Verificación de Inventario</h3>
-                    <p class="text-sm text-gray-500 mt-1">Subir ACTUALIZABLE, revisar ítems y descargar errores.</p>
-                </div>
-                <!-- Tarjeta 3 -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition">
-                    <div class="text-3xl mb-3">📁</div>
-                    <h3 class="text-lg font-bold text-gray-800">Excel Automatizados</h3>
-                    <p class="text-sm text-gray-500 mt-1">Descargar versiones actualizadas de tus macros.</p>
-                </div>
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">¡Hola de nuevo!</h2>
+                <p class="text-slate-500 mt-2">¿Qué deseas hacer hoy en el sistema?</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Tarjeta 1: Productividad -->
+                <a href="#" class="group bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Productividad</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Registra y gestiona los SKU revisados por cada persona en los diferentes equipos.</p>
+                </a>
+
+                <!-- Tarjeta 2: Inventario -->
+                <a href="#" class="group bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Verificación Inventario</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Sube el archivo ACTUALIZABLE, asigna ítems a tu equipo y descarga los errores.</p>
+                </a>
+
+                <!-- Tarjeta 3: Excel -->
+                <a href="excel.html" class="group bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Excel Automatizados</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Accede a las últimas versiones de tus herramientas y macros de Excel.</p>
+                </a>
+
             </div>
         </div>
     </main>
@@ -66,31 +110,24 @@
     <!-- Lógica de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // TUS DATOS DE CONEXIÓN
         const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
         const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Verificar si el usuario tiene sesión activa
         async function checkUser() {
             const { data: { session }, error } = await _supabase.auth.getSession();
-            
             if (!session) {
-                // Si no hay sesión, lo devuelve a la página de Login
                 window.location.href = 'index.html';
             } else {
-                // Si hay sesión, muestra su correo
                 document.getElementById('userEmail').innerText = session.user.email;
             }
         }
 
-        // Cerrar Sesión
         document.getElementById('btnLogout').addEventListener('click', async () => {
             await _supabase.auth.signOut();
             window.location.href = 'index.html';
         });
 
-        // Ejecutar al cargar la página
         checkUser();
     </script>
 </body>
