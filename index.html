@@ -12,7 +12,6 @@
     </button>
     <p id="resultado" style="margin-top: 20px; font-weight: bold;"></p>
 
-    <!-- Usamos la versión clásica (UMD) que es la más compatible -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
@@ -21,16 +20,14 @@
             resultado.innerText = "Conectando...";
 
             try {
-                // 1. TU URL EXACTA
-                const supabaseUrl = 'https://wwwurjfenenlvrhmakmso.supabase.co';
+                // URL CON LA LETRA "F" (wwwurf)
+                const supabaseUrl = 'https://wwwurfjenenlvrhmakmso.supabase.co';
                 
-                // 2. LA LLAVE NUEVA (Publishable) que copiaste de la foto
+                // PEGA AQUÍ LA LLAVE NUEVA (sb_publishable)
                 const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
 
-                // Creamos la conexión
                 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-                // Hacemos una prueba de lectura en la tabla de tipos de negocio
                 const { data, error } = await supabase.from('tipos_negocio').select('*');
 
                 if (error) {
@@ -38,11 +35,11 @@
                     resultado.innerText = 'Error de Supabase: ' + error.message;
                 } else {
                     resultado.style.color = 'green';
-                    resultado.innerText = '¡CONEXIÓN EXITOSA! Datos recibidos: ' + JSON.stringify(data);
+                    resultado.innerText = '¡CONEXIÓN EXITOSA! Datos: ' + JSON.stringify(data);
                 }
             } catch (err) {
                 resultado.style.color = 'red';
-                resultado.innerText = 'Error grave de red: ' + err.message;
+                resultado.innerText = 'Error de red: ' + err.message;
             }
         }
     </script>
