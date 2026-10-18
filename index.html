@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 h-screen flex items-center justify-center font-sans">
 
@@ -34,14 +33,15 @@
         <div id="mensaje" class="mt-4 text-center text-sm hidden"></div>
     </div>
 
-    <script>
-        // CONFIGURACIÓN DE SUPABASE
-        const SUPABASE_URL = 'https://wwwurjfenenlvrhmakmso.supabase.co';
-        
-        // ⚠️ AQUÍ PEGA TU LLAVE ANON REAL (reemplaza todo el texto entre las comillas simples)
-        const SUPABASE_ANON_KEY ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3dXJmamVuZW5sdnJod2FrbXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNDYwNjcsImV4cCI6MjEwNzkyMjA2N30.6uF72qMAvsmKzeY5VsHlrum4qNblyhy5zEwNjEC29w4'; 
+    <!-- Cargamos Supabase de forma moderna -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ⚠️ AQUÍ VA TU URL Y TU LLAVE REAL
+        const SUPABASE_URL = 'https://wwwurjfenenlvrhmakmso.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3dXJmamVuZW5sdnJod2FrbXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNDYwNjcsImV4cCI6MjEwNzkyMjA2N30.6uF72qMAvsmKzeY5VsHlrum4qNblyhy5zEwNjEC29w4'; 
+
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const form = document.getElementById('loginForm');
         const btn = document.getElementById('btnLogin');
@@ -67,7 +67,7 @@
                 btn.innerText = 'Ingresar';
                 btn.disabled = false;
             } else {
-                msg.innerText = '¡Bienvenido! Redirigiendo...';
+                msg.innerText = '¡Bienvenido! Inicio de sesión correcto.';
                 msg.className = 'mt-4 text-center text-sm text-green-600 block';
             }
         });
