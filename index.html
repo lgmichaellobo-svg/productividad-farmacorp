@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Farmacorp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center font-sans">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-4">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-blue-900">Farmacorp</h1>
+            <p class="text-gray-500 text-sm mt-1">Sistema de Productividad</p>
+        </div>
+
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="tu@correo.com">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+            </div>
+
+            <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200">
+                Ingresar
+            </button>
+        </form>
+
+        <div id="mensaje" class="mt-4 text-center text-sm hidden"></div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE SUPABASE
+        const SUPABASE_URL = 'https://wwwurjfenenlvrhmakmso.supabase.co';
+        
+        // ⚠️ AQUÍ PEGA TU LLAVE ANON REAL (reemplaza todo el texto entre las comillas simples)
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3dXJmamVuZW5sdnJod2FrbXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNDYwNjcsImV4cCI6MjEwNzkyMjA2N30.6uF72qMAvsmKzeY5VsHlrum4qNblyhy5zEwNjEC29w4'; 
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('btnLogin');
+        const msg = document.getElementById('mensaje');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.innerText = 'Ingresando...';
+            btn.disabled = true;
+            msg.classList.add('hidden');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                msg.innerText = 'Error: ' + error.message;
+                msg.className = 'mt-4 text-center text-sm text-red-600 block';
+                btn.innerText = 'Ingresar';
+                btn.disabled = false;
+            } else {
+                msg.innerText = '¡Bienvenido! Redirigiendo...';
+                msg.className = 'mt-4 text-center text-sm text-green-600 block';
+            }
+        });
+    </script>
+</body>
+</html>
