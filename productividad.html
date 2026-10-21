@@ -24,19 +24,15 @@
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- CABECERA REDISEÑADA -->
         <header class="bg-white shadow-sm px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center sticky top-0 z-10 gap-4">
             <h2 class="text-xl font-bold text-slate-800">Registro de Productividad</h2>
             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                <!-- 1. Botón Asignación (Primero y Principal) -->
                 <a href="asignacion.html" class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition shadow-sm text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-plus"></i> Nueva Asignación
                 </a>
-                <!-- 2. Botón Reportes (Segundo) -->
                 <a href="reportes.html" class="flex-1 md:flex-none bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 font-semibold py-2.5 px-5 rounded-xl transition shadow-sm text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-chart-pie"></i> Ver Reportes
                 </a>
-                <!-- 3. Botón Volver -->
                 <a href="app.html" class="flex-none text-slate-500 hover:text-slate-800 py-2.5 px-4 rounded-xl hover:bg-slate-100 transition font-semibold text-sm flex items-center justify-center gap-2 border border-slate-200">
                     <i class="fa-solid fa-arrow-left"></i> <span class="hidden lg:inline">Volver</span>
                 </a>
@@ -272,9 +268,11 @@
             const inputsProd = document.querySelectorAll('#listaPersonas input[name^="prod_"]');
             const registros = [];
             const actualizacionesMeta = [];
+            const operadoresIds = [];
 
             inputsProd.forEach(input => {
                 const operadorId = input.name.replace('prod_', '');
+                operadoresIds.push(operadorId);
                 const sku = parseInt(input.value) || 0;
                 const metaInput = document.querySelector(`input[name="meta_${operadorId}"]`);
                 const metaNueva = parseInt(metaInput.value) || 0;
@@ -292,6 +290,13 @@
                 });
             });
 
+            // 1. Borrar registros previos de este día para evitar duplicados
+            await _supabase.from('productividad')
+                .delete()
+                .eq('asignacion_id', asignacionActualId)
+                .in('operador_id', operadoresIds);
+
+            // 2. Insertar nuevos registros
             const { error: errorProd } = await _supabase.from('productividad').insert(registros);
             
             if (errorProd) {
@@ -301,6 +306,7 @@
                 return;
             }
 
+            // 3. Actualizar metas
             for (let act of actualizacionesMeta) {
                 await _supabase.from('asignacion_personal')
                     .update({ meta_del_dia: act.meta_del_dia, meta_es_especial: true })
@@ -311,68 +317,6 @@
             mostrarMensaje('¡Productividad y metas guardadas con éxito!', 'green');
             btn.innerText = 'Guardar Productividad';
             btn.disabled = false;
-        });
-
-        document.getElementById('excelFile').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            document.getElementById('excelFileName').innerText = "Leyendo archivo...";
-            const reader = new FileReader();
-
-            reader.onload = async function(event) {
-                try {
-                    const data = new Uint8Array(event.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(firstSheet);
-
-                    let resultadosExcel = {};
-                    json.forEach(row => {
-                        let nombreKey = Object.keys(row).find(k => k.toUpperCase().includes('NOMBRE') || k.toUpperCase().includes('TRABAJADOR'));
-                        let skuKey = Object.keys(row).find(k => k.toUpperCase().includes('SKU') || k.toUpperCase().includes('CANTIDAD'));
-
-                        if (nombreKey && skuKey) {
-                            let nombre = String(row[nombreKey]).trim().toUpperCase();
-                            let sku = Number(row[skuKey]) || 0;
-                            resultadosExcel[nombre] = (resultadosExcel[nombre] || 0) + sku;
-                        }
-                    });
-
-                    const registros = [];
-                    equipoActual.forEach(persona => {
-                        const nombreDb = persona.nombre.toUpperCase();
-                        const matchKey = Object.keys(resultadosExcel).find(k => k.includes(nombreDb) || nombreDb.includes(k));
-                        
-                        if (matchKey) {
-                            registros.push({
-                                asignacion_id: asignacionActualId,
-                                operador_id: persona.id,
-                                sku_revisados: resultadosExcel[matchKey],
-                                origen: 'excel'
-                            });
-                        }
-                    });
-
-                    if (registros.length === 0) {
-                        mostrarMensaje('No se encontraron nombres coincidentes.', 'red');
-                        document.getElementById('excelFileName').innerText = "";
-                        return;
-                    }
-
-                    const { error } = await _supabase.from('productividad').insert(registros);
-                    if (error) {
-                        mostrarMensaje('Error: ' + error.message, 'red');
-                    } else {
-                        mostrarMensaje('¡Productividad importada con éxito!', 'green');
-                        document.getElementById('excelFileName').innerText = `Procesado: ${file.name}`;
-                    }
-
-                } catch (error) {
-                    mostrarMensaje('Error al leer el Excel.', 'red');
-                }
-            };
-            reader.readAsArrayBuffer(file);
         });
 
         function mostrarMensaje(texto, color) {
