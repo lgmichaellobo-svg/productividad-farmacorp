@@ -6,7 +6,6 @@
     <title>Reportes - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Librería ExcelJS para generar Excel con formato -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -229,15 +228,18 @@
             datosReporteGlobal.forEach(persona => {
                 const cumplio = persona.sku >= persona.meta && persona.meta > 0;
                 
+                // LÓGICA DEL FALTANTE: Solo el número
                 let faltante = persona.meta - persona.sku;
                 let textoFaltante = '';
                 
                 if (persona.meta === 0) {
                     textoFaltante = '<span class="text-slate-400">-</span>';
                 } else if (faltante > 0) {
-                    textoFaltante = `<span class="font-bold text-rose-500">- ${faltante} SKU</span>`;
+                    // Si falta, mostramos solo el número en rojo
+                    textoFaltante = `<span class="font-bold text-rose-500">${faltante}</span>`;
                 } else {
-                    textoFaltante = `<span class="font-bold text-emerald-500">Meta superada</span>`;
+                    // Si sobra o es 0, mostramos un 0 en verde
+                    textoFaltante = `<span class="font-bold text-emerald-500">0</span>`;
                 }
 
                 let estadoBadge = '';
@@ -306,8 +308,8 @@
 
                 // Dar formato al Encabezado
                 const headerRow = worksheet.getRow(1);
-                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }; // Texto blanco
-                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }; // Fondo Índigo
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
                 headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
                 headerRow.height = 25;
 
@@ -333,9 +335,9 @@
 
                     // Colorear estado
                     if (cumplioText === 'SÍ') {
-                        row.getCell('cumplio').font = { color: { argb: 'FF16A34A' }, bold: true }; // Verde
+                        row.getCell('cumplio').font = { color: { argb: 'FF16A34A' }, bold: true };
                     } else if (cumplioText === 'NO') {
-                        row.getCell('cumplio').font = { color: { argb: 'FFDC2626' }, bold: true }; // Rojo
+                        row.getCell('cumplio').font = { color: { argb: 'FFDC2626' }, bold: true };
                     }
                 });
 
