@@ -42,8 +42,8 @@
 
         <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
             
-            <!-- Filtros y Botón de Descarga -->
-            <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col xl:flex-row gap-4 items-end">
+            <!-- Filtros -->
+            <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col xl:flex-row gap-4 items-end relative z-20">
                 <div class="flex-1 w-full">
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Desde</label>
                     <input type="date" id="fechaDesde" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
@@ -52,14 +52,33 @@
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hasta</label>
                     <input type="date" id="fechaHasta" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
                 </div>
-                <!-- NUEVO FILTRO DE PERSONA -->
+                
+                <!-- FILTRO MULTIPLE DE TRABAJADORES -->
+                <div class="flex-1 w-full relative" id="multiSelectContainer">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trabajadores</label>
+                    <button type="button" id="btnDropdown" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700 flex justify-between items-center">
+                        <span id="textoDropdown" class="truncate">Todos</span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                    </button>
+                    <div id="listaCheckboxes" class="hidden absolute z-30 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
+                        <label class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer border-b border-slate-100 mb-1">
+                            <input type="checkbox" id="checkTodos" checked class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="font-bold text-sm text-slate-800">Seleccionar Todos</span>
+                        </label>
+                        <div id="contenedorOpciones"></div>
+                    </div>
+                </div>
+
+                <!-- NUEVO FILTRO DE CUMPLIMIENTO -->
                 <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trabajador</label>
-                    <select id="filtroPersona" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
-                        <option value="todos">Todos los trabajadores</option>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Estado de Meta</label>
+                    <select id="filtroCumplimiento" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
+                        <option value="todos">Todos los estados</option>
+                        <option value="cumplieron">✅ Solo los que cumplieron</option>
+                        <option value="no_cumplieron">❌ Solo los que no cumplieron</option>
                     </select>
                 </div>
-                
+
                 <div class="flex gap-2 w-full xl:w-auto mt-2 xl:mt-0">
                     <button id="btnFiltrar" class="flex-1 xl:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
@@ -72,33 +91,26 @@
 
             <div id="mensajeEstado" class="hidden text-center py-4 text-slate-500 font-bold text-lg"></div>
 
-            <!-- Contenedores de Gráficos Premium -->
+            <!-- Gráficos -->
             <div id="contenedorGraficos" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                
-                <!-- Gráfico de Barras -->
                 <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -z-10"></div>
                     <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
                         <i class="fa-solid fa-chart-bar text-purple-500"></i> SKU por Persona
                     </h3>
-                    <div class="relative h-72 w-full">
-                        <canvas id="graficoBarras"></canvas>
-                    </div>
+                    <div class="relative h-72 w-full"><canvas id="graficoBarras"></canvas></div>
                 </div>
 
-                <!-- Gráfico de Torta -->
                 <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10"></div>
                     <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
                         <i class="fa-solid fa-chart-pie text-blue-500"></i> Distribución de SKU
                     </h3>
-                    <div class="relative h-72 w-full flex justify-center">
-                        <canvas id="graficoTorta"></canvas>
-                    </div>
+                    <div class="relative h-72 w-full flex justify-center"><canvas id="graficoTorta"></canvas></div>
                 </div>
             </div>
 
-            <!-- TABLA DE RESULTADOS -->
+            <!-- TABLA -->
             <div id="contenedorTabla" class="card-premium rounded-3xl overflow-hidden hidden">
                 <div class="p-6 md:px-8 border-b border-slate-100 flex justify-between items-center">
                     <h3 class="text-lg font-extrabold text-slate-800 tracking-tight">Cumplimiento de Metas</h3>
@@ -114,9 +126,7 @@
                                 <th class="p-5 font-bold text-center">Estado</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaResultados">
-                            <!-- Filas inyectadas por JS -->
-                        </tbody>
+                        <tbody id="tablaResultados"></tbody>
                     </table>
                 </div>
             </div>
@@ -132,7 +142,7 @@
 
         let chartBarras = null;
         let chartTorta = null;
-        let datosReporteGlobal = []; // Guarda TODOS los datos del rango de fechas
+        let datosReporteGlobal = []; 
 
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#64748b';
@@ -146,10 +156,43 @@
         const hoy = new Date();
         const hace7Dias = new Date();
         hace7Dias.setDate(hoy.getDate() - 7);
-        
         document.getElementById('fechaDesde').value = hace7Dias.toISOString().split('T')[0];
         document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
 
+        // --- LÓGICA DE FILTROS ---
+        const btnDropdown = document.getElementById('btnDropdown');
+        const listaCheckboxes = document.getElementById('listaCheckboxes');
+        const checkTodos = document.getElementById('checkTodos');
+        const contenedorOpciones = document.getElementById('contenedorOpciones');
+        const textoDropdown = document.getElementById('textoDropdown');
+
+        btnDropdown.addEventListener('click', () => listaCheckboxes.classList.toggle('hidden'));
+
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('multiSelectContainer').contains(e.target)) {
+                listaCheckboxes.classList.add('hidden');
+            }
+        });
+
+        checkTodos.addEventListener('change', (e) => {
+            document.querySelectorAll('.check-persona').forEach(chk => chk.checked = e.target.checked);
+            actualizarTextoDropdown();
+            actualizarVista();
+        });
+
+        function actualizarTextoDropdown() {
+            const checkboxes = document.querySelectorAll('.check-persona');
+            const seleccionados = Array.from(checkboxes).filter(chk => chk.checked);
+            
+            if (seleccionados.length === 0) textoDropdown.innerText = "Ninguno";
+            else if (seleccionados.length === checkboxes.length) textoDropdown.innerText = "Todos";
+            else textoDropdown.innerText = `${seleccionados.length} seleccionados`;
+        }
+
+        // Escuchar cambios en el filtro de cumplimiento
+        document.getElementById('filtroCumplimiento').addEventListener('change', actualizarVista);
+
+        // --- CARGA DE DATOS ---
         async function cargarReportes() {
             const desde = document.getElementById('fechaDesde').value;
             const hasta = document.getElementById('fechaHasta').value;
@@ -165,11 +208,7 @@
             contGraficos.classList.remove('hidden');
             contTabla.classList.add('hidden');
 
-            const { data: asigs, error: errAsigs } = await _supabase
-                .from('asignaciones')
-                .select('id')
-                .gte('fecha', desde)
-                .lte('fecha', hasta);
+            const { data: asigs } = await _supabase.from('asignaciones').select('id').gte('fecha', desde).lte('fecha', hasta);
 
             if (!asigs || asigs.length === 0) {
                 btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
@@ -184,26 +223,16 @@
 
             const asigIds = asigs.map(a => a.id);
 
-            const { data: prodData } = await _supabase
-                .from('productividad')
-                .select(`sku_revisados, operador_id, asignacion_id, usuarios (nombre)`)
-                .in('asignacion_id', asigIds);
-
-            const { data: metasData } = await _supabase
-                .from('asignacion_personal')
-                .select('asignacion_id, operador_id, meta_del_dia')
-                .in('asignacion_id', asigIds);
+            const { data: prodData } = await _supabase.from('productividad').select(`sku_revisados, operador_id, asignacion_id, usuarios (nombre)`).in('asignacion_id', asigIds);
+            const { data: metasData } = await _supabase.from('asignacion_personal').select('asignacion_id, operador_id, meta_del_dia').in('asignacion_id', asigIds);
 
             btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
             btn.disabled = false;
 
             const mapaMetas = {};
-            metasData.forEach(m => {
-                mapaMetas[`${m.asignacion_id}-${m.operador_id}`] = m.meta_del_dia;
-            });
+            metasData.forEach(m => mapaMetas[`${m.asignacion_id}-${m.operador_id}`] = m.meta_del_dia);
 
             let resumen = {};
-            
             prodData.forEach(item => {
                 if(item.usuarios && item.usuarios.nombre) {
                     let operadorId = item.operador_id;
@@ -211,9 +240,7 @@
                     let sku = Number(item.sku_revisados);
                     let metaDelDia = mapaMetas[`${item.asignacion_id}-${operadorId}`] || 0;
 
-                    if (!resumen[operadorId]) {
-                        resumen[operadorId] = { nombre: nombre, sku: 0, meta: 0 };
-                    }
+                    if (!resumen[operadorId]) resumen[operadorId] = { nombre: nombre, sku: 0, meta: 0 };
                     resumen[operadorId].sku += sku;
                     resumen[operadorId].meta += metaDelDia; 
                 }
@@ -230,57 +257,84 @@
                 return;
             }
 
-            // Llenar el desplegable de trabajadores
-            const selectPersona = document.getElementById('filtroPersona');
-            const seleccionActual = selectPersona.value;
-            
-            // Solo actualizamos las opciones si es que no estaban antes
-            selectPersona.innerHTML = '<option value="todos">Todos los trabajadores</option>';
-            datosReporteGlobal.forEach(d => {
-                selectPersona.innerHTML += `<option value="${d.nombre}">${d.nombre}</option>`;
+            // Generar Checkboxes
+            contenedorOpciones.innerHTML = '';
+            datosReporteGlobal.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(d => {
+                contenedorOpciones.innerHTML += `
+                    <label class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" value="${d.nombre}" class="check-persona w-4 h-4 text-purple-600 rounded focus:ring-purple-500" checked>
+                        <span class="text-sm text-slate-700">${d.nombre}</span>
+                    </label>
+                `;
             });
 
-            // Mantenemos la selección si el trabajador sigue existiendo
-            if (Array.from(selectPersona.options).some(o => o.value === seleccionActual)) {
-                selectPersona.value = seleccionActual;
-            } else {
-                selectPersona.value = 'todos';
-            }
+            document.querySelectorAll('.check-persona').forEach(chk => {
+                chk.addEventListener('change', () => {
+                    checkTodos.checked = Array.from(document.querySelectorAll('.check-persona')).every(c => c.checked);
+                    actualizarTextoDropdown();
+                    actualizarVista();
+                });
+            });
 
-            // Dibujamos la vista inicial (ya sea filtrada o todos)
+            checkTodos.checked = true;
+            actualizarTextoDropdown();
             actualizarVista();
         }
 
-        // Esta función dibuja la tabla y gráficos basándose en lo que dice el select
-        function actualizarVista() {
-            const personaSeleccionada = document.getElementById('filtroPersona').value;
-            
-            // Filtrar los datos
+        // --- FUNCIÓN PARA OBTENER DATOS FILTRADOS (Reutilizable) ---
+        function obtenerDatosFiltrados() {
+            const checkboxes = document.querySelectorAll('.check-persona');
+            const seleccionados = Array.from(checkboxes).filter(chk => chk.checked).map(chk => chk.value);
+            const filtroCumplimiento = document.getElementById('filtroCumplimiento').value;
+
+            // 1. Empezamos con todos los datos
             let datosMostrar = datosReporteGlobal;
-            if (personaSeleccionada !== 'todos') {
-                datosMostrar = datosReporteGlobal.filter(d => d.nombre === personaSeleccionada);
+
+            // 2. Filtramos por trabajadores seleccionados
+            if (seleccionados.length > 0 && seleccionados.length < checkboxes.length) {
+                datosMostrar = datosMostrar.filter(d => seleccionados.includes(d.nombre));
+            }
+
+            // 3. Filtramos por estado de meta
+            if (filtroCumplimiento === 'cumplieron') {
+                datosMostrar = datosMostrar.filter(d => d.meta > 0 && d.sku >= d.meta);
+            } else if (filtroCumplimiento === 'no_cumplieron') {
+                datosMostrar = datosMostrar.filter(d => d.meta > 0 && d.sku < d.meta);
+            }
+
+            return datosMostrar;
+        }
+
+        // --- DIBUJAR VISTA ---
+        function actualizarVista() {
+            const datosMostrar = obtenerDatosFiltrados();
+            
+            if (datosMostrar.length === 0) {
+                document.getElementById('mensajeEstado').innerHTML = `<i class="fa-solid fa-magnifying-glass text-3xl mb-2 block"></i> No hay trabajadores que coincidan con los filtros.`;
+                document.getElementById('mensajeEstado').classList.remove('hidden');
+                document.getElementById('contenedorGraficos').classList.add('hidden');
+                document.getElementById('contenedorTabla').classList.add('hidden');
+                if (chartBarras) chartBarras.destroy();
+                if (chartTorta) chartTorta.destroy();
+                return;
+            } else {
+                document.getElementById('mensajeEstado').classList.add('hidden');
+                document.getElementById('contenedorGraficos').classList.remove('hidden');
+                document.getElementById('contenedorTabla').classList.remove('hidden');
             }
 
             const nombres = datosMostrar.map(d => d.nombre.split(' ')[0]);
             const cantidades = datosMostrar.map(d => d.sku);
 
-            // Llenar la Tabla
+            // Tabla
             const tbody = document.getElementById('tablaResultados');
             tbody.innerHTML = '';
             
             datosMostrar.forEach(persona => {
                 const cumplio = persona.sku >= persona.meta && persona.meta > 0;
-                
                 let faltante = persona.meta - persona.sku;
-                let textoFaltante = '';
-                
-                if (persona.meta === 0) {
-                    textoFaltante = '<span class="text-slate-400">-</span>';
-                } else if (faltante > 0) {
-                    textoFaltante = `<span class="font-bold text-rose-500">${faltante}</span>`;
-                } else {
-                    textoFaltante = `<span class="font-bold text-emerald-500">0</span>`;
-                }
+                let textoFaltante = persona.meta === 0 ? '<span class="text-slate-400">-</span>' : 
+                                    (faltante > 0 ? `<span class="font-bold text-rose-500">${faltante}</span>` : `<span class="font-bold text-emerald-500">0</span>`);
 
                 let estadoBadge = '';
                 if (persona.meta === 0) {
@@ -301,9 +355,8 @@
                     </tr>
                 `;
             });
-            document.getElementById('contenedorTabla').classList.remove('hidden');
 
-            // Actualizar Gráficos
+            // Gráficos
             if (chartBarras) chartBarras.destroy();
             if (chartTorta) chartTorta.destroy();
 
@@ -321,23 +374,16 @@
             const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
             chartTorta = new Chart(ctxTorta, {
                 type: 'doughnut',
-                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'], borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }] },
+                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'], borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }] },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } } } }
             });
         }
 
-        // Evento cuando se cambia de persona en el desplegable
-        document.getElementById('filtroPersona').addEventListener('change', actualizarVista);
-
-        // --- DESCARGA DE EXCEL (FILTRADO POR LO QUE SE VE EN PANTALLA) ---
+        // --- EXCEL ---
         document.getElementById('btnExcel').addEventListener('click', async () => {
-            const personaSeleccionada = document.getElementById('filtroPersona').value;
-            let datosAExportar = datosReporteGlobal;
-            if (personaSeleccionada !== 'todos') {
-                datosAExportar = datosReporteGlobal.filter(d => d.nombre === personaSeleccionada);
-            }
+            const datosAExportar = obtenerDatosFiltrados();
 
-            if (datosAExportar.length === 0) return alert('No hay datos para exportar.');
+            if (datosAExportar.length === 0) return alert('No hay datos para exportar con los filtros actuales.');
             
             const btn = document.getElementById('btnExcel');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Generando...</span>';
@@ -345,7 +391,7 @@
 
             try {
                 const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet('Reporte Productividad');
+                const worksheet = workbook.addWorksheet('Reporte');
 
                 worksheet.columns = [
                     { header: 'Trabajador', key: 'nombre', width: 30 },
@@ -379,25 +425,18 @@
                     row.getCell('faltante').alignment = { horizontal: 'center' };
                     row.getCell('cumplio').alignment = { horizontal: 'center' };
 
-                    if (cumplioText === 'SÍ') {
-                        row.getCell('cumplio').font = { color: { argb: 'FF16A34A' }, bold: true };
-                    } else if (cumplioText === 'NO') {
-                        row.getCell('cumplio').font = { color: { argb: 'FFDC2626' }, bold: true };
-                    }
+                    if (cumplioText === 'SÍ') row.getCell('cumplio').font = { color: { argb: 'FF16A34A' }, bold: true };
+                    else if (cumplioText === 'NO') row.getCell('cumplio').font = { color: { argb: 'FFDC2626' }, bold: true };
                 });
 
-                worksheet.eachRow((row) => {
-                    row.eachCell((cell) => {
-                        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-                    });
-                });
+                worksheet.eachRow((row) => row.eachCell((cell) => cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }));
 
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Reporte_${personaSeleccionada === 'todos' ? 'Equipo' : personaSeleccionada.replace(' ', '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.download = `Reporte_${new Date().toISOString().split('T')[0]}.xlsx`;
                 a.click();
                 window.URL.revokeObjectURL(url);
 
@@ -410,8 +449,6 @@
         });
 
         document.getElementById('btnFiltrar').addEventListener('click', cargarReportes);
-        
-        // Iniciar
         cargarReportes();
     </script>
 </body>
