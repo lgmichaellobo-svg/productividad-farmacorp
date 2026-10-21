@@ -12,10 +12,10 @@
         .glass-effect { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="bg-slate-50 h-screen flex overflow-hidden">
+<body class="bg-slate-50 h-screen flex overflow-hidden w-full">
 
     <!-- Menú Lateral Premium -->
-    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 relative">
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 relative flex-shrink-0">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
             <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/50">
                 <i class="fa-solid fa-pills text-lg"></i>
@@ -25,7 +25,7 @@
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 mt-4">
+        <nav class="flex-1 p-4 space-y-2 mt-4 overflow-y-auto">
             <a href="app.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-900/50 transition">
                 <i class="fa-solid fa-house w-5 text-center"></i> <span class="font-medium">Inicio</span>
             </a>
@@ -47,49 +47,56 @@
     </aside>
 
     <!-- Contenido Principal -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto overflow-x-hidden relative w-full">
         <!-- Fondo decorativo -->
         <div class="absolute top-0 left-0 w-full h-72 bg-gradient-to-b from-blue-50/50 to-slate-50 -z-10"></div>
 
         <!-- Barra Superior -->
-        <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex justify-between items-center shadow-sm border-b border-slate-200">
-            <h2 class="text-xl font-bold text-slate-800 hidden md:block tracking-tight">Resumen General</h2>
-            <div class="flex items-center gap-4 ml-auto">
+        <header class="glass-effect sticky top-0 z-10 px-4 md:px-6 py-4 flex justify-between items-center shadow-sm border-b border-slate-200 w-full">
+            <h2 class="text-lg md:text-xl font-bold text-slate-800 hidden md:block tracking-tight">Resumen General</h2>
+            
+            <!-- Menú móvil (hamburguesa) - Opcional para que puedas navegar en celular -->
+            <div class="md:hidden flex items-center">
+                <a href="app.html" class="text-slate-800 font-bold text-lg">Farmacorp</a>
+            </div>
+
+            <div class="flex items-center gap-3 md:gap-4 ml-auto">
                 <div class="text-right hidden sm:block">
                     <p class="text-xs text-slate-500 font-medium">Bienvenido</p>
                     <p class="text-sm font-bold text-slate-800" id="userEmail">Cargando...</p>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-500/30">
-                    <i class="fa-solid fa-user"></i>
+                <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-user text-sm md:text-base"></i>
                 </div>
             </div>
         </header>
 
         <!-- Área de Trabajo -->
-        <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
+        <div class="p-4 md:p-10 flex-1 max-w-7xl mx-auto w-full">
             
-            <div class="mb-10 text-center md:text-left">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">¡Hola de nuevo! 👋</h2>
-                <p class="text-slate-500 mt-2 text-base md:text-lg font-medium">¿Qué módulo deseas abrir hoy?</p>
+            <div class="mb-8 md:mb-10 text-center md:text-left">
+                <h2 class="text-2xl md:text-4xl font-extrabold text-slate-800 tracking-tight">¡Hola de nuevo! 👋</h2>
+                <p class="text-slate-500 mt-2 text-sm md:text-lg font-medium">¿Qué módulo deseas abrir hoy?</p>
             </div>
             
             <!-- Grid de Tarjetas Modernas -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full">
                 
                 <!-- Tarjeta 1: Productividad -->
                 <a href="productividad.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-blue-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
                     
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-chart-pie drop-shadow-md"></i>
+                    <!-- Ícono SVG Premium (Gráfico) -->
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     </div>
                     
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Productividad</h3>
-                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
+                    <h3 class="text-lg md:text-xl font-extrabold text-slate-800 mb-2 tracking-tight">Productividad</h3>
+                    <p class="text-slate-500 leading-relaxed text-xs md:text-sm font-medium mb-6 flex-grow">
                         Registra y gestiona los SKU revisados por cada persona. Administra equipos y metas diarias.
                     </p>
                     
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-blue-600 font-bold text-sm">
+                    <div class="pt-4 border-t border-slate-100 flex items-center text-blue-600 font-bold text-xs md:text-sm">
                         Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
                     </div>
                 </a>
@@ -98,16 +105,17 @@
                 <a href="#" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-orange-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
                     
-                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 text-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/40 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-boxes-packing drop-shadow-md"></i>
+                    <!-- Ícono SVG Premium (Clipboard) -->
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-orange-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     </div>
                     
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Verificación Inventario</h3>
-                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
-                        Sube el archivo ACTUALIZABLE, reparte los ítems a tu equipo y descarga el reporte de errores.
+                    <h3 class="text-lg md:text-xl font-extrabold text-slate-800 mb-2 tracking-tight">Verificación</h3>
+                    <p class="text-slate-500 leading-relaxed text-xs md:text-sm font-medium mb-6 flex-grow">
+                        Sube el archivo ACTUALIZABLE, reparte los ítems a tu equipo y descarga el reporte.
                     </p>
                     
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-orange-500 font-bold text-sm">
+                    <div class="pt-4 border-t border-slate-100 flex items-center text-orange-500 font-bold text-xs md:text-sm">
                         Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
                     </div>
                 </a>
@@ -116,16 +124,17 @@
                 <a href="excel.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-emerald-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
                     
-                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-emerald-500/40 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-file-excel drop-shadow-md"></i>
+                    <!-- Ícono SVG Premium (Documento) -->
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-emerald-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </div>
                     
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Excel Automatizados</h3>
-                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
+                    <h3 class="text-lg md:text-xl font-extrabold text-slate-800 mb-2 tracking-tight">Excel Automatizados</h3>
+                    <p class="text-slate-500 leading-relaxed text-xs md:text-sm font-medium mb-6 flex-grow">
                         Accede a las últimas versiones de tus herramientas, macros y archivos automatizados.
                     </p>
                     
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-emerald-600 font-bold text-sm">
+                    <div class="pt-4 border-t border-slate-100 flex items-center text-emerald-600 font-bold text-xs md:text-sm">
                         Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
                     </div>
                 </a>
