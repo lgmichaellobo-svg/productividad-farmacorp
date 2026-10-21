@@ -11,13 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
         body { font-family: 'Inter', sans-serif; } 
-        /* Efecto de tarjeta corporativa */
-        .card-premium {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            backdrop-filter: blur(10px);
-        }
+        .card-premium { background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); border: 1px solid rgba(226, 232, 240, 0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="bg-slate-50 font-sans h-screen flex overflow-hidden">
@@ -43,7 +37,6 @@
 
         <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
             
-            <!-- Filtros y Botón de Descarga -->
             <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-end">
                 <div class="flex-1 w-full">
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Desde</label>
@@ -63,34 +56,19 @@
 
             <div id="mensajeEstado" class="hidden text-center py-4 text-slate-500 font-bold text-lg"></div>
 
-            <!-- Contenedores de Gráficos Premium -->
             <div id="contenedorGraficos" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                
-                <!-- Gráfico de Barras -->
                 <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -z-10"></div>
-                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
-                        <i class="fa-solid fa-chart-bar text-purple-500"></i> SKU por Persona
-                    </h3>
-                    <!-- Contenedor con altura fija para adaptabilidad -->
-                    <div class="relative h-72 w-full">
-                        <canvas id="graficoBarras"></canvas>
-                    </div>
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight"><i class="fa-solid fa-chart-bar text-purple-500"></i> SKU por Persona</h3>
+                    <div class="relative h-72 w-full"><canvas id="graficoBarras"></canvas></div>
                 </div>
-
-                <!-- Gráfico de Torta -->
                 <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10"></div>
-                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
-                        <i class="fa-solid fa-chart-pie text-blue-500"></i> Distribución de SKU
-                    </h3>
-                    <div class="relative h-72 w-full flex justify-center">
-                        <canvas id="graficoTorta"></canvas>
-                    </div>
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight"><i class="fa-solid fa-chart-pie text-blue-500"></i> Distribución de SKU</h3>
+                    <div class="relative h-72 w-full flex justify-center"><canvas id="graficoTorta"></canvas></div>
                 </div>
             </div>
 
-            <!-- TABLA DE RESULTADOS -->
             <div id="contenedorTabla" class="card-premium rounded-3xl overflow-hidden hidden">
                 <div class="p-6 md:px-8 border-b border-slate-100 flex justify-between items-center">
                     <h3 class="text-lg font-extrabold text-slate-800 tracking-tight">Cumplimiento de Metas</h3>
@@ -105,13 +83,10 @@
                                 <th class="p-5 font-bold text-center">Estado</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaResultados">
-                            <!-- Filas inyectadas por JS -->
-                        </tbody>
+                        <tbody id="tablaResultados"></tbody>
                     </table>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -125,10 +100,9 @@
         let chartTorta = null;
         let datosReporteGlobal = []; 
 
-        // Configuración global de Chart.js para que se vea premium
         Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = '#64748b'; // Color de texto slate-500
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)'; // Fondo oscuro slate-900
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
         Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: 'bold' };
         Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
         Chart.defaults.plugins.tooltip.padding = 12;
@@ -157,24 +131,40 @@
             contGraficos.classList.remove('hidden');
             contTabla.classList.add('hidden');
 
-            const { data: prodData, error: prodError } = await _supabase
-                .from('productividad')
-                .select(`sku_revisados, operador_id, asignacion_id, usuarios (nombre), asignaciones (fecha)`)
-                .gte('asignaciones.fecha', desde)
-                .lte('asignaciones.fecha', hasta);
+            // PASO 1: Buscar las asignaciones de estas fechas
+            const { data: asigs, error: errAsigs } = await _supabase
+                .from('asignaciones')
+                .select('id')
+                .gte('fecha', desde)
+                .lte('fecha', hasta);
 
-            const { data: metasData, error: metasError } = await _supabase
+            if (!asigs || asigs.length === 0) {
+                btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
+                btn.disabled = false;
+                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay asignaciones en este rango de fechas.`;
+                msj.classList.remove('hidden');
+                contGraficos.classList.add('hidden');
+                if (chartBarras) chartBarras.destroy();
+                if (chartTorta) chartTorta.destroy();
+                return;
+            }
+
+            const asigIds = asigs.map(a => a.id);
+
+            // PASO 2: Buscar la productividad SOLO de esas asignaciones
+            const { data: prodData } = await _supabase
+                .from('productividad')
+                .select(`sku_revisados, operador_id, asignacion_id, usuarios (nombre)`)
+                .in('asignacion_id', asigIds);
+
+            // PASO 3: Buscar las metas
+            const { data: metasData } = await _supabase
                 .from('asignacion_personal')
-                .select('asignacion_id, operador_id, meta_del_dia');
+                .select('asignacion_id, operador_id, meta_del_dia')
+                .in('asignacion_id', asigIds);
 
             btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
             btn.disabled = false;
-
-            if (prodError || metasError) {
-                console.error(prodError || metasError);
-                alert("Error al cargar datos.");
-                return;
-            }
 
             const mapaMetas = {};
             metasData.forEach(m => {
@@ -201,7 +191,7 @@
             const cantidades = datosReporteGlobal.map(d => d.sku);
 
             if (nombres.length === 0) {
-                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos en este rango de fechas.`;
+                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos de productividad en estas fechas.`;
                 msj.classList.remove('hidden');
                 contGraficos.classList.add('hidden');
                 if (chartBarras) chartBarras.destroy();
@@ -209,7 +199,6 @@
                 return;
             }
 
-            // Llenar la Tabla
             const tbody = document.getElementById('tablaResultados');
             tbody.innerHTML = '';
             datosReporteGlobal.forEach(persona => {
@@ -235,103 +224,35 @@
             });
             contTabla.classList.remove('hidden');
 
-            // --- GRÁFICOS PREMIUM ---
             if (chartBarras) chartBarras.destroy();
             if (chartTorta) chartTorta.destroy();
 
-            // 1. Gráfico de Barras (Degradado)
             const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
             const gradientBar = ctxBarras.createLinearGradient(0, 0, 0, 400);
-            gradientBar.addColorStop(0, '#8b5cf6'); // Púrpura
-            gradientBar.addColorStop(1, '#6366f1'); // Índigo
+            gradientBar.addColorStop(0, '#8b5cf6');
+            gradientBar.addColorStop(1, '#6366f1');
 
             chartBarras = new Chart(ctxBarras, {
                 type: 'bar',
-                data: {
-                    labels: nombres,
-                    datasets: [{
-                        label: 'SKU Revisados',
-                        data: cantidades,
-                        backgroundColor: gradientBar,
-                        borderRadius: 8, // Bordes redondeados
-                        borderSkipped: false,
-                        barPercentage: 0.6, // Barras más delgadas y elegantes
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) { return ' SKU: ' + context.raw; }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { display: false, drawBorder: false } },
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] },
-                            ticks: { stepSize: 500 }
-                        }
-                    }
-                }
+                data: { labels: nombres, datasets: [{ label: 'SKU Revisados', data: cantidades, backgroundColor: gradientBar, borderRadius: 8, borderSkipped: false, barPercentage: 0.6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => ' SKU: ' + context.raw } } }, scales: { x: { grid: { display: false, drawBorder: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] }, ticks: { stepSize: 500 } } } }
             });
 
-            // 2. Gráfico de Torta (Dona 3D)
             const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
             chartTorta = new Chart(ctxTorta, {
                 type: 'doughnut',
-                data: {
-                    labels: nombres,
-                    datasets: [{
-                        data: cantidades,
-                        backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'],
-                        borderWidth: 4,
-                        borderColor: '#ffffff', // Borde blanco da efecto de separación 3D
-                        hoverOffset: 8, // Se agranda al pasar el mouse
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '75%', // Hace el agujero más grande (estilo premium)
-                    plugins: {
-                        legend: { 
-                            position: 'bottom',
-                            labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 12, weight: '600'} }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) { return ' ' + context.label + ': ' + context.raw + ' SKU'; }
-                            }
-                        }
-                    }
-                }
+                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'], borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 12, weight: '600'} } }, tooltip: { callbacks: { label: (context) => ' ' + context.label + ': ' + context.raw + ' SKU' } } } }
             });
         }
 
-        // Descargar Excel
         document.getElementById('btnExcel').addEventListener('click', () => {
-            if (datosReporteGlobal.length === 0) {
-                return alert('No hay datos para exportar. Primero filtra un rango de fechas con datos.');
-            }
-
-            const excelData = datosReporteGlobal.map(p => ({
-                'Trabajador': p.nombre,
-                'Meta Asignada': p.meta,
-                'SKU Logrados': p.sku,
-                'Cumplió Meta': p.meta > 0 ? (p.sku >= p.meta ? 'SÍ' : 'NO') : 'Sin Meta'
-            }));
-
+            if (datosReporteGlobal.length === 0) return alert('No hay datos para exportar.');
+            const excelData = datosReporteGlobal.map(p => ({ 'Trabajador': p.nombre, 'Meta Asignada': p.meta, 'SKU Logrados': p.sku, 'Cumplió Meta': p.meta > 0 ? (p.sku >= p.meta ? 'SÍ' : 'NO') : 'Sin Meta' }));
             const ws = XLSX.utils.json_to_sheet(excelData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Reporte Productividad");
-            
-            const fechaArchivo = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `Reporte_Productividad_${fechaArchivo}.xlsx`);
+            XLSX.writeFile(wb, `Reporte_Productividad_${new Date().toISOString().split('T')[0]}.xlsx`);
         });
 
         document.getElementById('btnFiltrar').addEventListener('click', cargarReportes);
