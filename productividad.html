@@ -26,7 +26,6 @@
         <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10">
             <h2 class="text-xl font-bold text-slate-800">Registro de Productividad</h2>
             <div class="flex gap-3">
-                <!-- NUEVO BOTÓN DE ASIGNACIÓN -->
                 <a href="asignacion.html" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> Nueva Asignación
                 </a>
@@ -37,9 +36,10 @@
         </header>
 
         <div class="p-6 md:p-10 flex-1 max-w-4xl mx-auto w-full">
+            
+            <!-- Panel de Búsqueda -->
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-8">
                 <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">Datos de la Jornada</h3>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-2">Fecha de trabajo</label>
@@ -54,15 +54,29 @@
                 </div>
 
                 <div id="panelAuto" class="hidden mt-6 bg-blue-50 border border-blue-100 p-6 rounded-xl">
-                    <p class="text-sm text-blue-800 font-semibold mb-4"><i class="fa-solid fa-wand-magic-sparkles"></i> Datos autocompletados de la asignación:</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <p class="text-sm text-blue-800 font-semibold mb-4"><i class="fa-solid fa-wand-magic-sparkles"></i> Datos autocompletados:</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div><span class="text-slate-500 block">Bodega</span> <span id="infoBodega" class="font-bold text-slate-800">-</span></div>
                         <div><span class="text-slate-500 block">Negocio</span> <span id="infoNegocio" class="font-bold text-slate-800">-</span></div>
-                        <div><span class="text-slate-500 block">Asistentes</span> <span id="infoAsistentes" class="font-bold text-slate-800">-</span></div>
-                        <div><span class="text-slate-500 block">Meta Encargado</span> <span id="infoMeta" class="font-bold text-slate-800">-</span></div>
+                        <div><span class="text-slate-500 block">Estado</span> <span class="font-bold text-green-600">Asignación cargada</span></div>
                     </div>
                 </div>
             </div>
+
+            <!-- NUEVA TABLA DE PRODUCTIVIDAD -->
+            <div id="panelRegistro" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">Ingresar SKU revisados</h3>
+                <form id="formProductividad">
+                    <div id="listaPersonas" class="space-y-4 mb-6">
+                        <!-- Aquí se inyectarán las filas por JavaScript -->
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg mt-4">
+                        <i class="fa-solid fa-save"></i> Guardar Productividad
+                    </button>
+                </form>
+                <div id="mensajeProd" class="mt-4 text-center font-bold hidden"></div>
+            </div>
+
         </div>
     </main>
 
@@ -71,6 +85,8 @@
         const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
         const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let asignacionActualId = null;
 
         async function cargarEncargados() {
             const { data } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'encargado');
@@ -83,10 +99,16 @@
         document.getElementById('encargado').addEventListener('change', async (e) => {
             const encargadoId = e.target.value;
             const fecha = document.getElementById('fecha').value;
-            const panel = document.getElementById('panelAuto');
+            const panelAuto = document.getElementById('panelAuto');
+            const panelRegistro = document.getElementById('panelRegistro');
 
-            if (!encargadoId || !fecha) { panel.classList.add('hidden'); return; }
+            if (!encargadoId || !fecha) { 
+                panelAuto.classList.add('hidden'); 
+                panelRegistro.classList.add('hidden');
+                return; 
+            }
 
+            // 1. Buscar Asignación
             const { data: asignacion } = await _supabase
                 .from('asignaciones')
                 .select(`id, bodegas (nombre), tipos_negocio (id, nombre)`)
@@ -95,23 +117,102 @@
                 .single();
 
             if (asignacion) {
-                panel.classList.remove('hidden');
+                asignacionActualId = asignacion.id;
+                panelAuto.classList.remove('hidden');
                 document.getElementById('infoBodega').innerText = asignacion.bodegas.nombre;
                 document.getElementById('infoNegocio').innerText = asignacion.tipos_negocio.nombre;
                 
-                const { data: meta } = await _supabase
+                // 2. Cargar Personal (Encargado + Asistentes)
+                const { data: personal } = await _supabase
+                    .from('asignacion_personal')
+                    .select(`operador_id, rol_en_equipo, meta_del_dia, usuarios (nombre)`)
+                    .eq('asignacion_id', asignacion.id);
+
+                // 3. Obtener metas del negocio
+                const { data: metas } = await _supabase
                     .from('metas_reglas')
-                    .select('meta_sku')
-                    .eq('negocio_id', asignacion.tipos_negocio.id)
-                    .eq('rol', 'encargado')
-                    .single();
-                
-                document.getElementById('infoMeta').innerText = meta ? meta.meta_sku + ' SKU' : 'No definida';
-                document.getElementById('infoAsistentes').innerText = "Sin asignar";
+                    .select('rol, meta_sku')
+                    .eq('negocio_id', asignacion.tipos_negocio.id);
+
+                const metaEncargado = metas.find(m => m.rol === 'encargado')?.meta_sku || 0;
+                const metaAsistente = metas.find(m => m.rol === 'asistente')?.meta_sku || 0;
+
+                // 4. Armar la lista visual
+                let htmlPersonas = `
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div>
+                            <p class="font-bold text-slate-800">${e.target.options[e.target.selectedIndex].text} (Tú)</p>
+                            <p class="text-xs text-slate-500">Meta: ${metaEncargado} SKU</p>
+                        </div>
+                        <div class="w-32">
+                            <input type="number" name="prod_${encargadoId}" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        </div>
+                    </div>
+                `;
+
+                if (personal && personal.length > 0) {
+                    personal.forEach(p => {
+                        if (p.rol_en_equipo === 'asistente') {
+                            htmlPersonas += `
+                                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${p.usuarios.nombre}</p>
+                                        <p class="text-xs text-slate-500">Meta: ${metaAsistente} SKU</p>
+                                    </div>
+                                    <div class="w-32">
+                                        <input type="number" name="prod_${p.operador_id}" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
+                document.getElementById('listaPersonas').innerHTML = htmlPersonas;
+                panelRegistro.classList.remove('hidden');
+
             } else {
-                panel.classList.add('hidden');
+                panelAuto.classList.add('hidden');
+                panelRegistro.classList.add('hidden');
                 alert("No hay asignación para esta fecha. Por favor, crea una nueva.");
             }
+        });
+
+        // Guardar Productividad
+        document.getElementById('formProductividad').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Guardando...';
+            btn.disabled = true;
+
+            const inputs = document.querySelectorAll('#listaPersonas input');
+            const registros = [];
+
+            inputs.forEach(input => {
+                const operadorId = input.name.replace('prod_', '');
+                const sku = parseInt(input.value) || 0;
+                registros.push({
+                    asignacion_id: asignacionActualId,
+                    operador_id: operadorId,
+                    sku_revisados: sku,
+                    origen: 'manual'
+                });
+            });
+
+            const { error } = await _supabase.from('productividad').insert(registros);
+
+            const msg = document.getElementById('mensajeProd');
+            if (error) {
+                msg.innerText = 'Error: ' + error.message;
+                msg.className = 'mt-4 text-center text-red-600 font-bold block';
+            } else {
+                msg.innerText = '¡Productividad guardada con éxito!';
+                msg.className = 'mt-4 text-center text-green-600 font-bold block';
+                e.target.reset();
+            }
+            
+            btn.innerText = 'Guardar Productividad';
+            btn.disabled = false;
         });
 
         cargarEncargados();
