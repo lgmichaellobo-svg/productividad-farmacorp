@@ -43,7 +43,7 @@
         <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
             
             <!-- Filtros y Botón de Descarga -->
-            <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-end">
+            <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col xl:flex-row gap-4 items-end">
                 <div class="flex-1 w-full">
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Desde</label>
                     <input type="date" id="fechaDesde" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
@@ -52,12 +52,22 @@
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hasta</label>
                     <input type="date" id="fechaHasta" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
                 </div>
-                <button id="btnFiltrar" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-purple-500/30 w-full md:w-auto flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
-                </button>
-                <button id="btnExcel" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-emerald-500/30 w-full md:w-auto flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> <span>Excel Premium</span>
-                </button>
+                <!-- NUEVO FILTRO DE PERSONA -->
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trabajador</label>
+                    <select id="filtroPersona" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
+                        <option value="todos">Todos los trabajadores</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-2 w-full xl:w-auto mt-2 xl:mt-0">
+                    <button id="btnFiltrar" class="flex-1 xl:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
+                    </button>
+                    <button id="btnExcel" class="flex-1 xl:flex-none bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> <span>Excel</span>
+                    </button>
+                </div>
             </div>
 
             <div id="mensajeEstado" class="hidden text-center py-4 text-slate-500 font-bold text-lg"></div>
@@ -122,7 +132,7 @@
 
         let chartBarras = null;
         let chartTorta = null;
-        let datosReporteGlobal = []; 
+        let datosReporteGlobal = []; // Guarda TODOS los datos del rango de fechas
 
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#64748b';
@@ -210,10 +220,8 @@
             });
 
             datosReporteGlobal = Object.values(resumen);
-            const nombres = datosReporteGlobal.map(d => d.nombre.split(' ')[0]);
-            const cantidades = datosReporteGlobal.map(d => d.sku);
 
-            if (nombres.length === 0) {
+            if (datosReporteGlobal.length === 0) {
                 msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos de productividad en estas fechas.`;
                 msj.classList.remove('hidden');
                 contGraficos.classList.add('hidden');
@@ -222,23 +230,55 @@
                 return;
             }
 
+            // Llenar el desplegable de trabajadores
+            const selectPersona = document.getElementById('filtroPersona');
+            const seleccionActual = selectPersona.value;
+            
+            // Solo actualizamos las opciones si es que no estaban antes
+            selectPersona.innerHTML = '<option value="todos">Todos los trabajadores</option>';
+            datosReporteGlobal.forEach(d => {
+                selectPersona.innerHTML += `<option value="${d.nombre}">${d.nombre}</option>`;
+            });
+
+            // Mantenemos la selección si el trabajador sigue existiendo
+            if (Array.from(selectPersona.options).some(o => o.value === seleccionActual)) {
+                selectPersona.value = seleccionActual;
+            } else {
+                selectPersona.value = 'todos';
+            }
+
+            // Dibujamos la vista inicial (ya sea filtrada o todos)
+            actualizarVista();
+        }
+
+        // Esta función dibuja la tabla y gráficos basándose en lo que dice el select
+        function actualizarVista() {
+            const personaSeleccionada = document.getElementById('filtroPersona').value;
+            
+            // Filtrar los datos
+            let datosMostrar = datosReporteGlobal;
+            if (personaSeleccionada !== 'todos') {
+                datosMostrar = datosReporteGlobal.filter(d => d.nombre === personaSeleccionada);
+            }
+
+            const nombres = datosMostrar.map(d => d.nombre.split(' ')[0]);
+            const cantidades = datosMostrar.map(d => d.sku);
+
+            // Llenar la Tabla
             const tbody = document.getElementById('tablaResultados');
             tbody.innerHTML = '';
             
-            datosReporteGlobal.forEach(persona => {
+            datosMostrar.forEach(persona => {
                 const cumplio = persona.sku >= persona.meta && persona.meta > 0;
                 
-                // LÓGICA DEL FALTANTE: Solo el número
                 let faltante = persona.meta - persona.sku;
                 let textoFaltante = '';
                 
                 if (persona.meta === 0) {
                     textoFaltante = '<span class="text-slate-400">-</span>';
                 } else if (faltante > 0) {
-                    // Si falta, mostramos solo el número en rojo
                     textoFaltante = `<span class="font-bold text-rose-500">${faltante}</span>`;
                 } else {
-                    // Si sobra o es 0, mostramos un 0 en verde
                     textoFaltante = `<span class="font-bold text-emerald-500">0</span>`;
                 }
 
@@ -261,8 +301,9 @@
                     </tr>
                 `;
             });
-            contTabla.classList.remove('hidden');
+            document.getElementById('contenedorTabla').classList.remove('hidden');
 
+            // Actualizar Gráficos
             if (chartBarras) chartBarras.destroy();
             if (chartTorta) chartTorta.destroy();
 
@@ -274,20 +315,29 @@
             chartBarras = new Chart(ctxBarras, {
                 type: 'bar',
                 data: { labels: nombres, datasets: [{ label: 'SKU Revisados', data: cantidades, backgroundColor: gradientBar, borderRadius: 8, borderSkipped: false, barPercentage: 0.6 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => ' SKU: ' + context.raw } } }, scales: { x: { grid: { display: false, drawBorder: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] }, ticks: { stepSize: 500 } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9', borderDash: [5, 5] } } } }
             });
 
             const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
             chartTorta = new Chart(ctxTorta, {
                 type: 'doughnut',
-                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'], borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 12, weight: '600'} } }, tooltip: { callbacks: { label: (context) => ' ' + context.label + ': ' + context.raw + ' SKU' } } } }
+                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'], borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } } } }
             });
         }
 
-        // --- DESCARGA DE EXCEL CON FORMATO PREMIUM (ExcelJS) ---
+        // Evento cuando se cambia de persona en el desplegable
+        document.getElementById('filtroPersona').addEventListener('change', actualizarVista);
+
+        // --- DESCARGA DE EXCEL (FILTRADO POR LO QUE SE VE EN PANTALLA) ---
         document.getElementById('btnExcel').addEventListener('click', async () => {
-            if (datosReporteGlobal.length === 0) return alert('No hay datos para exportar.');
+            const personaSeleccionada = document.getElementById('filtroPersona').value;
+            let datosAExportar = datosReporteGlobal;
+            if (personaSeleccionada !== 'todos') {
+                datosAExportar = datosReporteGlobal.filter(d => d.nombre === personaSeleccionada);
+            }
+
+            if (datosAExportar.length === 0) return alert('No hay datos para exportar.');
             
             const btn = document.getElementById('btnExcel');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Generando...</span>';
@@ -297,7 +347,6 @@
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet('Reporte Productividad');
 
-                // Configurar columnas
                 worksheet.columns = [
                     { header: 'Trabajador', key: 'nombre', width: 30 },
                     { header: 'Meta Asignada', key: 'meta', width: 15 },
@@ -306,15 +355,13 @@
                     { header: 'Cumplió Meta', key: 'cumplio', width: 15 }
                 ];
 
-                // Dar formato al Encabezado
                 const headerRow = worksheet.getRow(1);
                 headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
                 headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
                 headerRow.height = 25;
 
-                // Agregar datos
-                datosReporteGlobal.forEach(p => {
+                datosAExportar.forEach(p => {
                     let faltante = p.meta - p.sku;
                     let txtFaltante = faltante > 0 ? faltante : 0;
                     let cumplioText = p.meta > 0 ? (p.sku >= p.meta ? 'SÍ' : 'NO') : 'Sin Meta';
@@ -327,13 +374,11 @@
                         cumplio: cumplioText
                     });
 
-                    // Alinear números al centro
                     row.getCell('meta').alignment = { horizontal: 'center' };
                     row.getCell('sku').alignment = { horizontal: 'center' };
                     row.getCell('faltante').alignment = { horizontal: 'center' };
                     row.getCell('cumplio').alignment = { horizontal: 'center' };
 
-                    // Colorear estado
                     if (cumplioText === 'SÍ') {
                         row.getCell('cumplio').font = { color: { argb: 'FF16A34A' }, bold: true };
                     } else if (cumplioText === 'NO') {
@@ -341,38 +386,32 @@
                     }
                 });
 
-                // Poner bordes a todas las celdas
                 worksheet.eachRow((row) => {
                     row.eachCell((cell) => {
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-                        };
+                        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
                     });
                 });
 
-                // Generar el archivo y descargarlo
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Reporte_Productividad_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.download = `Reporte_${personaSeleccionada === 'todos' ? 'Equipo' : personaSeleccionada.replace(' ', '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
                 a.click();
                 window.URL.revokeObjectURL(url);
 
             } catch (error) {
                 console.error(error);
-                alert('Error al generar el Excel.');
             } finally {
-                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> <span>Excel Premium</span>';
+                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> <span>Excel</span>';
                 btn.disabled = false;
             }
         });
 
         document.getElementById('btnFiltrar').addEventListener('click', cargarReportes);
+        
+        // Iniciar
         cargarReportes();
     </script>
 </body>
