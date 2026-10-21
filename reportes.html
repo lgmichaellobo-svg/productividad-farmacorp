@@ -7,126 +7,134 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
         body { font-family: 'Inter', sans-serif; } 
         .card-premium { 
-            background: rgba(255, 255, 255, 0.95); 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); 
-            border: 1px solid rgba(226, 232, 240, 0.8); 
-            backdrop-filter: blur(10px); 
+            background: #ffffff; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
+            border: 1px solid #f1f5f9; 
         }
     </style>
 </head>
 <body class="bg-slate-50 font-sans h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-10">
+    <!-- Menú Lateral -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg"><i class="fa-solid fa-pills text-xl"></i></div>
-            <div><h1 class="text-lg font-bold text-white tracking-wide">Farmacorp</h1></div>
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30"><i class="fa-solid fa-pills text-lg"></i></div>
+            <div><h1 class="text-lg font-bold text-white tracking-tight">Farmacorp</h1></div>
         </div>
         <nav class="flex-1 p-4 space-y-1 mt-4">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition"><i class="fa-solid fa-house w-5"></i> Inicio</a>
-            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-md transition"><i class="fa-solid fa-chart-line w-5"></i> Productividad</a>
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium"><i class="fa-solid fa-house w-5"></i> Inicio</a>
+            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-md transition font-medium"><i class="fa-solid fa-chart-line w-5"></i> Productividad</a>
         </nav>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-            <h2 class="text-xl font-bold text-slate-800">Reportes de Productividad</h2>
-            <a href="productividad.html" class="text-sm text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-2">
-                <i class="fa-solid fa-arrow-left"></i> Volver a Productividad
+        <!-- Cabecera -->
+        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10 border-b border-slate-100">
+            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Reportes de Productividad</h2>
+            <a href="productividad.html" class="text-sm text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg transition">
+                <i class="fa-solid fa-arrow-left"></i> Volver
             </a>
         </header>
 
-        <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
+        <div class="p-4 md:p-8 flex-1 max-w-7xl mx-auto w-full">
             
-            <!-- Filtros -->
-            <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col xl:flex-row gap-4 items-end relative z-20">
-                <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Desde</label>
-                    <input type="date" id="fechaDesde" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
-                </div>
-                <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hasta</label>
-                    <input type="date" id="fechaHasta" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
-                </div>
-                
-                <!-- FILTRO MULTIPLE DE TRABAJADORES -->
-                <div class="flex-1 w-full relative" id="multiSelectContainer">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trabajadores</label>
-                    <button type="button" id="btnDropdown" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700 flex justify-between items-center">
-                        <span id="textoDropdown" class="truncate">Todos</span>
-                        <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
-                    </button>
-                    <div id="listaCheckboxes" class="hidden absolute z-30 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
-                        <label class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer border-b border-slate-100 mb-1">
-                            <input type="checkbox" id="checkTodos" checked class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
-                            <span class="font-bold text-sm text-slate-800">Seleccionar Todos</span>
-                        </label>
-                        <div id="contenedorOpciones"></div>
+            <!-- NUEVA BARRA DE FILTROS (REDISEÑADA) -->
+            <div class="card-premium p-5 rounded-2xl mb-6 relative z-20">
+                <div class="grid grid-cols-2 lg:grid-cols-12 gap-3 md:gap-4 items-end">
+                    
+                    <!-- Fechas (Ocupan 2 columnas en móvil, 2 en escritorio) -->
+                    <div class="col-span-1 lg:col-span-2">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                        <input type="date" id="fechaDesde" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-700">
                     </div>
-                </div>
+                    <div class="col-span-1 lg:col-span-2">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                        <input type="date" id="fechaHasta" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-700">
+                    </div>
 
-                <!-- NUEVO FILTRO DE CUMPLIMIENTO -->
-                <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Estado de Meta</label>
-                    <select id="filtroCumplimiento" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
-                        <option value="todos">Todos los estados</option>
-                        <option value="cumplieron">✅ Solo los que cumplieron</option>
-                        <option value="no_cumplieron">❌ Solo los que no cumplieron</option>
-                    </select>
-                </div>
+                    <!-- Multi-select Trabajadores (Ocupa 2 columnas en móvil, 3 en escritorio) -->
+                    <div class="col-span-2 lg:col-span-3 relative" id="multiSelectContainer">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Trabajadores</label>
+                        <button type="button" id="btnDropdown" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700 flex justify-between items-center">
+                            <span id="textoDropdown" class="truncate">Todos</span>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                        </button>
+                        <!-- Dropdown de Checkboxes -->
+                        <div id="listaCheckboxes" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
+                            <label class="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer border-b border-slate-100 mb-1">
+                                <input type="checkbox" id="checkTodos" checked class="w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500">
+                                <span class="font-bold text-sm text-slate-800">Seleccionar Todos</span>
+                            </label>
+                            <div id="contenedorOpciones"></div>
+                        </div>
+                    </div>
 
-                <div class="flex gap-2 w-full xl:w-auto mt-2 xl:mt-0">
-                    <button id="btnFiltrar" class="flex-1 xl:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
-                    </button>
-                    <button id="btnExcel" class="flex-1 xl:flex-none bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-file-excel"></i> <span>Excel</span>
-                    </button>
+                    <!-- Filtro de Estado (Ocupa 2 columnas en móvil, 2 en escritorio) -->
+                    <div class="col-span-2 lg:col-span-2">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Estado de Meta</label>
+                        <select id="filtroCumplimiento" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
+                            <option value="todos">Todos</option>
+                            <option value="cumplieron">✅ Cumplieron</option>
+                            <option value="no_cumplieron">❌ No cumplieron</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones (Ocupan el resto en escritorio) -->
+                    <div class="col-span-2 lg:col-span-3 flex gap-2 w-full mt-2 lg:mt-0">
+                        <button id="btnFiltrar" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-filter"></i> Filtrar
+                        </button>
+                        <button id="btnExcel" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
             <div id="mensajeEstado" class="hidden text-center py-4 text-slate-500 font-bold text-lg"></div>
 
             <!-- Gráficos -->
-            <div id="contenedorGraficos" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -z-10"></div>
-                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
+            <div id="contenedorGraficos" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="card-premium p-5 md:p-6 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -z-10 opacity-50"></div>
+                    <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-bar text-purple-500"></i> SKU por Persona
                     </h3>
-                    <div class="relative h-72 w-full"><canvas id="graficoBarras"></canvas></div>
+                    <div class="relative h-64 w-full"><canvas id="graficoBarras"></canvas></div>
                 </div>
 
-                <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10"></div>
-                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
+                <div class="card-premium p-5 md:p-6 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50"></div>
+                    <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-pie text-blue-500"></i> Distribución de SKU
                     </h3>
-                    <div class="relative h-72 w-full flex justify-center"><canvas id="graficoTorta"></canvas></div>
+                    <div class="relative h-64 w-full flex justify-center"><canvas id="graficoTorta"></canvas></div>
                 </div>
             </div>
 
-            <!-- TABLA -->
-            <div id="contenedorTabla" class="card-premium rounded-3xl overflow-hidden hidden">
-                <div class="p-6 md:px-8 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="text-lg font-extrabold text-slate-800 tracking-tight">Cumplimiento de Metas</h3>
+            <!-- Tabla -->
+            <div id="contenedorTabla" class="card-premium rounded-2xl overflow-hidden hidden">
+                <div class="p-5 border-b border-slate-100">
+                    <h3 class="text-base font-bold text-slate-800">Cumplimiento de Metas</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/50 text-slate-500 text-xs uppercase tracking-wider">
-                                <th class="p-5 font-bold">Trabajador</th>
-                                <th class="p-5 font-bold text-center">Meta Asignada</th>
-                                <th class="p-5 font-bold text-center">SKU Logrados</th>
-                                <th class="p-5 font-bold text-center">Faltante</th>
-                                <th class="p-5 font-bold text-center">Estado</th>
+                            <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider">
+                                <th class="p-4 font-bold">Trabajador</th>
+                                <th class="p-4 font-bold text-center">Meta Asignada</th>
+                                <th class="p-4 font-bold text-center">SKU Logrados</th>
+                                <th class="p-4 font-bold text-center">Faltante</th>
+                                <th class="p-4 font-bold text-center">Estado</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaResultados"></tbody>
+                        <tbody id="tablaResultados" class="text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -159,7 +167,7 @@
         document.getElementById('fechaDesde').value = hace7Dias.toISOString().split('T')[0];
         document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
 
-        // --- LÓGICA DE FILTROS ---
+        // Lógica del Dropdown
         const btnDropdown = document.getElementById('btnDropdown');
         const listaCheckboxes = document.getElementById('listaCheckboxes');
         const checkTodos = document.getElementById('checkTodos');
@@ -189,10 +197,9 @@
             else textoDropdown.innerText = `${seleccionados.length} seleccionados`;
         }
 
-        // Escuchar cambios en el filtro de cumplimiento
         document.getElementById('filtroCumplimiento').addEventListener('change', actualizarVista);
 
-        // --- CARGA DE DATOS ---
+        // Carga de datos
         async function cargarReportes() {
             const desde = document.getElementById('fechaDesde').value;
             const hasta = document.getElementById('fechaHasta').value;
@@ -202,7 +209,7 @@
             const contGraficos = document.getElementById('contenedorGraficos');
             const contTabla = document.getElementById('contenedorTabla');
 
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Cargando...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cargando...';
             btn.disabled = true;
             msj.classList.add('hidden');
             contGraficos.classList.remove('hidden');
@@ -211,9 +218,9 @@
             const { data: asigs } = await _supabase.from('asignaciones').select('id').gte('fecha', desde).lte('fecha', hasta);
 
             if (!asigs || asigs.length === 0) {
-                btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
+                btn.innerHTML = '<i class="fa-solid fa-filter"></i> Filtrar';
                 btn.disabled = false;
-                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay asignaciones en este rango de fechas.`;
+                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay asignaciones en este rango.`;
                 msj.classList.remove('hidden');
                 contGraficos.classList.add('hidden');
                 if (chartBarras) chartBarras.destroy();
@@ -226,7 +233,7 @@
             const { data: prodData } = await _supabase.from('productividad').select(`sku_revisados, operador_id, asignacion_id, usuarios (nombre)`).in('asignacion_id', asigIds);
             const { data: metasData } = await _supabase.from('asignacion_personal').select('asignacion_id, operador_id, meta_del_dia').in('asignacion_id', asigIds);
 
-            btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
+            btn.innerHTML = '<i class="fa-solid fa-filter"></i> Filtrar';
             btn.disabled = false;
 
             const mapaMetas = {};
@@ -249,7 +256,7 @@
             datosReporteGlobal = Object.values(resumen);
 
             if (datosReporteGlobal.length === 0) {
-                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos de productividad en estas fechas.`;
+                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos en estas fechas.`;
                 msj.classList.remove('hidden');
                 contGraficos.classList.add('hidden');
                 if (chartBarras) chartBarras.destroy();
@@ -261,8 +268,8 @@
             contenedorOpciones.innerHTML = '';
             datosReporteGlobal.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(d => {
                 contenedorOpciones.innerHTML += `
-                    <label class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                        <input type="checkbox" value="${d.nombre}" class="check-persona w-4 h-4 text-purple-600 rounded focus:ring-purple-500" checked>
+                    <label class="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" value="${d.nombre}" class="check-persona w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500" checked>
                         <span class="text-sm text-slate-700">${d.nombre}</span>
                     </label>
                 `;
@@ -281,21 +288,17 @@
             actualizarVista();
         }
 
-        // --- FUNCIÓN PARA OBTENER DATOS FILTRADOS (Reutilizable) ---
         function obtenerDatosFiltrados() {
             const checkboxes = document.querySelectorAll('.check-persona');
             const seleccionados = Array.from(checkboxes).filter(chk => chk.checked).map(chk => chk.value);
             const filtroCumplimiento = document.getElementById('filtroCumplimiento').value;
 
-            // 1. Empezamos con todos los datos
             let datosMostrar = datosReporteGlobal;
 
-            // 2. Filtramos por trabajadores seleccionados
             if (seleccionados.length > 0 && seleccionados.length < checkboxes.length) {
                 datosMostrar = datosMostrar.filter(d => seleccionados.includes(d.nombre));
             }
 
-            // 3. Filtramos por estado de meta
             if (filtroCumplimiento === 'cumplieron') {
                 datosMostrar = datosMostrar.filter(d => d.meta > 0 && d.sku >= d.meta);
             } else if (filtroCumplimiento === 'no_cumplieron') {
@@ -305,12 +308,11 @@
             return datosMostrar;
         }
 
-        // --- DIBUJAR VISTA ---
         function actualizarVista() {
             const datosMostrar = obtenerDatosFiltrados();
             
             if (datosMostrar.length === 0) {
-                document.getElementById('mensajeEstado').innerHTML = `<i class="fa-solid fa-magnifying-glass text-3xl mb-2 block"></i> No hay trabajadores que coincidan con los filtros.`;
+                document.getElementById('mensajeEstado').innerHTML = `<i class="fa-solid fa-magnifying-glass text-3xl mb-2 block"></i> No hay trabajadores que coincidan.`;
                 document.getElementById('mensajeEstado').classList.remove('hidden');
                 document.getElementById('contenedorGraficos').classList.add('hidden');
                 document.getElementById('contenedorTabla').classList.add('hidden');
@@ -326,7 +328,6 @@
             const nombres = datosMostrar.map(d => d.nombre.split(' ')[0]);
             const cantidades = datosMostrar.map(d => d.sku);
 
-            // Tabla
             const tbody = document.getElementById('tablaResultados');
             tbody.innerHTML = '';
             
@@ -338,55 +339,53 @@
 
                 let estadoBadge = '';
                 if (persona.meta === 0) {
-                    estadoBadge = `<span class="bg-slate-100 text-slate-500 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200">Sin meta</span>`;
+                    estadoBadge = `<span class="bg-slate-100 text-slate-500 px-2 py-1 rounded text-xs font-bold">Sin meta</span>`;
                 } else if (cumplio) {
-                    estadoBadge = `<span class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100"><i class="fa-solid fa-check mr-1"></i> Cumplió</span>`;
+                    estadoBadge = `<span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-xs font-bold border border-emerald-100"><i class="fa-solid fa-check mr-1"></i> Cumplió</span>`;
                 } else {
-                    estadoBadge = `<span class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-100"><i class="fa-solid fa-xmark mr-1"></i> No cumplió</span>`;
+                    estadoBadge = `<span class="bg-rose-50 text-rose-600 px-2 py-1 rounded text-xs font-bold border border-rose-100"><i class="fa-solid fa-xmark mr-1"></i> No cumplió</span>`;
                 }
 
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                        <td class="p-5 font-semibold text-slate-800">${persona.nombre}</td>
-                        <td class="p-5 text-center font-medium text-slate-600">${persona.meta} SKU</td>
-                        <td class="p-5 text-center font-black text-blue-600 text-lg">${persona.sku} SKU</td>
-                        <td class="p-5 text-center">${textoFaltante}</td>
-                        <td class="p-5 text-center">${estadoBadge}</td>
+                        <td class="p-4 font-semibold text-slate-800">${persona.nombre}</td>
+                        <td class="p-4 text-center font-medium text-slate-600">${persona.meta} SKU</td>
+                        <td class="p-4 text-center font-black text-blue-600">${persona.sku} SKU</td>
+                        <td class="p-4 text-center">${textoFaltante}</td>
+                        <td class="p-4 text-center">${estadoBadge}</td>
                     </tr>
                 `;
             });
 
-            // Gráficos
             if (chartBarras) chartBarras.destroy();
             if (chartTorta) chartTorta.destroy();
 
             const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
-            const gradientBar = ctxBarras.createLinearGradient(0, 0, 0, 400);
+            const gradientBar = ctxBarras.createLinearGradient(0, 0, 0, 300);
             gradientBar.addColorStop(0, '#8b5cf6');
             gradientBar.addColorStop(1, '#6366f1');
 
             chartBarras = new Chart(ctxBarras, {
                 type: 'bar',
-                data: { labels: nombres, datasets: [{ label: 'SKU Revisados', data: cantidades, backgroundColor: gradientBar, borderRadius: 8, borderSkipped: false, barPercentage: 0.6 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9', borderDash: [5, 5] } } } }
+                data: { labels: nombres, datasets: [{ label: 'SKU', data: cantidades, backgroundColor: gradientBar, borderRadius: 6, barPercentage: 0.6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { borderDash: [5, 5] } } } }
             });
 
             const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
             chartTorta = new Chart(ctxTorta, {
                 type: 'doughnut',
-                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'], borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } } } }
+                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, padding: 15, font: { size: 11 } } } } }
             });
         }
 
-        // --- EXCEL ---
+        // Descargar Excel
         document.getElementById('btnExcel').addEventListener('click', async () => {
             const datosAExportar = obtenerDatosFiltrados();
-
-            if (datosAExportar.length === 0) return alert('No hay datos para exportar con los filtros actuales.');
+            if (datosAExportar.length === 0) return alert('No hay datos para exportar.');
             
             const btn = document.getElementById('btnExcel');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Generando...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...';
             btn.disabled = true;
 
             try {
@@ -443,7 +442,7 @@
             } catch (error) {
                 console.error(error);
             } finally {
-                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> <span>Excel</span>';
+                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 btn.disabled = false;
             }
         });
