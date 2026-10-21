@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productividad - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Librería para leer Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -39,7 +38,6 @@
 
         <div class="p-6 md:p-10 flex-1 max-w-4xl mx-auto w-full">
             
-            <!-- Panel de Búsqueda -->
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-8">
                 <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">Datos de la Jornada</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -64,11 +62,9 @@
                 </div>
             </div>
 
-            <!-- Panel de Registro (Oculto hasta elegir fecha/encargado) -->
             <div id="panelRegistro" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                 <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">Ingresar Productividad</h3>
                 
-                <!-- Botones para elegir método -->
                 <div class="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl w-max">
                     <button type="button" id="btnModoManual" class="px-6 py-2 rounded-lg font-bold text-sm bg-white shadow-sm text-blue-600 transition">Registro Manual</button>
                     <button type="button" id="btnModoExcel" class="px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-700 transition">Importar Excel</button>
@@ -84,7 +80,7 @@
                     </button>
                 </form>
 
-                <!-- MODO EXCEL (Oculto por defecto) -->
+                <!-- MODO EXCEL -->
                 <div id="formExcel" class="hidden border-2 border-dashed border-slate-300 rounded-2xl p-10 text-center bg-slate-50">
                     <i class="fa-solid fa-file-excel text-5xl text-green-500 mb-4"></i>
                     <h4 class="text-lg font-bold text-slate-800 mb-2">Sube tu archivo de Productividad</h4>
@@ -109,7 +105,7 @@
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let asignacionActualId = null;
-        let equipoActual = []; // Guardará los IDs y nombres del equipo
+        let equipoActual = []; 
 
         async function cargarEncargados() {
             const { data } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'encargado');
@@ -119,7 +115,6 @@
             }
         }
 
-        // Lógica de las pestañas (Manual vs Excel)
         document.getElementById('btnModoManual').addEventListener('click', () => {
             document.getElementById('formProductividad').classList.remove('hidden');
             document.getElementById('formExcel').classList.add('hidden');
@@ -134,7 +129,6 @@
             document.getElementById('btnModoManual').className = 'px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-700 transition';
         });
 
-        // Buscar asignación
         document.getElementById('encargado').addEventListener('change', async (e) => {
             const encargadoId = e.target.value;
             const fecha = document.getElementById('fecha').value;
@@ -160,10 +154,9 @@
                 document.getElementById('infoBodega').innerText = asignacion.bodegas.nombre;
                 document.getElementById('infoNegocio').innerText = asignacion.tipos_negocio.nombre;
                 
-                // Cargar Personal
                 const { data: personal } = await _supabase
                     .from('asignacion_personal')
-                    .select(`operador_id, rol_en_equipo, usuarios (nombre)`)
+                    .select(`id, operador_id, rol_en_equipo, meta_del_dia, usuarios (nombre)`)
                     .eq('asignacion_id', asignacion.id);
 
                 const { data: metas } = await _supabase
@@ -171,20 +164,26 @@
                     .select('rol, meta_sku')
                     .eq('negocio_id', asignacion.tipos_negocio.id);
 
-                const metaEncargado = metas.find(m => m.rol === 'encargado')?.meta_sku || 0;
-                const metaAsistente = metas.find(m => m.rol === 'asistente')?.meta_sku || 0;
+                const metaEncargadoDef = metas.find(m => m.rol === 'encargado')?.meta_sku || 0;
+                const metaAsistenteDef = metas.find(m => m.rol === 'asistente')?.meta_sku || 0;
 
-                // Guardar equipo en memoria para el Excel
                 equipoActual = [{ id: encargadoId, nombre: e.target.options[e.target.selectedIndex].text, rol: 'encargado' }];
 
+                // Encargado (Meta editable)
                 let htmlPersonas = `
-                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-                        <div>
+                    <div class="flex flex-col md:flex-row items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 gap-4">
+                        <div class="w-full md:w-auto">
                             <p class="font-bold text-slate-800">${e.target.options[e.target.selectedIndex].text} (Tú)</p>
-                            <p class="text-xs text-slate-500">Meta: ${metaEncargado} SKU</p>
                         </div>
-                        <div class="w-32">
-                            <input type="number" name="prod_${encargadoId}" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        <div class="flex gap-4 w-full md:w-auto">
+                            <div class="flex-1">
+                                <label class="text-xs text-slate-500 mb-1 block">Meta del día (Editable)</label>
+                                <input type="number" name="meta_${encargadoId}" value="${metaEncargadoDef}" class="w-full px-2 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-xs text-blue-600 font-bold mb-1 block">SKU Logrados</label>
+                                <input type="number" name="prod_${encargadoId}" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -194,13 +193,19 @@
                         if (p.rol_en_equipo === 'asistente') {
                             equipoActual.push({ id: p.operador_id, nombre: p.usuarios.nombre, rol: 'asistente' });
                             htmlPersonas += `
-                                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-                                    <div>
+                                <div class="flex flex-col md:flex-row items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm gap-4">
+                                    <div class="w-full md:w-auto">
                                         <p class="font-bold text-slate-800">${p.usuarios.nombre}</p>
-                                        <p class="text-xs text-slate-500">Meta: ${metaAsistente} SKU</p>
                                     </div>
-                                    <div class="w-32">
-                                        <input type="number" name="prod_${p.operador_id}" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                                    <div class="flex gap-4 w-full md:w-auto">
+                                        <div class="flex-1">
+                                            <label class="text-xs text-slate-500 mb-1 block">Meta del día (Editable)</label>
+                                            <input type="number" name="meta_${p.operador_id}" value="${p.meta_del_dia || metaAsistenteDef}" class="w-full px-2 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label class="text-xs text-blue-600 font-bold mb-1 block">SKU Logrados</label>
+                                            <input type="number" name="prod_${p.operador_id}" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                                        </div>
                                     </div>
                                 </div>
                             `;
@@ -218,35 +223,61 @@
             }
         });
 
-        // Guardar Productividad Manual
         document.getElementById('formProductividad').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
             btn.innerText = 'Guardando...';
             btn.disabled = true;
 
-            const inputs = document.querySelectorAll('#listaPersonas input');
+            const inputsProd = document.querySelectorAll('#listaPersonas input[name^="prod_"]');
             const registros = [];
+            const actualizacionesMeta = [];
 
-            inputs.forEach(input => {
+            inputsProd.forEach(input => {
                 const operadorId = input.name.replace('prod_', '');
                 const sku = parseInt(input.value) || 0;
+                const metaInput = document.querySelector(`input[name="meta_${operadorId}"]`);
+                const metaNueva = parseInt(metaInput.value) || 0;
+
+                // Datos para guardar la productividad
                 registros.push({
                     asignacion_id: asignacionActualId,
                     operador_id: operadorId,
                     sku_revisados: sku,
                     origen: 'manual'
                 });
+
+                // Datos para actualizar la meta si fue editada
+                actualizacionesMeta.push({
+                    operador_id: operadorId,
+                    meta_del_dia: metaNueva
+                });
             });
 
-            const { error } = await _supabase.from('productividad').insert(registros);
-            mostrarMensaje(error ? 'Error: ' + error.message : '¡Productividad guardada con éxito!', error ? 'red' : 'green');
+            // 1. Guardar Productividad
+            const { error: errorProd } = await _supabase.from('productividad').insert(registros);
             
+            if (errorProd) {
+                mostrarMensaje('Error al guardar productividad: ' + errorProd.message, 'red');
+                btn.innerText = 'Guardar Productividad';
+                btn.disabled = false;
+                return;
+            }
+
+            // 2. Actualizar Metas en asignacion_personal
+            for (let act of actualizacionesMeta) {
+                await _supabase.from('asignacion_personal')
+                    .update({ meta_del_dia: act.meta_del_dia, meta_es_especial: true })
+                    .eq('asignacion_id', asignacionActualId)
+                    .eq('operador_id', act.operador_id);
+            }
+
+            mostrarMensaje('¡Productividad y metas guardadas con éxito!', 'green');
             btn.innerText = 'Guardar Productividad';
             btn.disabled = false;
+            e.target.reset();
         });
 
-        // Leer Excel
         document.getElementById('excelFile').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -256,15 +287,13 @@
 
             reader.onload = async function(event) {
                 try {
-                    const data = new Uint8Array(event.target.result);
+                    const data = new Uint8Array(event.targetresult);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const json = XLSX.utils.sheet_to_json(firstSheet);
 
-                    // Agrupar datos del excel por trabajador
                     let resultadosExcel = {};
                     json.forEach(row => {
-                        // Buscar columna de nombre y SKU (ignorando mayúsculas/minúsculas)
                         let nombreKey = Object.keys(row).find(k => k.toUpperCase().includes('NOMBRE') || k.toUpperCase().includes('TRABAJADOR'));
                         let skuKey = Object.keys(row).find(k => k.toUpperCase().includes('SKU') || k.toUpperCase().includes('CANTIDAD'));
 
@@ -275,11 +304,9 @@
                         }
                     });
 
-                    // Cruzar con el equipo actual
                     const registros = [];
                     equipoActual.forEach(persona => {
                         const nombreDb = persona.nombre.toUpperCase();
-                        // Buscar coincidencia (ej. "MICHAEL LOBO" o solo "MICHAEL")
                         const matchKey = Object.keys(resultadosExcel).find(k => k.includes(nombreDb) || nombreDb.includes(k));
                         
                         if (matchKey) {
@@ -293,23 +320,21 @@
                     });
 
                     if (registros.length === 0) {
-                        mostrarMensaje('No se encontraron nombres coincidentes en el Excel.', 'red');
+                        mostrarMensaje('No se encontraron nombres coincidentes.', 'red');
                         document.getElementById('excelFileName').innerText = "";
                         return;
                     }
 
-                    // Guardar en Supabase
                     const { error } = await _supabase.from('productividad').insert(registros);
-                    
                     if (error) {
                         mostrarMensaje('Error al guardar: ' + error.message, 'red');
                     } else {
-                        mostrarMensaje('¡Productividad importada y guardada con éxito!', 'green');
-                        document.getElementById('excelFileName').innerText = `Archivo procesado: ${file.name} (${registros.length} personas guardadas)`;
+                        mostrarMensaje('¡Productividad importada con éxito!', 'green');
+                        document.getElementById('excelFileName').innerText = `Procesado: ${file.name}`;
                     }
 
                 } catch (error) {
-                    mostrarMensaje('Error al leer el archivo. Asegúrate de que sea un Excel válido.', 'red');
+                    mostrarMensaje('Error al leer el Excel.', 'red');
                 }
             };
             reader.readAsArrayBuffer(file);
