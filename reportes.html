@@ -16,6 +16,9 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
             border: 1px solid #f1f5f9; 
         }
+        /* Transición suave para la flechita */
+        .chevron-rotate { transition: transform 0.3s ease; }
+        .rotate-180 { transform: rotate(180deg); }
     </style>
 </head>
 <body class="bg-slate-50 font-sans h-screen flex overflow-hidden">
@@ -43,57 +46,66 @@
 
         <div class="p-4 md:p-8 flex-1 max-w-7xl mx-auto w-full">
             
-            <!-- NUEVA BARRA DE FILTROS (REDISEÑADA) -->
-            <div class="card-premium p-5 rounded-2xl mb-6 relative z-20">
-                <div class="grid grid-cols-2 lg:grid-cols-12 gap-3 md:gap-4 items-end">
-                    
-                    <!-- Fechas (Ocupan 2 columnas en móvil, 2 en escritorio) -->
-                    <div class="col-span-1 lg:col-span-2">
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
-                        <input type="date" id="fechaDesde" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-700">
-                    </div>
-                    <div class="col-span-1 lg:col-span-2">
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
-                        <input type="date" id="fechaHasta" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-700">
-                    </div>
-
-                    <!-- Multi-select Trabajadores (Ocupa 2 columnas en móvil, 3 en escritorio) -->
-                    <div class="col-span-2 lg:col-span-3 relative" id="multiSelectContainer">
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Trabajadores</label>
-                        <button type="button" id="btnDropdown" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700 flex justify-between items-center">
-                            <span id="textoDropdown" class="truncate">Todos</span>
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
-                        </button>
-                        <!-- Dropdown de Checkboxes -->
-                        <div id="listaCheckboxes" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
-                            <label class="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer border-b border-slate-100 mb-1">
-                                <input type="checkbox" id="checkTodos" checked class="w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500">
-                                <span class="font-bold text-sm text-slate-800">Seleccionar Todos</span>
-                            </label>
-                            <div id="contenedorOpciones"></div>
+            <!-- ACORDEÓN DE FILTROS -->
+            <div class="mb-6 relative z-20">
+                <!-- Barra para abrir/cerrar -->
+                <button id="toggleFiltrosBtn" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition mb-3">
+                    <span class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                            <i class="fa-solid fa-sliders"></i>
                         </div>
-                    </div>
+                        Filtros de búsqueda
+                    </span>
+                    <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
+                </button>
 
-                    <!-- Filtro de Estado (Ocupa 2 columnas en móvil, 2 en escritorio) -->
-                    <div class="col-span-2 lg:col-span-2">
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Estado de Meta</label>
-                        <select id="filtroCumplimiento" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
-                            <option value="todos">Todos</option>
-                            <option value="cumplieron">✅ Cumplieron</option>
-                            <option value="no_cumplieron">❌ No cumplieron</option>
-                        </select>
-                    </div>
+                <!-- Contenedor de Filtros (Oculto por defecto) -->
+                <div id="panelFiltros" class="hidden card-premium p-5 rounded-2xl">
+                    <div class="grid grid-cols-2 lg:grid-cols-12 gap-3 md:gap-4 items-end">
+                        
+                        <div class="col-span-1 lg:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                            <input type="date" id="fechaDesde" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-700">
+                        </div>
+                        <div class="col-span-1 lg:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                            <input type="date" id="fechaHasta" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-700">
+                        </div>
 
-                    <!-- Botones (Ocupan el resto en escritorio) -->
-                    <div class="col-span-2 lg:col-span-3 flex gap-2 w-full mt-2 lg:mt-0">
-                        <button id="btnFiltrar" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm text-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-filter"></i> Filtrar
-                        </button>
-                        <button id="btnExcel" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm text-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-file-excel"></i> Excel
-                        </button>
-                    </div>
+                        <div class="col-span-2 lg:col-span-3 relative" id="multiSelectContainer">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Trabajadores</label>
+                            <button type="button" id="btnDropdown" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700 flex justify-between items-center">
+                                <span id="textoDropdown" class="truncate">Todos</span>
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                            </button>
+                            <div id="listaCheckboxes" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
+                                <label class="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer border-b border-slate-100 mb-1">
+                                    <input type="checkbox" id="checkTodos" checked class="w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500">
+                                    <span class="font-bold text-sm text-slate-800">Seleccionar Todos</span>
+                                </label>
+                                <div id="contenedorOpciones"></div>
+                            </div>
+                        </div>
 
+                        <div class="col-span-2 lg:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Estado de Meta</label>
+                            <select id="filtroCumplimiento" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition font-medium text-slate-700">
+                                <option value="todos">Todos</option>
+                                <option value="cumplieron">✅ Cumplieron</option>
+                                <option value="no_cumplieron">❌ No cumplieron</option>
+                            </select>
+                        </div>
+
+                        <div class="col-span-2 lg:col-span-3 flex gap-2 w-full mt-2 lg:mt-0">
+                            <button id="btnFiltrar" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-filter"></i> Filtrar
+                            </button>
+                            <button id="btnExcel" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-excel"></i> Excel
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
@@ -167,7 +179,17 @@
         document.getElementById('fechaDesde').value = hace7Dias.toISOString().split('T')[0];
         document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
 
-        // Lógica del Dropdown
+        // --- LÓGICA DE ABRIR/CERRAR FILTROS (ACORDEÓN) ---
+        const toggleFiltrosBtn = document.getElementById('toggleFiltrosBtn');
+        const panelFiltros = document.getElementById('panelFiltros');
+        const iconoFlecha = document.getElementById('iconoFlecha');
+
+        toggleFiltrosBtn.addEventListener('click', () => {
+            panelFiltros.classList.toggle('hidden');
+            iconoFlecha.classList.toggle('rotate-180');
+        });
+
+        // --- LÓGICA DEL MULTI-SELECT ---
         const btnDropdown = document.getElementById('btnDropdown');
         const listaCheckboxes = document.getElementById('listaCheckboxes');
         const checkTodos = document.getElementById('checkTodos');
@@ -199,8 +221,12 @@
 
         document.getElementById('filtroCumplimiento').addEventListener('change', actualizarVista);
 
-        // Carga de datos
+        // --- CARGA DE DATOS ---
         async function cargarReportes() {
+            // Ocultar filtros automáticamente al filtrar para dar más espacio
+            panelFiltros.classList.add('hidden');
+            iconoFlecha.classList.add('rotate-180');
+
             const desde = document.getElementById('fechaDesde').value;
             const hasta = document.getElementById('fechaHasta').value;
             
@@ -448,7 +474,11 @@
         });
 
         document.getElementById('btnFiltrar').addEventListener('click', cargarReportes);
-        cargarReportes();
+        
+        // Iniciar (Al cargar la página por primera vez, se muestran los filtros un momento y se contraen)
+        setTimeout(() => {
+            cargarReportes();
+        }, 100);
     </script>
 </body>
 </html>
