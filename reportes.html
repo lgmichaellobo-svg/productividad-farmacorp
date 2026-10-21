@@ -6,13 +6,21 @@
     <title>Reportes - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Librería para generar Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        /* Efecto de tarjeta corporativa */
+        .card-premium {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(10px);
+        }
+    </style>
 </head>
-<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+<body class="bg-slate-50 font-sans h-screen flex overflow-hidden">
 
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-10">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
@@ -33,60 +41,68 @@
             </a>
         </header>
 
-        <div class="p-6 md:p-10 flex-1 max-w-6xl mx-auto w-full">
+        <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
             
             <!-- Filtros y Botón de Descarga -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-4 items-end">
+            <div class="card-premium p-6 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-end">
                 <div class="flex-1 w-full">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Desde</label>
-                    <input type="date" id="fechaDesde" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Desde</label>
+                    <input type="date" id="fechaDesde" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
                 </div>
                 <div class="flex-1 w-full">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Hasta</label>
-                    <input type="date" id="fechaHasta" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hasta</label>
+                    <input type="date" id="fechaHasta" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition">
                 </div>
-                <button id="btnFiltrar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md w-full md:w-auto flex items-center justify-center gap-2">
+                <button id="btnFiltrar" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-purple-500/30 w-full md:w-auto flex items-center justify-center gap-2">
                     <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
                 </button>
-                <!-- NUEVO BOTÓN DE EXCEL -->
-                <button id="btnExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md w-full md:w-auto flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> <span>Descargar Excel</span>
+                <button id="btnExcel" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-emerald-500/30 w-full md:w-auto flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> <span>Excel</span>
                 </button>
             </div>
 
-            <!-- Mensaje de estado -->
             <div id="mensajeEstado" class="hidden text-center py-4 text-slate-500 font-bold text-lg"></div>
 
-            <!-- Contenedores de Gráficos -->
-            <div id="contenedorGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4">SKU por Persona</h3>
-                    <div class="relative h-64 w-full">
+            <!-- Contenedores de Gráficos Premium -->
+            <div id="contenedorGraficos" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                
+                <!-- Gráfico de Barras -->
+                <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -z-10"></div>
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
+                        <i class="fa-solid fa-chart-bar text-purple-500"></i> SKU por Persona
+                    </h3>
+                    <!-- Contenedor con altura fija para adaptabilidad -->
+                    <div class="relative h-72 w-full">
                         <canvas id="graficoBarras"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4">Distribución de SKU</h3>
-                    <div class="relative h-64 w-full flex justify-center">
+                <!-- Gráfico de Torta -->
+                <div class="card-premium p-6 md:p-8 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10"></div>
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-tight">
+                        <i class="fa-solid fa-chart-pie text-blue-500"></i> Distribución de SKU
+                    </h3>
+                    <div class="relative h-72 w-full flex justify-center">
                         <canvas id="graficoTorta"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- NUEVA TABLA DE RESULTADOS -->
-            <div id="contenedorTabla" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hidden">
-                <div class="p-6 border-b border-slate-200">
-                    <h3 class="text-lg font-bold text-slate-800">Cumplimiento de Metas</h3>
+            <!-- TABLA DE RESULTADOS -->
+            <div id="contenedorTabla" class="card-premium rounded-3xl overflow-hidden hidden">
+                <div class="p-6 md:px-8 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-lg font-extrabold text-slate-800 tracking-tight">Cumplimiento de Metas</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-600 text-sm">
-                                <th class="p-4 font-bold border-b">Trabajador</th>
-                                <th class="p-4 font-bold border-b text-center">Meta Asignada</th>
-                                <th class="p-4 font-bold border-b text-center">SKU Logrados</th>
-                                <th class="p-4 font-bold border-b text-center">Estado</th>
+                            <tr class="bg-slate-50/50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-5 font-bold">Trabajador</th>
+                                <th class="p-5 font-bold text-center">Meta Asignada</th>
+                                <th class="p-5 font-bold text-center">SKU Logrados</th>
+                                <th class="p-5 font-bold text-center">Estado</th>
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
@@ -107,7 +123,17 @@
 
         let chartBarras = null;
         let chartTorta = null;
-        let datosReporteGlobal = []; // Guardar datos para el Excel
+        let datosReporteGlobal = []; 
+
+        // Configuración global de Chart.js para que se vea premium
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b'; // Color de texto slate-500
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)'; // Fondo oscuro slate-900
+        Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: 'bold' };
+        Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.displayColors = false;
 
         const hoy = new Date();
         const hace7Dias = new Date();
@@ -131,45 +157,37 @@
             contGraficos.classList.remove('hidden');
             contTabla.classList.add('hidden');
 
-            // Consultar Productividad, Usuarios, y la Meta del día
-            const { data, error } = await _supabase
+            const { data: prodData, error: prodError } = await _supabase
                 .from('productividad')
-                .select(`
-                    sku_revisados,
-                    operador_id,
-                    usuarios (nombre),
-                    asignaciones (
-                        fecha,
-                        asignacion_personal ( operador_id, meta_del_dia )
-                    )
-                `)
+                .select(`sku_revisados, operador_id, asignacion_id, usuarios (nombre), asignaciones (fecha)`)
                 .gte('asignaciones.fecha', desde)
                 .lte('asignaciones.fecha', hasta);
+
+            const { data: metasData, error: metasError } = await _supabase
+                .from('asignacion_personal')
+                .select('asignacion_id, operador_id, meta_del_dia');
 
             btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
             btn.disabled = false;
 
-            if (error) {
-                console.error(error);
+            if (prodError || metasError) {
+                console.error(prodError || metasError);
                 alert("Error al cargar datos.");
                 return;
             }
 
+            const mapaMetas = {};
+            metasData.forEach(m => {
+                mapaMetas[`${m.asignacion_id}-${m.operador_id}`] = m.meta_del_dia;
+            });
+
             let resumen = {};
-            
-            // Procesar datos
-            data.forEach(item => {
+            prodData.forEach(item => {
                 if(item.usuarios && item.usuarios.nombre) {
                     let operadorId = item.operador_id;
                     let nombre = item.usuarios.nombre;
                     let sku = Number(item.sku_revisados);
-                    let meta = 0;
-
-                    // Buscar la meta correspondiente a este operador en esta asignación
-                    if (item.asignaciones && item.asignaciones.asignacion_personal) {
-                        let metaInfo = item.asignaciones.asignacion_personal.find(m => m.operador_id === operadorId);
-                        if (metaInfo) meta = metaInfo.meta_del_dia;
-                    }
+                    let meta = mapaMetas[`${item.asignacion_id}-${operadorId}`] || 0;
 
                     if (!resumen[operadorId]) {
                         resumen[operadorId] = { nombre: nombre, sku: 0, meta: meta };
@@ -182,7 +200,6 @@
             const nombres = datosReporteGlobal.map(d => d.nombre.split(' ')[0]);
             const cantidades = datosReporteGlobal.map(d => d.sku);
 
-            // Si no hay datos
             if (nombres.length === 0) {
                 msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos en este rango de fechas.`;
                 msj.classList.remove('hidden');
@@ -192,42 +209,107 @@
                 return;
             }
 
-            // Mostrar Tabla
+            // Llenar la Tabla
             const tbody = document.getElementById('tablaResultados');
             tbody.innerHTML = '';
             datosReporteGlobal.forEach(persona => {
-                const cumplio = persona.sku >= persona.meta;
-                const estadoBadge = cumplio 
-                    ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-check"></i> Cumplió</span>`
-                    : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-xmark"></i> No cumplió</span>`;
+                const cumplio = persona.sku >= persona.meta && persona.meta > 0;
+                
+                let estadoBadge = '';
+                if (persona.meta === 0) {
+                    estadoBadge = `<span class="bg-slate-100 text-slate-500 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200">Sin meta</span>`;
+                } else if (cumplio) {
+                    estadoBadge = `<span class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100"><i class="fa-solid fa-check mr-1"></i> Cumplió</span>`;
+                } else {
+                    estadoBadge = `<span class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-100"><i class="fa-solid fa-xmark mr-1"></i> No cumplió</span>`;
+                }
 
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-4 font-semibold text-slate-800">${persona.nombre}</td>
-                        <td class="p-4 text-center font-medium text-slate-600">${persona.meta} SKU</td>
-                        <td class="p-4 text-center font-bold text-blue-600">${persona.sku} SKU</td>
-                        <td class="p-4 text-center">${estadoBadge}</td>
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                        <td class="p-5 font-semibold text-slate-800">${persona.nombre}</td>
+                        <td class="p-5 text-center font-medium text-slate-600">${persona.meta} SKU</td>
+                        <td class="p-5 text-center font-black text-blue-600 text-lg">${persona.sku} SKU</td>
+                        <td class="p-5 text-center">${estadoBadge}</td>
                     </tr>
                 `;
             });
             contTabla.classList.remove('hidden');
 
-            // Dibujar Gráficos
+            // --- GRÁFICOS PREMIUM ---
             if (chartBarras) chartBarras.destroy();
             if (chartTorta) chartTorta.destroy();
 
+            // 1. Gráfico de Barras (Degradado)
             const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+            const gradientBar = ctxBarras.createLinearGradient(0, 0, 0, 400);
+            gradientBar.addColorStop(0, '#8b5cf6'); // Púrpura
+            gradientBar.addColorStop(1, '#6366f1'); // Índigo
+
             chartBarras = new Chart(ctxBarras, {
                 type: 'bar',
-                data: { labels: nombres, datasets: [{ label: 'SKU', data: cantidades, backgroundColor: '#9333ea', borderRadius: 6 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                data: {
+                    labels: nombres,
+                    datasets: [{
+                        label: 'SKU Revisados',
+                        data: cantidades,
+                        backgroundColor: gradientBar,
+                        borderRadius: 8, // Bordes redondeados
+                        borderSkipped: false,
+                        barPercentage: 0.6, // Barras más delgadas y elegantes
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return ' SKU: ' + context.raw; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false, drawBorder: false } },
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] },
+                            ticks: { stepSize: 500 }
+                        }
+                    }
+                }
             });
 
+            // 2. Gráfico de Torta (Dona 3D)
             const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
             chartTorta = new Chart(ctxTorta, {
                 type: 'doughnut',
-                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#9333ea', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                data: {
+                    labels: nombres,
+                    datasets: [{
+                        data: cantidades,
+                        backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'],
+                        borderWidth: 4,
+                        borderColor: '#ffffff', // Borde blanco da efecto de separación 3D
+                        hoverOffset: 8, // Se agranda al pasar el mouse
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%', // Hace el agujero más grande (estilo premium)
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 12, weight: '600'} }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return ' ' + context.label + ': ' + context.raw + ' SKU'; }
+                            }
+                        }
+                    }
+                }
             });
         }
 
@@ -237,19 +319,17 @@
                 return alert('No hay datos para exportar. Primero filtra un rango de fechas con datos.');
             }
 
-            // Formatear datos para el Excel
             const excelData = datosReporteGlobal.map(p => ({
                 'Trabajador': p.nombre,
                 'Meta Asignada': p.meta,
                 'SKU Logrados': p.sku,
-                'Cumplió Meta': p.sku >= p.meta ? 'SÍ' : 'NO'
+                'Cumplió Meta': p.meta > 0 ? (p.sku >= p.meta ? 'SÍ' : 'NO') : 'Sin Meta'
             }));
 
             const ws = XLSX.utils.json_to_sheet(excelData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Reporte Productividad");
             
-            // Nombre del archivo con la fecha
             const fechaArchivo = new Date().toISOString().split('T')[0];
             XLSX.writeFile(wb, `Reporte_Productividad_${fechaArchivo}.xlsx`);
         });
