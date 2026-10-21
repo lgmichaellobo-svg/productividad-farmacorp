@@ -56,7 +56,6 @@
                         </select>
                     </div>
                     
-                    <!-- NUEVA SECCIÓN DE ASISTENTES -->
                     <div class="md:col-span-2 mt-2">
                         <label class="block text-sm font-medium text-slate-700 mb-2">Asistentes (Equipo de trabajo)</label>
                         <div id="listaAsistentes" class="grid grid-cols-2 md:grid-cols-3 gap-2 border border-slate-200 p-4 rounded-xl max-h-48 overflow-y-auto">
@@ -80,31 +79,24 @@
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         async function cargarDatos() {
-            // Cargar Encargados
             const { data: encargados } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'encargado');
             if (encargados) {
                 const select = document.getElementById('encargadoAsig');
                 select.innerHTML = '<option value="">Seleccione...</option>';
                 encargados.forEach(u => select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
             }
-
-            // Cargar Bodegas
             const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre');
             if (bodegas) {
                 const select = document.getElementById('bodegaAsig');
                 select.innerHTML = '<option value="">Seleccione...</option>';
                 bodegas.forEach(b => select.innerHTML += `<option value="${b.id}">${b.nombre}</option>`);
             }
-
-            // Cargar Negocios
             const { data: negocios } = await _supabase.from('tipos_negocio').select('id, nombre');
             if (negocios) {
                 const select = document.getElementById('negocioAsig');
                 select.innerHTML = '<option value="">Seleccione...</option>';
                 negocios.forEach(n => select.innerHTML += `<option value="${n.id}">${n.nombre}</option>`);
             }
-
-            // Cargar Asistentes
             const { data: asistentes } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'asistente');
             const lista = document.getElementById('listaAsistentes');
             if (asistentes && asistentes.length > 0) {
@@ -117,7 +109,7 @@
                     </label>`;
                 });
             } else {
-                lista.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay asistentes registrados en el sistema.</p>';
+                lista.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay asistentes registrados.</p>';
             }
         }
 
@@ -126,12 +118,13 @@
             const btn = e.target.querySelector('button');
             btn.innerText = 'Guardando...';
 
+            const encargadoId = document.getElementById('encargadoAsig').value;
             const negocioId = document.getElementById('negocioAsig').value;
             
             // 1. Guardar la Asignación Principal
             const nuevaAsignacion = {
                 fecha: document.getElementById('fechaAsig').value,
-                encargado_id: document.getElementById('encargadoAsig').value,
+                encargado_id: encargadoId,
                 bodega_id: document.getElementById('bodegaAsig').value,
                 negocio_id: negocioId
             };
@@ -148,17 +141,24 @@
                 return;
             }
 
-            // 2. Obtener la meta de los asistentes según el negocio
-            const { data: metaRegla } = await _supabase
+            // 2. Obtener las metas por defecto del negocio
+            const { data: metas } = await _supabase
                 .from('metas_reglas')
-                .select('meta_sku')
-                .eq('negocio_id', negocioId)
-                .eq('rol', 'asistente')
-                .single();
+                .select('rol, meta_sku')
+                .eq('negocio_id', negocioId);
             
-            const metaAsistente = metaRegla ? metaRegla.meta_sku : 0;
+            const metaEncargado = metas.find(m => m.rol === 'encargado')?.meta_sku || 0;
+            const metaAsistente = metas.find(m => m.rol === 'asistente')?.meta_sku || 0;
 
-            // 3. Guardar los Asistentes seleccionados
+            // 3. Guardar al ENCARGADO en asignacion_personal
+            await _supabase.from('asignacion_personal').insert([{
+                asignacion_id: asigGuardada.id,
+                operador_id: encargadoId,
+                rol_en_equipo: 'encargado',
+                meta_del_dia: metaEncargado
+            }]);
+
+            // 4. Guardar a los ASISTENTES seleccionados
             const asistentesSeleccionados = Array.from(document.querySelectorAll('.asistente-check:checked')).map(cb => cb.value);
             
             if (asistentesSeleccionados.length > 0) {
@@ -168,16 +168,9 @@
                     rol_en_equipo: 'asistente',
                     meta_del_dia: metaAsistente
                 }));
-                
-                const { error: errorPersonal } = await _supabase.from('asignacion_personal').insert(personalRows);
-                if (errorPersonal) {
-                    mostrarMensaje('Asignación creada, pero error al guardar asistentes: ' + errorPersonal.message, 'red');
-                    btn.innerText = 'Guardar Asignación';
-                    return;
-                }
+                await _supabase.from('asignacion_personal').insert(personalRows);
             }
 
-            // Éxito total
             mostrarMensaje('¡Asignación y equipo guardados con éxito! Redirigiendo...', 'green');
             setTimeout(() => { window.location.href = 'productividad.html'; }, 1500);
         });
