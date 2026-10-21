@@ -25,7 +25,6 @@
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
             <h2 class="text-xl font-bold text-slate-800">Registrar Nueva Asignación</h2>
-            <!-- AHORA VUELVE A PRODUCTIVIDAD -->
             <a href="productividad.html" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2">
                 <i class="fa-solid fa-arrow-left"></i> Volver a Productividad
             </a>
@@ -56,9 +55,17 @@
                             <option value="">Cargando...</option>
                         </select>
                     </div>
+                    
+                    <!-- NUEVA SECCIÓN DE ASISTENTES -->
+                    <div class="md:col-span-2 mt-2">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Asistentes (Equipo de trabajo)</label>
+                        <div id="listaAsistentes" class="grid grid-cols-2 md:grid-cols-3 gap-2 border border-slate-200 p-4 rounded-xl max-h-48 overflow-y-auto">
+                            <p class="text-sm text-slate-400 col-span-full">Cargando personal...</p>
+                        </div>
+                    </div>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg mt-4">
                     Guardar Asignación
                 </button>
             </form>
@@ -73,23 +80,44 @@
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         async function cargarDatos() {
+            // Cargar Encargados
             const { data: encargados } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'encargado');
             if (encargados) {
                 const select = document.getElementById('encargadoAsig');
                 select.innerHTML = '<option value="">Seleccione...</option>';
                 encargados.forEach(u => select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
             }
+
+            // Cargar Bodegas
             const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre');
             if (bodegas) {
                 const select = document.getElementById('bodegaAsig');
                 select.innerHTML = '<option value="">Seleccione...</option>';
                 bodegas.forEach(b => select.innerHTML += `<option value="${b.id}">${b.nombre}</option>`);
             }
+
+            // Cargar Negocios
             const { data: negocios } = await _supabase.from('tipos_negocio').select('id, nombre');
             if (negocios) {
                 const select = document.getElementById('negocioAsig');
                 select.innerHTML = '<option value="">Seleccione...</option>';
                 negocios.forEach(n => select.innerHTML += `<option value="${n.id}">${n.nombre}</option>`);
+            }
+
+            // Cargar Asistentes
+            const { data: asistentes } = await _supabase.from('usuarios').select('id, nombre').eq('rol', 'asistente');
+            const lista = document.getElementById('listaAsistentes');
+            if (asistentes && asistentes.length > 0) {
+                lista.innerHTML = '';
+                asistentes.forEach(a => {
+                    lista.innerHTML += `
+                    <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-50 rounded border border-transparent hover:border-slate-200 transition">
+                        <input type="checkbox" value="${a.id}" class="asistente-check w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        <span class="text-sm text-slate-700 font-medium">${a.nombre}</span>
+                    </label>`;
+                });
+            } else {
+                lista.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay asistentes registrados en el sistema.</p>';
             }
         }
 
@@ -98,26 +126,67 @@
             const btn = e.target.querySelector('button');
             btn.innerText = 'Guardando...';
 
+            const negocioId = document.getElementById('negocioAsig').value;
+            
+            // 1. Guardar la Asignación Principal
             const nuevaAsignacion = {
                 fecha: document.getElementById('fechaAsig').value,
                 encargado_id: document.getElementById('encargadoAsig').value,
                 bodega_id: document.getElementById('bodegaAsig').value,
-                negocio_id: document.getElementById('negocioAsig').value
+                negocio_id: negocioId
             };
 
-            const { error } = await _supabase.from('asignaciones').insert([nuevaAsignacion]);
-            const msg = document.getElementById('mensaje');
-            
-            if (error) {
-                msg.innerText = 'Error: ' + error.message;
-                msg.className = 'mt-4 text-center text-red-600 font-bold block';
+            const { data: asigGuardada, error: errorAsig } = await _supabase
+                .from('asignaciones')
+                .insert([nuevaAsignacion])
+                .select()
+                .single();
+
+            if (errorAsig) {
+                mostrarMensaje('Error: ' + errorAsig.message, 'red');
                 btn.innerText = 'Guardar Asignación';
-            } else {
-                msg.innerText = '¡Asignación guardada con éxito! Redirigiendo...';
-                msg.className = 'mt-4 text-center text-green-600 font-bold block';
-                setTimeout(() => { window.location.href = 'productividad.html'; }, 1500); // Redirige después de 1.5s
+                return;
             }
+
+            // 2. Obtener la meta de los asistentes según el negocio
+            const { data: metaRegla } = await _supabase
+                .from('metas_reglas')
+                .select('meta_sku')
+                .eq('negocio_id', negocioId)
+                .eq('rol', 'asistente')
+                .single();
+            
+            const metaAsistente = metaRegla ? metaRegla.meta_sku : 0;
+
+            // 3. Guardar los Asistentes seleccionados
+            const asistentesSeleccionados = Array.from(document.querySelectorAll('.asistente-check:checked')).map(cb => cb.value);
+            
+            if (asistentesSeleccionados.length > 0) {
+                const personalRows = asistentesSeleccionados.map(opId => ({
+                    asignacion_id: asigGuardada.id,
+                    operador_id: opId,
+                    rol_en_equipo: 'asistente',
+                    meta_del_dia: metaAsistente
+                }));
+                
+                const { error: errorPersonal } = await _supabase.from('asignacion_personal').insert(personalRows);
+                if (errorPersonal) {
+                    mostrarMensaje('Asignación creada, pero error al guardar asistentes: ' + errorPersonal.message, 'red');
+                    btn.innerText = 'Guardar Asignación';
+                    return;
+                }
+            }
+
+            // Éxito total
+            mostrarMensaje('¡Asignación y equipo guardados con éxito! Redirigiendo...', 'green');
+            setTimeout(() => { window.location.href = 'productividad.html'; }, 1500);
         });
+
+        function mostrarMensaje(texto, color) {
+            const msg = document.getElementById('mensaje');
+            msg.innerText = texto;
+            msg.className = `mt-4 text-center font-bold block text-${color}-600`;
+        }
 
         cargarDatos();
     </script>
