@@ -6,6 +6,8 @@
     <title>Reportes - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Librería para generar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> body { font-family: 'Inter', sans-serif; } </style>
@@ -33,7 +35,7 @@
 
         <div class="p-6 md:p-10 flex-1 max-w-6xl mx-auto w-full">
             
-            <!-- Filtros -->
+            <!-- Filtros y Botón de Descarga -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-4 items-end">
                 <div class="flex-1 w-full">
                     <label class="block text-sm font-medium text-slate-700 mb-2">Desde</label>
@@ -46,13 +48,17 @@
                 <button id="btnFiltrar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md w-full md:w-auto flex items-center justify-center gap-2">
                     <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
                 </button>
+                <!-- NUEVO BOTÓN DE EXCEL -->
+                <button id="btnExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md w-full md:w-auto flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> <span>Descargar Excel</span>
+                </button>
             </div>
 
             <!-- Mensaje de estado -->
             <div id="mensajeEstado" class="hidden text-center py-4 text-slate-500 font-bold text-lg"></div>
 
             <!-- Contenedores de Gráficos -->
-            <div id="contenedorGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div id="contenedorGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">SKU por Persona</h3>
                     <div class="relative h-64 w-full">
@@ -68,6 +74,28 @@
                 </div>
             </div>
 
+            <!-- NUEVA TABLA DE RESULTADOS -->
+            <div id="contenedorTabla" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hidden">
+                <div class="p-6 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800">Cumplimiento de Metas</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-sm">
+                                <th class="p-4 font-bold border-b">Trabajador</th>
+                                <th class="p-4 font-bold border-b text-center">Meta Asignada</th>
+                                <th class="p-4 font-bold border-b text-center">SKU Logrados</th>
+                                <th class="p-4 font-bold border-b text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaResultados">
+                            <!-- Filas inyectadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -79,6 +107,7 @@
 
         let chartBarras = null;
         let chartTorta = null;
+        let datosReporteGlobal = []; // Guardar datos para el Excel
 
         const hoy = new Date();
         const hace7Dias = new Date();
@@ -94,20 +123,29 @@
             const btn = document.getElementById('btnFiltrar');
             const msj = document.getElementById('mensajeEstado');
             const contGraficos = document.getElementById('contenedorGraficos');
+            const contTabla = document.getElementById('contenedorTabla');
 
-            // Feedback visual
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Cargando...</span>';
             btn.disabled = true;
             msj.classList.add('hidden');
             contGraficos.classList.remove('hidden');
+            contTabla.classList.add('hidden');
 
+            // Consultar Productividad, Usuarios, y la Meta del día
             const { data, error } = await _supabase
                 .from('productividad')
-                .select(`sku_revisados, usuarios (nombre), asignaciones (fecha)`)
+                .select(`
+                    sku_revisados,
+                    operador_id,
+                    usuarios (nombre),
+                    asignaciones (
+                        fecha,
+                        asignacion_personal ( operador_id, meta_del_dia )
+                    )
+                `)
                 .gte('asignaciones.fecha', desde)
                 .lte('asignaciones.fecha', hasta);
 
-            // Restaurar botón
             btn.innerHTML = '<i class="fa-solid fa-filter"></i> <span>Filtrar</span>';
             btn.disabled = false;
 
@@ -118,60 +156,103 @@
             }
 
             let resumen = {};
+            
+            // Procesar datos
             data.forEach(item => {
                 if(item.usuarios && item.usuarios.nombre) {
-                    let nombre = item.usuarios.nombre.split(' ')[0];
-                    resumen[nombre] = (resumen[nombre] || 0) + Number(item.sku_revisados);
+                    let operadorId = item.operador_id;
+                    let nombre = item.usuarios.nombre;
+                    let sku = Number(item.sku_revisados);
+                    let meta = 0;
+
+                    // Buscar la meta correspondiente a este operador en esta asignación
+                    if (item.asignaciones && item.asignaciones.asignacion_personal) {
+                        let metaInfo = item.asignaciones.asignacion_personal.find(m => m.operador_id === operadorId);
+                        if (metaInfo) meta = metaInfo.meta_del_dia;
+                    }
+
+                    if (!resumen[operadorId]) {
+                        resumen[operadorId] = { nombre: nombre, sku: 0, meta: meta };
+                    }
+                    resumen[operadorId].sku += sku;
                 }
             });
 
-            const nombres = Object.keys(resumen);
-            const cantidades = Object.values(resumen);
+            datosReporteGlobal = Object.values(resumen);
+            const nombres = datosReporteGlobal.map(d => d.nombre.split(' ')[0]);
+            const cantidades = datosReporteGlobal.map(d => d.sku);
 
-            // Si no hay datos, mostrar mensaje y ocultar gráficos
+            // Si no hay datos
             if (nombres.length === 0) {
-                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos de productividad en este rango de fechas.`;
+                msj.innerHTML = `<i class="fa-solid fa-folder-open text-3xl mb-2 block"></i> No hay datos en este rango de fechas.`;
                 msj.classList.remove('hidden');
                 contGraficos.classList.add('hidden');
-                
                 if (chartBarras) chartBarras.destroy();
                 if (chartTorta) chartTorta.destroy();
                 return;
             }
 
-            // Si hay datos, dibujar gráficos
+            // Mostrar Tabla
+            const tbody = document.getElementById('tablaResultados');
+            tbody.innerHTML = '';
+            datosReporteGlobal.forEach(persona => {
+                const cumplio = persona.sku >= persona.meta;
+                const estadoBadge = cumplio 
+                    ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-check"></i> Cumplió</span>`
+                    : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-xmark"></i> No cumplió</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-4 font-semibold text-slate-800">${persona.nombre}</td>
+                        <td class="p-4 text-center font-medium text-slate-600">${persona.meta} SKU</td>
+                        <td class="p-4 text-center font-bold text-blue-600">${persona.sku} SKU</td>
+                        <td class="p-4 text-center">${estadoBadge}</td>
+                    </tr>
+                `;
+            });
+            contTabla.classList.remove('hidden');
+
+            // Dibujar Gráficos
             if (chartBarras) chartBarras.destroy();
             if (chartTorta) chartTorta.destroy();
 
             const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
             chartBarras = new Chart(ctxBarras, {
                 type: 'bar',
-                data: {
-                    labels: nombres,
-                    datasets: [{
-                        label: 'SKU Revisados',
-                        data: cantidades,
-                        backgroundColor: '#9333ea',
-                        borderRadius: 6
-                    }]
-                },
+                data: { labels: nombres, datasets: [{ label: 'SKU', data: cantidades, backgroundColor: '#9333ea', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
 
             const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
             chartTorta = new Chart(ctxTorta, {
                 type: 'doughnut',
-                data: {
-                    labels: nombres,
-                    datasets: [{
-                        data: cantidades,
-                        backgroundColor: ['#9333ea', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
-                        borderWidth: 0
-                    }]
-                },
+                data: { labels: nombres, datasets: [{ data: cantidades, backgroundColor: ['#9333ea', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
             });
         }
+
+        // Descargar Excel
+        document.getElementById('btnExcel').addEventListener('click', () => {
+            if (datosReporteGlobal.length === 0) {
+                return alert('No hay datos para exportar. Primero filtra un rango de fechas con datos.');
+            }
+
+            // Formatear datos para el Excel
+            const excelData = datosReporteGlobal.map(p => ({
+                'Trabajador': p.nombre,
+                'Meta Asignada': p.meta,
+                'SKU Logrados': p.sku,
+                'Cumplió Meta': p.sku >= p.meta ? 'SÍ' : 'NO'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte Productividad");
+            
+            // Nombre del archivo con la fecha
+            const fechaArchivo = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Reporte_Productividad_${fechaArchivo}.xlsx`);
+        });
 
         document.getElementById('btnFiltrar').addEventListener('click', cargarReportes);
         cargarReportes();
