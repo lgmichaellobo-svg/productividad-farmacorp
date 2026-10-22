@@ -9,13 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; } 
-        /* Deshabilitar la selección de texto para evitar copias accidentales al tocar rápido */
         .no-select { user-select: none; -webkit-user-select: none; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans h-screen flex flex-col overflow-hidden no-select">
 
-    <!-- Barra Superior con Pestañas -->
     <header class="bg-white shadow-sm px-4 py-3 flex flex-col xl:flex-row justify-between items-center z-20 border-b border-slate-100 gap-3">
         <div class="flex items-center gap-2 w-full xl:w-auto">
             <div class="w-8 h-8 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-lg flex items-center justify-center text-white shadow-md">
@@ -24,7 +22,6 @@
             <h2 class="text-lg font-extrabold text-slate-800 tracking-tight">Mis Ítems</h2>
         </div>
         
-        <!-- Pestañas de Navegación (4 pestañas) -->
         <div class="flex flex-wrap bg-slate-100 rounded-lg p-1 w-full xl:w-auto">
             <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-1.5 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
             <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-1.5 rounded-md font-bold text-xs bg-white text-orange-600 shadow-sm transition">Mis Ítems</a>
@@ -37,16 +34,13 @@
         </a>
     </header>
 
-    <!-- Área de Trabajo Principal -->
     <main class="flex-1 overflow-y-auto p-4 md:p-6 w-full max-w-2xl mx-auto flex flex-col justify-center">
         
-        <!-- 1. Estado de Carga -->
         <div id="loadingState" class="text-center py-20">
             <i class="fa-solid fa-spinner fa-spin text-4xl text-orange-500 mb-4"></i>
             <p class="text-slate-500 font-medium">Buscando tus ítems pendientes...</p>
         </div>
 
-        <!-- 2. Estado Vacío (No hay ítems) -->
         <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200">
             <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-check-double text-4xl text-emerald-500"></i>
@@ -58,10 +52,8 @@
             </a>
         </div>
 
-        <!-- 3. Interfaz de Verificación (Oculta hasta cargar) -->
         <div id="verificacionUI" class="hidden">
             
-            <!-- Barra de Progreso y Botón Anterior -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <button id="btnAnterior" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center" disabled>
@@ -76,7 +68,6 @@
                 </div>
             </div>
 
-            <!-- Tarjeta del Ítem -->
             <div class="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-6 relative">
                 <div class="bg-gradient-to-r from-orange-50 to-orange-100 p-4 border-b border-orange-200 flex justify-between items-center">
                     <span class="bg-white text-orange-600 font-black px-4 py-1.5 rounded-xl text-sm shadow-sm border border-orange-200">
@@ -104,7 +95,6 @@
                 </div>
             </div>
 
-            <!-- Botones de Acción Principales -->
             <div id="accionesCorrecto" class="grid grid-cols-2 gap-4">
                 <button id="btnIncorrecto" class="bg-white border-2 border-rose-200 hover:bg-rose-50 text-rose-600 font-bold py-5 rounded-2xl transition shadow-sm flex flex-col items-center justify-center gap-2">
                     <i class="fa-solid fa-xmark text-3xl"></i> 
@@ -116,7 +106,6 @@
                 </button>
             </div>
 
-            <!-- Panel de Cantidad Incorrecta (Se despliega) -->
             <div id="panelIncorrecto" class="hidden bg-white p-6 rounded-3xl shadow-lg border-2 border-rose-200 mt-4 animate-fade-in">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
@@ -169,11 +158,31 @@
 
             usuarioActualId = usuarioDB.id;
 
+            // PASO CLAVE: Buscar primero la verificación más reciente que esté "en curso"
+            const { data: verificacionActiva } = await _supabase
+                .from('verificaciones')
+                .select('id')
+                .eq('estado', 'en curso')
+                .order('fecha_creacion', { ascending: false })
+                .limit(1);
+
+            if (!verificacionActiva || verificacionActiva.length === 0) {
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('emptyTitle').innerText = "No hay verificación activa";
+                document.getElementById('emptyText').innerText = "El administrador aún no ha subido un archivo para verificar.";
+                return;
+            }
+
+            const verificacionId = verificacionActiva[0].id;
+
+            // Ahora buscar los ítems SOLO de esa verificación activa
             const { data: items, error } = await _supabase
                 .from('verificacion_items')
                 .select('*')
                 .eq('asignado_a', usuarioActualId)
                 .eq('estado', 'pendiente')
+                .eq('verificacion_id', verificacionId) // <-- ESTO EVITA LOS DUPLICADOS
                 .order('numero_lista', { ascending: true });
 
             if (error) {
@@ -187,7 +196,7 @@
             if (itemsUsuario.length === 0) {
                 document.getElementById('emptyState').classList.remove('hidden');
                 document.getElementById('emptyTitle').innerText = "¡Has terminado!";
-                document.getElementById('emptyText').innerText = "Has verificado todos los ítems que tenías asignados.";
+                document.getElementById('emptyText').innerText = "Has verificado todos los ítems que tenías asignados en esta ronda.";
             } else {
                 document.getElementById('verificacionUI').classList.remove('hidden');
                 document.getElementById('totalItems').innerText = itemsUsuario.length;
@@ -206,13 +215,8 @@
 
             const item = itemsUsuario[index];
             
-            // Actualizar botón "Anterior"
             const btnAnterior = document.getElementById('btnAnterior');
-            if (index > 0) {
-                btnAnterior.disabled = false;
-            } else {
-                btnAnterior.disabled = true;
-            }
+            btnAnterior.disabled = (index === 0);
 
             document.getElementById('indiceActual').innerText = index + 1;
             const porcentaje = (index / itemsUsuario.length) * 100;
@@ -237,7 +241,6 @@
             document.getElementById('inputCantidadCorrecta').value = '';
         }
 
-        // Botón Anterior
         document.getElementById('btnAnterior').addEventListener('click', () => {
             if (itemActualIndex > 0) {
                 itemActualIndex--;
