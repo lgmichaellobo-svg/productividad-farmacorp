@@ -12,6 +12,8 @@
     <style> 
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; } 
         .card-premium { background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; }
+        .chevron-rotate { transition: transform 0.3s ease; }
+        .rotate-180 { transform: rotate(180deg); }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
@@ -32,7 +34,6 @@
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-50/50 to-slate-50 -z-10"></div>
 
-        <!-- Pestañas Actualizadas (4 pestañas) -->
         <header class="bg-white/80 backdrop-blur-md shadow-sm px-6 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-10 border-b border-slate-200 gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Módulo de Verificación</h2>
@@ -70,25 +71,37 @@
 
             <div id="panelEstadisticas" class="hidden">
                 
-                <!-- FILTROS -->
-                <div class="card-premium p-5 rounded-2xl mb-6 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
-                    <div class="flex-1 w-full">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
-                        <input type="date" id="filtroDesde" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
-                    </div>
-                    <div class="flex-1 w-full">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
-                        <input type="date" id="filtroHasta" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
-                    </div>
-                    <div class="flex-1 w-full">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
-                        <select id="filtroPersona" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700 font-medium">
-                            <option value="todos">Todos los trabajadores</option>
-                        </select>
-                    </div>
-                    <button id="btnFiltrar" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-md w-full lg:w-auto flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-filter"></i> Aplicar Filtros
+                <!-- ACORDEÓN DE FILTROS -->
+                <div class="mb-6">
+                    <button id="toggleFiltros" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition">
+                        <span class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <i class="fa-solid fa-filter"></i>
+                            </div>
+                            Filtros de búsqueda
+                        </span>
+                        <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate"></i>
                     </button>
+
+                    <div id="panelFiltros" class="card-premium p-5 rounded-2xl mt-2 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                            <input type="date" id="filtroDesde" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                            <input type="date" id="filtroHasta" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
+                            <select id="filtroPersona" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700 font-medium">
+                                <option value="todos">Todos los trabajadores</option>
+                            </select>
+                        </div>
+                        <button id="btnFiltrar" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-md w-full lg:w-auto flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i> Aplicar Filtros
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Resumen Rápido Filtrado -->
@@ -125,11 +138,6 @@
                     </div>
                 </div>
 
-                <!-- Tarjetas de Avance -->
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-users text-slate-400"></i> Avance Detallado
-                </h3>
-                <div id="listaProgreso" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
         </div>
@@ -145,6 +153,16 @@
         let chartErrores = null; 
         let todosLosItems = []; 
         let mapaUsuariosGlobal = {};
+
+        // Lógica para abrir/cerrar el panel de filtros
+        const toggleFiltrosBtn = document.getElementById('toggleFiltros');
+        const panelFiltros = document.getElementById('panelFiltros');
+        const iconoFlecha = document.getElementById('iconoFlecha');
+
+        toggleFiltrosBtn.addEventListener('click', () => {
+            panelFiltros.classList.toggle('hidden');
+            iconoFlecha.classList.toggle('rotate-180');
+        });
 
         async function cargarEstadisticas() {
             const { data: verificaciones, error: errVerif } = await _supabase
@@ -184,6 +202,7 @@
             document.getElementById('filtroDesde').value = hoy;
             document.getElementById('filtroHasta').value = hoy;
 
+            // En la primera carga mostramos todos los datos (sin filtro)
             procesarVista(todosLosItems);
 
             document.getElementById('mensajeEstado').classList.add('hidden');
@@ -285,40 +304,6 @@
                 document.getElementById('mensajeSinErrores').classList.remove('hidden');
                 document.getElementById('contenedorGrafico').classList.add('hidden');
             }
-
-            const contenedor = document.getElementById('listaProgreso');
-            contenedor.innerHTML = '';
-
-            nombresOrdenados.forEach(nombre => {
-                const stats = usuariosStats[nombre];
-                const revisados = stats.correctos + stats.errores;
-                const porcentaje = stats.total > 0 ? Math.round((revisados / stats.total) * 100) : 0;
-                let colorBarra = porcentaje === 100 ? 'bg-emerald-500' : 'bg-orange-500';
-                
-                contenedor.innerHTML += `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
-                        <div class="flex justify-between items-center mb-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center font-bold text-lg border border-slate-300">${nombre.charAt(0)}</div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 leading-tight">${nombre}</h4>
-                                    <p class="text-xs text-slate-500">${revisados} de ${stats.total} revisados</p>
-                                </div>
-                            </div>
-                            <div class="text-right"><span class="text-xl font-black ${porcentaje === 100 ? 'text-emerald-500' : 'text-orange-500'}">${porcentaje}%</span></div>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2.5 mb-3 flex overflow-hidden">
-                            <div class="${colorBarra} h-2.5 transition-all duration-500" style="width: ${(stats.correctos/stats.total)*100}%"></div>
-                            <div class="bg-rose-500 h-2.5 transition-all duration-500" style="width: ${(stats.errores/stats.total)*100}%"></div>
-                        </div>
-                        <div class="flex justify-between text-[11px] font-bold uppercase tracking-wider mt-3">
-                            <span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded"><i class="fa-solid fa-check-circle mr-1"></i> ${stats.correctos} OK</span>
-                            <span class="text-rose-600 bg-rose-50 px-2 py-1 rounded"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${stats.errores} Err</span>
-                            <span class="text-slate-400 bg-slate-50 px-2 py-1 rounded"><i class="fa-solid fa-clock mr-1"></i> ${stats.pendientes} Faltan</span>
-                        </div>
-                    </div>
-                `;
-            });
         }
 
         document.getElementById('btnFiltrar').addEventListener('click', () => {
@@ -327,6 +312,10 @@
             const personaId = document.getElementById('filtroPersona').value;
 
             if(!desde || !hasta) return alert("Por favor, selecciona ambas fechas.");
+
+            // OCULTAR FILTROS AUTOMÁTICAMENTE AL FILTRAR
+            panelFiltros.classList.add('hidden');
+            iconoFlecha.classList.add('rotate-180');
 
             const itemsFiltrados = todosLosItems.filter(item => {
                 if (!item.fecha_verificacion) return false; 
