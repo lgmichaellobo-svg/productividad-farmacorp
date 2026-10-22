@@ -156,7 +156,6 @@
         let datosExcelGlobal = [];
         let datosFiltradosGlobal = [];
 
-        // Poner fecha de hoy por defecto
         fechaVerificacion.value = new Date().toISOString().split('T')[0];
 
         async function cargarBodegas() {
@@ -264,16 +263,30 @@
             if(!bodegaId) return alert("Selecciona una bodega.");
             if(!fechaSeleccionada) return alert("Selecciona una fecha de verificación.");
 
-            const { data: activas } = await _supabase.from('verificaciones').select('id').eq('estado', 'en curso').eq('bodega_id', bodegaId);
+            // VALIDACIÓN: Solo buscar si hay una verificación EN CURSO de la MISMA BODEGA y MISMA FECHA
+            const { data: activas } = await _supabase
+                .from('verificaciones')
+                .select('id')
+                .eq('estado', 'en curso')
+                .eq('bodega_id', bodegaId)
+                .eq('fecha_verificacion', fechaSeleccionada);
 
             if (activas && activas.length > 0) {
-                const confirmar = confirm("⚠️ Ya existe una verificación en curso para esta bodega.\n\n¿Deseas reemplazarla?");
+                const confirmar = confirm(`⚠️ Ya existe una verificación EN CURSO para esta bodega en la fecha ${fechaSeleccionada.split('-').reverse().join('/')}.\n\n¿Deseas reemplazarla?`);
                 if (!confirmar) return;
 
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando anterior...';
                 btn.disabled = true;
                 await _supabase.from('verificaciones').delete().eq('id', activas[0].id);
             }
+
+            // CERRAR las verificaciones anteriores de esa bodega (cambiar estado a 'finalizada')
+            // Esto evita que se mezclen los datos si se hace inventario en la misma bodega otro día.
+            await _supabase
+                .from('verificaciones')
+                .update({ estado: 'finalizada' })
+                .eq('bodega_id', bodegaId)
+                .eq('estado', 'en curso');
 
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
             btn.disabled = true;
