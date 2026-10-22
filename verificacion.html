@@ -6,108 +6,136 @@
     <title>Verificación de Inventario - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
-        body { font-family: 'Inter', sans-serif; } 
-        .chevron-rotate { transition: transform 0.3s ease; }
-        .rotate-180 { transform: rotate(180deg); }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; } 
+        .card-premium { 
+            background: #ffffff; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
+            border: 1px solid #f1f5f9; 
+        }
+        .drop-zone {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23CBD5E1FF' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+        }
     </style>
 </head>
-<body class="bg-slate-50 font-sans h-screen flex overflow-hidden">
+<body class="bg-slate-50 h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20">
+    <!-- Menú Lateral (Desktop) -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30"><i class="fa-solid fa-pills text-lg"></i></div>
-            <div><h1 class="text-lg font-bold text-white tracking-tight">Farmacorp</h1></div>
+            <div class="w-10 h-10 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                <i class="fa-solid fa-boxes-stacked text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Farmacorp</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Inventario</p>
+            </div>
         </div>
-        <nav class="flex-1 p-4 space-y-1 mt-4">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium"><i class="fa-solid fa-house w-5"></i> Inicio</a>
-            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium"><i class="fa-solid fa-chart-line w-5"></i> Productividad</a>
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-orange-600 text-white rounded-xl shadow-md transition font-medium"><i class="fa-solid fa-boxes-stacked w-5"></i> Verificación</a>
-            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium"><i class="fa-solid fa-file-excel w-5"></i> Excel Automatizados</a>
+        <nav class="flex-1 p-4 space-y-2 mt-4">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
+                <i class="fa-solid fa-house w-5 text-center"></i> Inicio
+            </a>
+            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
+                <i class="fa-solid fa-chart-line w-5 text-center"></i> Productividad
+            </a>
+            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-orange-600 text-white rounded-xl shadow-lg shadow-orange-900/50 transition font-medium">
+                <i class="fa-solid fa-upload w-5 text-center"></i> Cargar Inventario
+            </a>
+            <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium text-orange-400">
+                <i class="fa-solid fa-clipboard-check w-5 text-center"></i> Mis Ítems
+            </a>
         </nav>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10 border-b border-slate-100">
-            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Verificación de Inventario</h2>
-            <a href="app.html" class="text-sm text-orange-600 hover:text-orange-800 font-semibold flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg transition">
-                <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
+        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-50/50 to-slate-50 -z-10"></div>
+
+        <!-- Cabecera -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10 border-b border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Carga de Inventario</h2>
+            <a href="app.html" class="text-sm text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-lg transition">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Panel
             </a>
         </header>
 
-        <div class="p-4 md:p-8 flex-1 max-w-5xl mx-auto w-full">
+        <div class="p-4 md:p-8 flex-1 max-w-7xl mx-auto w-full">
             
-            <!-- BARRA DE CARGA DE ARCHIVO -->
-            <div class="mb-6 relative z-20">
-                <button id="toggleUploadBtn" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition mb-3">
-                    <span class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
-                            <i class="fa-solid fa-upload"></i>
-                        </div>
-                        1. Cargar Archivo ACTUALIZABLE
-                    </span>
-                    <i id="iconoFlechaUpload" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate"></i>
-                </button>
-
-                <div id="panelUpload" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Monto mínimo de diferencia (Bs)</label>
-                            <input type="number" id="umbralImporte" value="70" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
-                            <p class="text-xs text-slate-500 mt-1">Solo se revisarán ítems con diferencia mayor a este monto.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- COLUMNA IZQUIERDA: Carga de Archivo -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="card-premium p-6 rounded-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10"></div>
+                        <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-orange-500"></i> 1. Subir Archivo
+                        </h3>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Monto mínimo de diferencia (Bs)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 font-bold">Bs</span>
+                                <input type="number" id="umbralImporte" value="70" class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-bold text-lg text-slate-800 transition">
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">Los ítems con menor diferencia a este monto no serán tomados en cuenta.</p>
                         </div>
                         
-                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative">
+                        <div class="drop-zone rounded-xl p-8 text-center hover:bg-orange-50 transition cursor-pointer relative group">
                             <input type="file" id="excelFile" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-orange-500 mb-2"></i>
-                            <p class="text-sm font-bold text-slate-700">Haz clic para subir el Excel</p>
-                            <p class="text-xs text-slate-500">o arrastra el archivo aquí</p>
-                            <p id="fileName" class="mt-2 text-sm font-bold text-orange-600 hidden"></p>
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-orange-500"></i>
+                            </div>
+                            <p class="text-base font-bold text-slate-800">Haz clic o arrastra el Excel</p>
+                            <p class="text-xs text-slate-500 mt-1">Soporta archivos .xlsx o .xls</p>
+                            <p id="fileName" class="mt-4 text-sm font-bold text-orange-600 bg-orange-100 py-1 px-3 rounded-full inline-block hidden"></p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- RESUMEN DE CARGA -->
-            <div id="panelResumen" class="hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">2. Resumen de la revisión</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-blue-50 p-4 rounded-xl text-center border border-blue-100">
-                            <p class="text-sm text-blue-600 font-bold mb-1">Ítems en el Excel</p>
-                            <p class="text-3xl font-black text-blue-800" id="totalItems">0</p>
-                        </div>
-                        <div class="bg-orange-50 p-4 rounded-xl text-center border border-orange-100">
-                            <p class="text-sm text-orange-600 font-bold mb-1">Superan el monto (Bs)</p>
-                            <p class="text-3xl font-black text-orange-800" id="itemsFiltrados">0</p>
-                        </div>
-                        <div class="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100">
-                            <p class="text-sm text-emerald-600 font-bold mb-1">Personal asignado</p>
-                            <p class="text-3xl font-black text-emerald-800" id="totalAsignados">0</p>
+                <!-- COLUMNA DERECHA: Resumen y Confirmación -->
+                <div class="lg:col-span-7">
+                    <div id="panelResumen" class="hidden">
+                        <div class="card-premium p-6 rounded-2xl">
+                            <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-blue-500"></i> 2. Resumen y Distribución
+                            </h3>
+                            
+                            <div class="grid grid-cols-3 gap-4 mb-8">
+                                <div class="bg-blue-50/50 p-4 rounded-xl text-center border border-blue-100">
+                                    <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">En el Excel</p>
+                                    <p class="text-3xl font-black text-blue-800" id="totalItems">0</p>
+                                </div>
+                                <div class="bg-orange-50/50 p-4 rounded-xl text-center border border-orange-100">
+                                    <p class="text-xs text-orange-600 font-bold uppercase tracking-wider mb-1">Superan monto</p>
+                                    <p class="text-3xl font-black text-orange-800" id="itemsFiltrados">0</p>
+                                </div>
+                                <div class="bg-emerald-50/50 p-4 rounded-xl text-center border border-emerald-100">
+                                    <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-1">Personal</p>
+                                    <p class="text-3xl font-black text-emerald-800" id="totalAsignados">0</p>
+                                </div>
+                            </div>
+
+                            <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Ítems por persona:</h4>
+                            <div id="listaAsignaciones" class="space-y-2 mb-8 max-h-64 overflow-y-auto pr-2">
+                                <!-- Lista inyectada por JS -->
+                            </div>
+
+                            <button id="btnProcesar" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 text-lg">
+                                <i class="fa-solid fa-check-double"></i> Confirmar y Repartir
+                            </button>
+                            
+                            <!-- Mensaje de estado -->
+                            <div id="mensajeGuardado" class="mt-4 text-center font-bold hidden p-3 rounded-lg"></div>
                         </div>
                     </div>
-
-                    <h4 class="font-bold text-slate-700 mb-3">Ítems asignados por persona:</h4>
-                    <div id="listaAsignaciones" class="space-y-2 mb-6 max-h-60 overflow-y-auto">
-                        <!-- Aquí se muestran las personas -->
-                    </div>
-
-                    <button id="btnProcesar" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-check-double"></i> Confirmar y Repartir Ítems
-                    </button>
-                    
-                    <!-- Mensaje de estado de guardado -->
-                    <div id="mensajeGuardado" class="mt-4 text-center font-bold hidden"></div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </main>
 
-    <!-- Librería de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
@@ -117,19 +145,11 @@
         const excelFileInput = document.getElementById('excelFile');
         const fileNameDisplay = document.getElementById('fileName');
         const panelResumen = document.getElementById('panelResumen');
-        
-        const toggleUploadBtn = document.getElementById('toggleUploadBtn');
-        const panelUpload = document.getElementById('panelUpload');
-        const iconoFlechaUpload = document.getElementById('iconoFlechaUpload');
 
         let datosExcelGlobal = [];
         let datosFiltradosGlobal = [];
 
-        toggleUploadBtn.addEventListener('click', () => {
-            panelUpload.classList.toggle('hidden');
-            iconoFlechaUpload.classList.toggle('rotate-180');
-        });
-
+        // Leer archivo
         excelFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -151,7 +171,6 @@
         function procesarDatosExcel() {
             const umbral = parseFloat(document.getElementById('umbralImporte').value) || 70;
             
-            // Filtrar por importe
             datosFiltradosGlobal = datosExcelGlobal.filter(row => {
                 let difKey = Object.keys(row).find(k => k.toUpperCase().includes('IMPORTE'));
                 if (!difKey) return false;
@@ -173,20 +192,24 @@
             contenedorLista.innerHTML = '';
             
             if (Object.keys(conteoAsignados).length === 0) {
-                contenedorLista.innerHTML = '<p class="text-sm text-slate-500">No se encontraron nombres válidos.</p>';
+                contenedorLista.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay nombres válidos en la columna ASIGNACION.</p>';
             } else {
                 for (const [nombre, cantidad] of Object.entries(conteoAsignados)) {
+                    let inicial = nombre.charAt(0);
                     contenedorLista.innerHTML += `
-                        <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
-                            <span class="font-bold text-slate-700"><i class="fa-solid fa-user text-slate-400 mr-2"></i> ${nombre}</span>
-                            <span class="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full text-sm">${cantidad} ítems</span>
+                        <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 hover:bg-white transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">
+                                    ${inicial}
+                                </div>
+                                <span class="font-bold text-slate-700">${nombre}</span>
+                            </div>
+                            <span class="bg-white border border-orange-200 text-orange-600 font-bold px-3 py-1 rounded-lg text-sm shadow-sm">${cantidad} ítems</span>
                         </div>
                     `;
                 }
             }
 
-            panelUpload.classList.add('hidden');
-            iconoFlechaUpload.classList.add('rotate-180');
             panelResumen.classList.remove('hidden');
             panelResumen.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -195,26 +218,35 @@
             if (datosExcelGlobal.length > 0) procesarDatosExcel();
         });
 
-        // --- GUARDAR EN SUPABASE ---
+        // --- GUARDAR EN SUPABASE (CON VALIDACIÓN DE DUPLICADOS) ---
         document.getElementById('btnProcesar').addEventListener('click', async () => {
             const btn = document.getElementById('btnProcesar');
             const msj = document.getElementById('mensajeGuardado');
             
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en la nube...';
+            // 1. Verificar si hay una verificación en curso
+            const { data: activas } = await _supabase.from('verificaciones').select('id').eq('estado', 'en curso');
+
+            if (activas && activas.length > 0) {
+                // Si hay una activa, preguntar al usuario
+                const confirmar = confirm("⚠️ Ya existe una verificación en curso.\n\nSi continúas, la verificación anterior se borrará y se reemplazará por esta nueva.\n\n¿Deseas reemplazarla?");
+                if (!confirmar) return; // Si dice que no, cancelamos
+
+                // Si dice que sí, borramos la anterior (el borrado en cascada eliminará sus ítems)
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando anterior...';
+                btn.disabled = true;
+                await _supabase.from('verificaciones').delete().eq('id', activas[0].id);
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
             btn.disabled = true;
             msj.classList.add('hidden');
 
             try {
-                // 1. Obtener los usuarios para relacionar los nombres con sus IDs
                 const { data: usuariosDB } = await _supabase.from('usuarios').select('id, nombre');
-                
-                // Crear un diccionario para buscar rápido (ej. "MICHAEL" -> "uuid...")
                 const mapaUsuarios = {};
-                usuariosDB.forEach(u => {
-                    mapaUsuarios[u.nombre.toUpperCase()] = u.id;
-                });
+                usuariosDB.forEach(u => { mapaUsuarios[u.nombre.toUpperCase()] = u.id; });
 
-                // 2. Crear la cabecera de la verificación
+                // Crear la nueva verificación
                 const { data: verificacion, error: errorVerif } = await _supabase
                     .from('verificaciones')
                     .insert([{
@@ -227,9 +259,7 @@
 
                 if (errorVerif) throw errorVerif;
 
-                // 3. Preparar los ítems para insertar
                 const itemsParaInsertar = datosFiltradosGlobal.map(row => {
-                    // Buscar las columnas exactas del Excel
                     const getVal = (keyword) => {
                         const key = Object.keys(row).find(k => k.toUpperCase().includes(keyword));
                         return key ? row[key] : null;
@@ -238,7 +268,6 @@
                     let nombreAsignado = getVal('ASIGNACION');
                     nombreAsignado = nombreAsignado ? nombreAsignado.toString().trim().toUpperCase() : '';
                     
-                    // Buscar el ID del usuario. Si no lo encuentra exacto, intenta buscar coincidencia parcial.
                     let operadorId = mapaUsuarios[nombreAsignado] || null;
                     if (!operadorId && nombreAsignado) {
                         const key = Object.keys(mapaUsuarios).find(k => k.includes(nombreAsignado) || nombreAsignado.includes(k));
@@ -261,28 +290,22 @@
                     };
                 });
 
-                // 4. Insertar todos los ítems
-                const { error: errorItems } = await _supabase
-                    .from('verificacion_items')
-                    .insert(itemsParaInsertar);
-
+                const { error: errorItems } = await _supabase.from('verificacion_items').insert(itemsParaInsertar);
                 if (errorItems) throw errorItems;
 
-                // Éxito
-                msj.innerHTML = '<i class="fa-solid fa-check-circle"></i> ¡Verificación guardada y repartida con éxito!';
-                msj.className = 'mt-4 text-center font-bold block text-emerald-600';
+                msj.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> ¡Verificación guardada y repartida con éxito!';
+                msj.className = 'mt-4 text-center font-bold block text-emerald-700 bg-emerald-100 border border-emerald-200';
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Completado';
                 
                 setTimeout(() => {
-                    // Aquí a futuro redirigiremos a la pantalla de verificación del usuario
-                    alert("¡Listo! En el siguiente paso crearemos la pantalla donde cada uno ve sus ítems.");
-                }, 1500);
+                    window.location.href = 'mis_items.html';
+                }, 2000);
 
             } catch (error) {
                 console.error(error);
-                msj.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error: ' + error.message;
-                msj.className = 'mt-4 text-center font-bold block text-rose-600';
-                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirmar y Repartir Ítems';
+                msj.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Error: ' + error.message;
+                msj.className = 'mt-4 text-center font-bold block text-rose-700 bg-rose-100 border border-rose-200';
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirmar y Repartir';
                 btn.disabled = false;
             }
         });
