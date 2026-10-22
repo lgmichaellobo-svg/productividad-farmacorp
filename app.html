@@ -32,9 +32,14 @@
             <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
                 <i class="fa-solid fa-chart-line w-5 text-center"></i> Productividad
             </a>
-            <!-- NUEVO ENLACE A VERIFICACIÓN -->
             <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
-                <i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación
+                <i class="fa-solid fa-upload w-5 text-center"></i> Cargar Inventario
+            </a>
+            <a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
+                <i class="fa-solid fa-chart-simple w-5 text-center"></i> Progreso del Equipo
+            </a>
+            <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium text-orange-400">
+                <i class="fa-solid fa-clipboard-check w-5 text-center"></i> Mis Ítems
             </a>
             <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
                 <i class="fa-solid fa-file-excel w-5 text-center"></i> Excel Automatizados
@@ -56,7 +61,6 @@
         <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex justify-between items-center shadow-sm border-b border-slate-200">
             <h2 class="text-xl font-bold text-slate-800 hidden md:block tracking-tight">Resumen General</h2>
             
-            <!-- Menú móvil (Título) -->
             <div class="md:hidden flex items-center">
                 <a href="app.html" class="text-slate-800 font-bold text-lg">Farmacorp</a>
             </div>
@@ -86,53 +90,74 @@
                 <!-- Tarjeta 1: Productividad -->
                 <a href="productividad.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-blue-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-                    
                     <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform duration-300">
                         <i class="fa-solid fa-chart-pie text-2xl md:text-3xl drop-shadow-md"></i>
                     </div>
-                    
                     <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Productividad</h3>
                     <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
                         Registra y gestiona los SKU revisados por cada persona. Administra equipos y metas diarias.
                     </p>
-                    
                     <div class="pt-4 border-t border-slate-100 flex items-center text-blue-600 font-bold text-sm">
                         Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
                     </div>
                 </a>
 
-                <!-- Tarjeta 2: Verificación de Inventario -->
+                <!-- Tarjeta 2: Cargar Inventario (Admin) -->
                 <a href="verificacion.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-orange-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-                    
                     <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-orange-500/40 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-boxes-packing text-2xl md:text-3xl drop-shadow-md"></i>
+                        <i class="fa-solid fa-upload text-2xl md:text-3xl drop-shadow-md"></i>
                     </div>
-                    
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Verificación Inventario</h3>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Cargar Inventario</h3>
                     <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
-                        Sube el archivo ACTUALIZABLE, reparte los ítems a tu equipo y descarga el reporte de errores.
+                        (Admin) Sube el archivo ACTUALIZABLE y reparte los ítems a todo el equipo.
                     </p>
-                    
                     <div class="pt-4 border-t border-slate-100 flex items-center text-orange-500 font-bold text-sm">
                         Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
                     </div>
                 </a>
 
-                <!-- Tarjeta 3: Excel Automatizados -->
-                <a href="excel.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-emerald-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
+                <!-- Tarjeta 3: Progreso del Equipo (NUEVA) -->
+                <a href="progreso_verificacion.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-indigo-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-indigo-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-chart-simple text-2xl md:text-3xl drop-shadow-md"></i>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Progreso del Equipo</h3>
+                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
+                        Revisa el avance de cada operador y descarga el Excel final con los errores detectados.
+                    </p>
+                    <div class="pt-4 border-t border-slate-100 flex items-center text-indigo-600 font-bold text-sm">
+                        Ver progreso <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Tarjeta 4: Mis Ítems (Operadores) -->
+                <a href="mis_items.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-emerald-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-                    
                     <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-emerald-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-clipboard-check text-2xl md:text-3xl drop-shadow-md"></i>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Mis Ítems</h3>
+                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
+                        Verifica las cantidades de los productos que te fueron asignados para revisar hoy.
+                    </p>
+                    <div class="pt-4 border-t border-slate-100 flex items-center text-emerald-600 font-bold text-sm">
+                        Empezar a verificar <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Tarjeta 5: Excel Automatizados -->
+                <a href="excel.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-slate-600 to-slate-800 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-slate-500/40 group-hover:scale-110 transition-transform duration-300">
                         <i class="fa-solid fa-file-excel text-2xl md:text-3xl drop-shadow-md"></i>
                     </div>
-                    
                     <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Excel Automatizados</h3>
                     <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">
                         Accede a las últimas versiones de tus herramientas, macros y archivos automatizados.
                     </p>
-                    
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-emerald-600 font-bold text-sm">
+                    <div class="pt-4 border-t border-slate-100 flex items-center text-slate-700 font-bold text-sm">
                         Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
                     </div>
                 </a>
