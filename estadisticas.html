@@ -198,11 +198,15 @@
 
             todosLosItems = items; 
 
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('filtroDesde').value = hoy;
-            document.getElementById('filtroHasta').value = hoy;
+            // Poner fechas por defecto del mes actual para que no queden vacíos
+            const hoy = new Date();
+            const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+            const hoyFormat = hoy.toISOString().split('T')[0];
+            
+            document.getElementById('filtroDesde').value = primerDiaMes;
+            document.getElementById('filtroHasta').value = hoyFormat;
 
-            // En la primera carga mostramos todos los datos (sin filtro)
+            // En la primera carga mostramos todos los datos (sin filtro) para que veas que está funcionando
             procesarVista(todosLosItems);
 
             document.getElementById('mensajeEstado').classList.add('hidden');
@@ -277,7 +281,7 @@
                             backgroundColor: gradientRed,
                             borderRadius: 8,
                             borderSkipped: false,
-                            barPercentage: 0.5
+                            maxBarThickness: 80 // Limita el ancho de la barra
                         }]
                     },
                     options: {
@@ -296,7 +300,11 @@
                         },
                         scales: {
                             x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: 'bold' } } },
-                            y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] }, ticks: { stepSize: 1 } }
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] }, 
+                                ticks: { stepSize: 1 } 
+                            }
                         }
                     }
                 });
@@ -313,12 +321,13 @@
 
             if(!desde || !hasta) return alert("Por favor, selecciona ambas fechas.");
 
-            // OCULTAR FILTROS AUTOMÁTICAMENTE AL FILTRAR
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
             const itemsFiltrados = todosLosItems.filter(item => {
+                // Si el ítem no tiene fecha (aún pendiente), lo ignoramos para el filtro de fecha
                 if (!item.fecha_verificacion) return false; 
+                
                 const fechaItem = item.fecha_verificacion.split('T')[0]; 
                 const cumpleFecha = fechaItem >= desde && fechaItem <= hasta;
 
