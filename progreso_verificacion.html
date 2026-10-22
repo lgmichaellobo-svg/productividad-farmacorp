@@ -251,7 +251,7 @@
             }
         }
 
-        // --- DESCARGAR EXCEL DE ERRORES ---
+        // --- DESCARGAR EXCEL DE ERRORES (CON LA NUEVA COLUMNA) ---
         document.getElementById('btnDescargarErrores').addEventListener('click', async () => {
             if (itemsErroresGlobal.length === 0) {
                 return alert('No hay errores registrados todavía. Asegúrate de haber marcado algún ítem como INCORRECTO en "Mis Ítems".');
@@ -268,13 +268,13 @@
                 worksheet.columns = [
                     { header: 'N° Lista', key: 'n', width: 10 },
                     { header: 'Código', key: 'codigo', width: 20 },
-                    { header: 'Descripción', key: 'desc', width: 45 },
+                    { header: 'Descripción', key: 'desc', width: 40 },
                     { header: 'Laboratorio', key: 'lab', width: 25 },
-                    { header: 'Asignado a', key: 'asignado', width: 25 },
+                    { header: 'Asignado a', key: 'asignado', width: 20 },
                     { header: 'Conteo Físico', key: 'conteo', width: 15 },
                     { header: 'Cant. Correcta', key: 'correcta', width: 15 },
-                    { header: 'Diferencia Real', key: 'dif_real', width: 15 }, // NUEVA COLUMNA
-                    { header: 'Diferencia (Sistema)', key: 'dif_sist', width: 20 },
+                    { header: 'Diferencia Real (Corr - Conteo)', key: 'dif_real', width: 25 }, // NUEVA COLUMNA CLARA
+                    { header: 'Diferencia Sistema', key: 'dif_sist', width: 20 }, // La original del Excel
                     { header: 'Dif. Importe', key: 'importe', width: 15 }
                 ];
 
@@ -285,7 +285,7 @@
                 headerRow.height = 25;
 
                 itemsErroresGlobal.forEach(item => {
-                    // Calcular la diferencia real: cantidad correcta - conteo físico
+                    // CALCULAR LA DIFERENCIA REAL: Cantidad Correcta - Conteo Físico
                     let difReal = (item.cantidad_correcta || 0) - item.conteo_fisico;
 
                     const row = worksheet.addRow({
