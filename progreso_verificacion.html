@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Progreso de Verificación - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería de Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,6 +80,7 @@
 
             <div id="panelProgreso" class="hidden">
                 
+                <!-- Resumen General -->
                 <div class="card-premium rounded-2xl p-6 mb-8 relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-full -z-10"></div>
                     <div class="flex justify-between items-start mb-6 border-b pb-4">
@@ -113,6 +116,21 @@
                     </div>
                 </div>
 
+                <!-- NUEVO GRÁFICO DE ERRORES -->
+                <div class="card-premium rounded-2xl p-6 mb-8">
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-rose-500"></i> Errores por Persona
+                    </h3>
+                    <div id="mensajeSinErrores" class="hidden text-center py-8 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
+                        <p class="text-emerald-700 font-bold">¡Excelente! Nadie ha cometido errores hasta ahora.</p>
+                    </div>
+                    <div id="contenedorGrafico" class="relative h-72 w-full hidden">
+                        <canvas id="graficoErrores"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Avance -->
                 <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-users text-slate-400"></i> Avance del Equipo
                 </h3>
@@ -129,6 +147,7 @@
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let itemsErroresGlobal = [];
+        let chartErrores = null; // Variable para guardar el gráfico
 
         async function cargarProgreso() {
             try {
@@ -205,9 +224,78 @@
                 document.getElementById('resErrores').innerText = errores;
                 document.getElementById('resPendientes').innerText = pendientes;
 
+                // --- LÓGICA DEL GRÁFICO DE ERRORES ---
+                const nombresOrdenados = Object.keys(usuariosStats).sort();
+                const nombresParaGrafico = [];
+                const erroresParaGrafico = [];
+
+                nombresOrdenados.forEach(nombre => {
+                    if (usuariosStats[nombre].errores > 0) {
+                        nombresParaGrafico.push(nombre.split(' ')[0]); // Solo el primer nombre
+                        erroresParaGrafico.push(usuariosStats[nombre].errores);
+                    }
+                });
+
+                if (nombresParaGrafico.length > 0) {
+                    document.getElementById('mensajeSinErrores').classList.add('hidden');
+                    document.getElementById('contenedorGrafico').classList.remove('hidden');
+
+                    if (chartErrores) chartErrores.destroy(); // Destruir anterior si existe
+
+                    const ctx = document.getElementById('graficoErrores').getContext('2d');
+                    const gradientRed = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradientRed.addColorStop(0, '#fb7185'); // Rose 400
+                    gradientRed.addColorStop(1, '#e11d48'); // Rose 600
+
+                    chartErrores = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: nombresParaGrafico,
+                            datasets: [{
+                                label: 'Cantidad de Errores',
+                                data: erroresParaGrafico,
+                                backgroundColor: gradientRed,
+                                borderRadius: 8,
+                                borderSkipped: false,
+                                barPercentage: 0.5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                    titleFont: { size: 13 },
+                                    bodyFont: { size: 14, weight: 'bold' },
+                                    padding: 10,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ` ${context.raw} error(es)`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: 'bold' } } },
+                                y: { 
+                                    beginAtZero: true, 
+                                    grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] },
+                                    ticks: { stepSize: 1 } // Forzar números enteros
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    document.getElementById('mensajeSinErrores').classList.remove('hidden');
+                    document.getElementById('contenedorGrafico').classList.add('hidden');
+                }
+
+                // --- TARJETAS DE AVANCE ---
                 const contenedor = document.getElementById('listaProgreso');
                 contenedor.innerHTML = '';
-                const nombresOrdenados = Object.keys(usuariosStats).sort();
 
                 nombresOrdenados.forEach(nombre => {
                     const stats = usuariosStats[nombre];
@@ -251,7 +339,7 @@
             }
         }
 
-        // --- DESCARGAR EXCEL DE ERRORES (CON LA NUEVA COLUMNA) ---
+        // --- DESCARGAR EXCEL DE ERRORES ---
         document.getElementById('btnDescargarErrores').addEventListener('click', async () => {
             if (itemsErroresGlobal.length === 0) {
                 return alert('No hay errores registrados todavía. Asegúrate de haber marcado algún ítem como INCORRECTO en "Mis Ítems".');
@@ -273,8 +361,8 @@
                     { header: 'Asignado a', key: 'asignado', width: 20 },
                     { header: 'Conteo Físico', key: 'conteo', width: 15 },
                     { header: 'Cant. Correcta', key: 'correcta', width: 15 },
-                    { header: 'Diferencia Real (Corr - Conteo)', key: 'dif_real', width: 25 }, // NUEVA COLUMNA CLARA
-                    { header: 'Diferencia Sistema', key: 'dif_sist', width: 20 }, // La original del Excel
+                    { header: 'Diferencia Real', key: 'dif_real', width: 20 },
+                    { header: 'Diferencia Sistema', key: 'dif_sist', width: 20 },
                     { header: 'Dif. Importe', key: 'importe', width: 15 }
                 ];
 
@@ -285,7 +373,6 @@
                 headerRow.height = 25;
 
                 itemsErroresGlobal.forEach(item => {
-                    // CALCULAR LA DIFERENCIA REAL: Cantidad Correcta - Conteo Físico
                     let difReal = (item.cantidad_correcta || 0) - item.conteo_fisico;
 
                     const row = worksheet.addRow({
@@ -296,12 +383,11 @@
                         asignado: item.nombre_usuario || 'Sin Asignar',
                         conteo: item.conteo_fisico,
                         correcta: item.cantidad_correcta,
-                        dif_real: difReal, // Insertar el cálculo
+                        dif_real: difReal,
                         dif_sist: item.diferencia,
                         importe: item.dif_importe
                     });
 
-                    // Alinear números al centro
                     row.getCell('conteo').alignment = { horizontal: 'center' };
                     row.getCell('correcta').alignment = { horizontal: 'center' };
                     row.getCell('dif_real').alignment = { horizontal: 'center' };
