@@ -276,4 +276,148 @@
                             }
                         },
                         scales: {
-                            x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight:
+                            x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: 'bold' } } },
+                            y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] }, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('mensajeSinErrores').classList.remove('hidden');
+                document.getElementById('contenedorGrafico').classList.add('hidden');
+            }
+
+            const contenedor = document.getElementById('listaProgreso');
+            contenedor.innerHTML = '';
+
+            nombresOrdenados.forEach(nombre => {
+                const stats = usuariosStats[nombre];
+                const revisados = stats.correctos + stats.errores;
+                const porcentaje = stats.total > 0 ? Math.round((revisados / stats.total) * 100) : 0;
+                let colorBarra = porcentaje === 100 ? 'bg-emerald-500' : 'bg-orange-500';
+                
+                contenedor.innerHTML += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center font-bold text-lg border border-slate-300">${nombre.charAt(0)}</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 leading-tight">${nombre}</h4>
+                                    <p class="text-xs text-slate-500">${revisados} de ${stats.total} revisados</p>
+                                </div>
+                            </div>
+                            <div class="text-right"><span class="text-xl font-black ${porcentaje === 100 ? 'text-emerald-500' : 'text-orange-500'}">${porcentaje}%</span></div>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 mb-3 flex overflow-hidden">
+                            <div class="${colorBarra} h-2.5 transition-all duration-500" style="width: ${(stats.correctos/stats.total)*100}%"></div>
+                            <div class="bg-rose-500 h-2.5 transition-all duration-500" style="width: ${(stats.errores/stats.total)*100}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[11px] font-bold uppercase tracking-wider mt-3">
+                            <span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded"><i class="fa-solid fa-check-circle mr-1"></i> ${stats.correctos} OK</span>
+                            <span class="text-rose-600 bg-rose-50 px-2 py-1 rounded"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${stats.errores} Err</span>
+                            <span class="text-slate-400 bg-slate-50 px-2 py-1 rounded"><i class="fa-solid fa-clock mr-1"></i> ${stats.pendientes} Faltan</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('btnFiltrar').addEventListener('click', () => {
+            const desde = document.getElementById('filtroDesde').value;
+            const hasta = document.getElementById('filtroHasta').value;
+            const personaId = document.getElementById('filtroPersona').value;
+
+            if(!desde || !hasta) return alert("Por favor, selecciona ambas fechas.");
+
+            const itemsFiltrados = todosLosItems.filter(item => {
+                if (!item.fecha_verificacion) return false; 
+                const fechaItem = item.fecha_verificacion.split('T')[0]; 
+                const cumpleFecha = fechaItem >= desde && fechaItem <= hasta;
+
+                let cumplePersona = true;
+                if (personaId !== 'todos') cumplePersona = (item.asignado_a === personaId);
+
+                return cumpleFecha && cumplePersona;
+            });
+
+            procesarVista(itemsFiltrados);
+        });
+
+        document.getElementById('btnDescargarErroresFiltrados').addEventListener('click', async () => {
+            if (itemsErroresGlobal.length === 0) return alert('No hay errores registrados para los filtros seleccionados.');
+
+            const btn = document.getElementById('btnDescargarErroresFiltrados');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
+            btn.disabled = true;
+
+            try {
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('Errores Filtrados');
+
+                worksheet.columns = [
+                    { header: 'N° Lista', key: 'n', width: 10 },
+                    { header: 'Código', key: 'codigo', width: 20 },
+                    { header: 'Descripción', key: 'desc', width: 40 },
+                    { header: 'Laboratorio', key: 'lab', width: 25 },
+                    { header: 'Asignado a', key: 'asignado', width: 20 },
+                    { header: 'Conteo Físico', key: 'conteo', width: 15 },
+                    { header: 'Cant. Correcta', key: 'correcta', width: 15 },
+                    { header: 'Diferencia Real', key: 'dif_real', width: 20 },
+                    { header: 'Diferencia Sistema', key: 'dif_sist', width: 20 },
+                    { header: 'Dif. Importe', key: 'importe', width: 15 },
+                    { header: 'Fecha Verificación', key: 'fecha', width: 20 }
+                ];
+
+                const headerRow = worksheet.getRow(1);
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE11D48' } }; 
+                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                headerRow.height = 25;
+
+                itemsErroresGlobal.forEach(item => {
+                    let difReal = (item.cantidad_correcta || 0) - item.conteo_fisico;
+                    let fechaFormat = item.fecha_verificacion ? item.fecha_verificacion.split('T')[0].split('-').reverse().join('/') : '-';
+
+                    const row = worksheet.addRow({
+                        n: item.numero_lista,
+                        codigo: item.codigo,
+                        desc: item.descripcion,
+                        lab: item.laboratorio,
+                        asignado: item.nombre_usuario || 'Sin Asignar',
+                        conteo: item.conteo_fisico,
+                        correcta: item.cantidad_correcta,
+                        dif_real: difReal,
+                        dif_sist: item.diferencia,
+                        importe: item.dif_importe,
+                        fecha: fechaFormat
+                    });
+
+                    row.getCell('conteo').alignment = { horizontal: 'center' };
+                    row.getCell('correcta').alignment = { horizontal: 'center' };
+                    row.getCell('dif_real').alignment = { horizontal: 'center' };
+                    row.getCell('dif_sist').alignment = { horizontal: 'center' };
+                    row.getCell('importe').alignment = { horizontal: 'center' };
+                    row.getCell('fecha').alignment = { horizontal: 'center' };
+                });
+
+                worksheet.eachRow((row) => row.eachCell((cell) => cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }));
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Errores_Filtrados_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Error al generar el Excel.');
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> Descargar Errores Filtrados';
+                btn.disabled = false;
+            }
+        });
+
+        cargarEstadisticas();
+    </script>
+</body>
+</html>
