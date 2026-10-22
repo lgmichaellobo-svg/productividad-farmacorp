@@ -55,14 +55,14 @@
             
             <div id="mensajeEstado" class="text-center py-20 text-slate-500 font-bold text-lg">
                 <i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-orange-500"></i>
-                <p>Cargando estadísticas...</p>
+                <p>Cargando estadísticas históricas...</p>
             </div>
 
             <div id="mensajeVacio" class="hidden text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
                 <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fa-solid fa-folder-open text-3xl text-slate-400"></i>
                 </div>
-                <h3 class="text-xl font-bold text-slate-800 mb-2">No hay verificación activa</h3>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">No hay datos registrados</h3>
                 <p class="text-slate-500 mb-6">Sube un archivo ACTUALIZABLE para empezar.</p>
                 <a href="verificacion.html" class="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-xl transition">
                     <i class="fa-solid fa-upload"></i> Ir a Subir Archivo
@@ -71,7 +71,6 @@
 
             <div id="panelEstadisticas" class="hidden">
                 
-                <!-- ACORDEÓN DE FILTROS -->
                 <div class="mb-6">
                     <button id="toggleFiltros" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition">
                         <span class="flex items-center gap-3">
@@ -104,7 +103,6 @@
                     </div>
                 </div>
 
-                <!-- Resumen Rápido Filtrado -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div class="bg-white p-4 rounded-xl text-center border border-slate-200 shadow-sm">
                         <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total</p>
@@ -124,7 +122,6 @@
                     </div>
                 </div>
 
-                <!-- GRÁFICO DE ERRORES -->
                 <div class="card-premium rounded-2xl p-6 mb-8">
                     <h3 class="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-bar text-rose-500"></i> Errores por Fecha
@@ -164,25 +161,15 @@
         });
 
         async function cargarEstadisticas() {
-            const { data: verificaciones, error: errVerif } = await _supabase
-                .from('verificaciones')
-                .select('id')
-                .eq('estado', 'en curso')
-                .order('fecha_creacion', { ascending: false }) 
-                .limit(1);
+            // TRAER TODOS LOS ITEMS SIN IMPORTAR LA VERIFICACIÓN (Historial completo)
+            const { data: items, error: errItems } = await _supabase
+                .from('verificacion_items')
+                .select('*');
 
-            if (errVerif || !verificaciones || verificaciones.length === 0) {
-                document.getElementById('mensajeEstado').classList.add('hidden');
-                document.getElementById('mensajeVacio').classList.remove('hidden');
+            if (errItems) {
+                document.getElementById('mensajeEstado').innerHTML = '<p class="text-rose-500">Error al cargar datos</p>';
                 return;
             }
-
-            const verificacionId = verificaciones[0].id;
-
-            const { data: items } = await _supabase
-                .from('verificacion_items')
-                .select('*')
-                .eq('verificacion_id', verificacionId);
 
             const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
             if(usuarios) {
@@ -195,7 +182,7 @@
                 });
             }
 
-            todosLosItems = items; 
+            todosLosItems = items || []; 
 
             const hoy = new Date();
             const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
@@ -204,10 +191,16 @@
             document.getElementById('filtroDesde').value = primerDiaMes;
             document.getElementById('filtroHasta').value = hoyFormat;
 
+            // Por defecto mostramos todo al cargar
             procesarVista(todosLosItems);
 
             document.getElementById('mensajeEstado').classList.add('hidden');
-            document.getElementById('panelEstadisticas').classList.remove('hidden');
+            
+            if (todosLosItems.length > 0) {
+                document.getElementById('panelEstadisticas').classList.remove('hidden');
+            } else {
+                document.getElementById('mensajeVacio').classList.remove('hidden');
+            }
         }
 
         function procesarVista(itemsAMostrar) {
@@ -229,9 +222,7 @@
                     item.nombre_usuario = nombre;
                     itemsErroresGlobal.push(item);
 
-                    // CORRECCIÓN CLAVE: Cortar la fecha exacta (solo YYYY-MM-DD)
                     if (item.fecha_verificacion) {
-                        // Separamos por la "T" para quedarnos solo con la fecha
                         let fechaStr = item.fecha_verificacion.split('T')[0]; 
                         erroresPorFecha[fechaStr] = (erroresPorFecha[fechaStr] || 0) + 1;
                     }
@@ -245,13 +236,11 @@
             document.getElementById('resErrores').innerText = errores;
             document.getElementById('resPendientes').innerText = pendientes;
 
-            // Preparar datos para el gráfico ordenando las fechas
             const fechasOrdenadas = Object.keys(erroresPorFecha).sort();
             const fechasParaGrafico = [];
             const erroresParaGrafico = [];
 
             fechasOrdenadas.forEach(fecha => {
-                // Formatear a DD/MM para el gráfico
                 let [y, m, d] = fecha.split('-');
                 fechasParaGrafico.push(`${d}/${m}`);
                 erroresParaGrafico.push(erroresPorFecha[fecha]);
@@ -320,7 +309,6 @@
             const itemsFiltrados = todosLosItems.filter(item => {
                 if (!item.fecha_verificacion) return false; 
                 
-                // CORRECCIÓN: Comparamos solo la fecha, ignorando la hora
                 const fechaItem = item.fecha_verificacion.split('T')[0]; 
                 const cumpleFecha = fechaItem >= desde && fechaItem <= hasta;
 
@@ -397,7 +385,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Errores_Filtrados_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.download = `Errores_Historicos_${new Date().toISOString().split('T')[0]}.xlsx`;
                 a.click();
                 window.URL.revokeObjectURL(url);
             } catch (error) {
