@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas - Farmacorp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style> 
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; } 
+        .card-premium { background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20">
+        <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+            <div class="w-10 h-10 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                <i class="fa-solid fa-boxes-stacked text-lg"></i>
+            </div>
+            <div><h1 class="text-lg font-bold text-white tracking-tight">Farmacorp</h1></div>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 mt-4">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a>
+            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-orange-600 text-white rounded-xl shadow-lg shadow-orange-900/50 transition font-medium"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
+        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-50/50 to-slate-50 -z-10"></div>
+
+        <!-- Pestañas Actualizadas (4 pestañas) -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm px-6 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-10 border-b border-slate-200 gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 tracking-tight">Módulo de Verificación</h2>
+            </div>
+            
+            <div class="flex flex-wrap bg-slate-100 rounded-lg p-1 w-full xl:w-auto">
+                <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
+                <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Mis Ítems</a>
+                <a href="progreso_verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Progreso</a>
+                <a href="estadisticas.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs bg-white text-orange-600 shadow-sm transition">Estadísticas</a>
+            </div>
+            
+            <button id="btnDescargarErroresFiltrados" class="text-sm bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2 w-full xl:w-auto justify-center">
+                <i class="fa-solid fa-file-excel"></i> Descargar Errores Filtrados
+            </button>
+        </header>
+
+        <div class="p-4 md:p-8 flex-1 max-w-5xl mx-auto w-full">
+            
+            <div id="mensajeEstado" class="text-center py-20 text-slate-500 font-bold text-lg">
+                <i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-orange-500"></i>
+                <p>Cargando estadísticas...</p>
+            </div>
+
+            <div id="mensajeVacio" class="hidden text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-folder-open text-3xl text-slate-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">No hay verificación activa</h3>
+                <p class="text-slate-500 mb-6">Sube un archivo ACTUALIZABLE para empezar.</p>
+                <a href="verificacion.html" class="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-xl transition">
+                    <i class="fa-solid fa-upload"></i> Ir a Subir Archivo
+                </a>
+            </div>
+
+            <div id="panelEstadisticas" class="hidden">
+                
+                <!-- FILTROS -->
+                <div class="card-premium p-5 rounded-2xl mb-6 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                        <input type="date" id="filtroDesde" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                        <input type="date" id="filtroHasta" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
+                        <select id="filtroPersona" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700 font-medium">
+                            <option value="todos">Todos los trabajadores</option>
+                        </select>
+                    </div>
+                    <button id="btnFiltrar" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-md w-full lg:w-auto flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-filter"></i> Aplicar Filtros
+                    </button>
+                </div>
+
+                <!-- Resumen Rápido Filtrado -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white p-4 rounded-xl text-center border border-slate-200 shadow-sm">
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total</p>
+                        <p class="text-3xl font-black text-slate-800" id="resTotal">0</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100 shadow-sm">
+                        <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-1">Correctos</p>
+                        <p class="text-3xl font-black text-emerald-800" id="resCorrectos">0</p>
+                    </div>
+                    <div class="bg-rose-50 p-4 rounded-xl text-center border border-rose-100 shadow-sm">
+                        <p class="text-xs text-rose-600 font-bold uppercase tracking-wider mb-1">Con Error</p>
+                        <p class="text-3xl font-black text-rose-800" id="resErrores">0</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl text-center border border-blue-100 shadow-sm">
+                        <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Pendientes</p>
+                        <p class="text-3xl font-black text-blue-800" id="resPendientes">0</p>
+                    </div>
+                </div>
+
+                <!-- GRÁFICO DE ERRORES -->
+                <div class="card-premium rounded-2xl p-6 mb-8">
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-rose-500"></i> Errores por Persona
+                    </h3>
+                    <div id="mensajeSinErrores" class="hidden text-center py-8 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
+                        <p class="text-emerald-700 font-bold">¡Excelente! No hay errores registrados con estos filtros.</p>
+                    </div>
+                    <div id="contenedorGrafico" class="relative h-72 w-full hidden">
+                        <canvas id="graficoErrores"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Avance -->
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-slate-400"></i> Avance Detallado
+                </h3>
+                <div id="listaProgreso" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
+        const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
+        const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let itemsErroresGlobal = [];
+        let chartErrores = null; 
+        let todosLosItems = []; 
+        let mapaUsuariosGlobal = {};
+
+        async function cargarEstadisticas() {
+            const { data: verificaciones, error: errVerif } = await _supabase
+                .from('verificaciones')
+                .select('id')
+                .eq('estado', 'en curso')
+                .order('fecha_creacion', { ascending: false }) 
+                .limit(1);
+
+            if (errVerif || !verificaciones || verificaciones.length === 0) {
+                document.getElementById('mensajeEstado').classList.add('hidden');
+                document.getElementById('mensajeVacio').classList.remove('hidden');
+                return;
+            }
+
+            const verificacionId = verificaciones[0].id;
+
+            const { data: items } = await _supabase
+                .from('verificacion_items')
+                .select('*')
+                .eq('verificacion_id', verificacionId);
+
+            const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
+            if(usuarios) {
+                usuarios.forEach(u => mapaUsuariosGlobal[u.id] = u.nombre);
+                
+                const selectPersona = document.getElementById('filtroPersona');
+                selectPersona.innerHTML = '<option value="todos">Todos los trabajadores</option>';
+                usuarios.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(u => {
+                    selectPersona.innerHTML += `<option value="${u.id}">${u.nombre}</option>`;
+                });
+            }
+
+            todosLosItems = items; 
+
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('filtroDesde').value = hoy;
+            document.getElementById('filtroHasta').value = hoy;
+
+            procesarVista(todosLosItems);
+
+            document.getElementById('mensajeEstado').classList.add('hidden');
+            document.getElementById('panelEstadisticas').classList.remove('hidden');
+        }
+
+        function procesarVista(itemsAMostrar) {
+            let total = itemsAMostrar.length;
+            let correctos = 0;
+            let errores = 0;
+            let pendientes = 0;
+            let usuariosStats = {};
+
+            itemsErroresGlobal = []; 
+
+            itemsAMostrar.forEach(item => {
+                let nombre = item.asignado_a && mapaUsuariosGlobal[item.asignado_a] ? mapaUsuariosGlobal[item.asignado_a] : 'Sin Asignar';
+                
+                if (!usuariosStats[nombre]) {
+                    usuariosStats[nombre] = { total: 0, correctos: 0, errores: 0, pendientes: 0 };
+                }
+                usuariosStats[nombre].total++;
+
+                if (item.estado === 'correcto') {
+                    correctos++;
+                    usuariosStats[nombre].correctos++;
+                } else if (item.estado === 'incorrecto') {
+                    errores++;
+                    usuariosStats[nombre].errores++;
+                    item.nombre_usuario = nombre;
+                    itemsErroresGlobal.push(item); 
+                } else {
+                    pendientes++;
+                    usuariosStats[nombre].pendientes++;
+                }
+            });
+
+            document.getElementById('resTotal').innerText = total;
+            document.getElementById('resCorrectos').innerText = correctos;
+            document.getElementById('resErrores').innerText = errores;
+            document.getElementById('resPendientes').innerText = pendientes;
+
+            const nombresOrdenados = Object.keys(usuariosStats).sort();
+            const nombresParaGrafico = [];
+            const erroresParaGrafico = [];
+
+            nombresOrdenados.forEach(nombre => {
+                if (usuariosStats[nombre].errores > 0) {
+                    nombresParaGrafico.push(nombre.split(' ')[0]);
+                    erroresParaGrafico.push(usuariosStats[nombre].errores);
+                }
+            });
+
+            if (nombresParaGrafico.length > 0) {
+                document.getElementById('mensajeSinErrores').classList.add('hidden');
+                document.getElementById('contenedorGrafico').classList.remove('hidden');
+
+                if (chartErrores) chartErrores.destroy();
+
+                const ctx = document.getElementById('graficoErrores').getContext('2d');
+                const gradientRed = ctx.createLinearGradient(0, 0, 0, 400);
+                gradientRed.addColorStop(0, '#fb7185');
+                gradientRed.addColorStop(1, '#e11d48');
+
+                chartErrores = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: nombresParaGrafico,
+                        datasets: [{
+                            label: 'Cantidad de Errores',
+                            data: erroresParaGrafico,
+                            backgroundColor: gradientRed,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { size: 13 },
+                                bodyFont: { size: 14, weight: 'bold' },
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: { label: function(context) { return ` ${context.raw} error(es)`; } }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight:
