@@ -31,7 +31,6 @@
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-50/50 to-slate-50 -z-10"></div>
 
-        <!-- Pestañas Actualizadas (4 pestañas) -->
         <header class="bg-white/80 backdrop-blur-md shadow-sm px-6 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-10 border-b border-slate-200 gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Módulo de Verificación</h2>
@@ -53,7 +52,7 @@
             
             <div id="mensajeEstado" class="text-center py-20 text-slate-500 font-bold text-lg">
                 <i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-orange-500"></i>
-                <p>Cargando datos...</p>
+                <p>Cargando datos de la verificación...</p>
             </div>
 
             <div id="mensajeVacio" class="hidden text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
@@ -69,7 +68,6 @@
 
             <div id="panelProgreso" class="hidden">
                 
-                <!-- Resumen General -->
                 <div class="card-premium rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-full -z-10"></div>
                     <div class="flex flex-col md:flex-row justify-between items-start mb-8 border-b pb-6 gap-4">
@@ -131,60 +129,74 @@
         let itemsErroresGlobal = [];
 
         async function cargarProgreso() {
-            const { data: verificaciones, error: errVerif } = await _supabase
-                .from('verificaciones')
-                .select('id, nombre_archivo, umbral_importe, bodega_id, fecha_verificacion')
-                .eq('estado', 'en curso')
-                .order('fecha_creacion', { ascending: false }) 
-                .limit(1);
+            try {
+                // 1. Obtener la verificación activa
+                const { data: verificaciones, error: errVerif } = await _supabase
+                    .from('verificaciones')
+                    .select('id, nombre_archivo, umbral_importe, bodega_id, fecha_verificacion')
+                    .eq('estado', 'en curso')
+                    .order('fecha_creacion', { ascending: false }) 
+                    .limit(1);
 
-            if (errVerif || !verificaciones || verificaciones.length === 0) {
-                document.getElementById('mensajeEstado').classList.add('hidden');
-                document.getElementById('mensajeVacio').classList.remove('hidden');
-                return;
-            }
+                if (errVerif) throw errVerif;
 
-            const verif = verificaciones[0];
-            
-            let nombreBodega = 'Bodega no especificada';
-            if (verif.bodega_id) {
-                const { data: bodega } = await _supabase.from('bodegas').select('nombre').eq('id', verif.bodega_id).single();
-                if (bodega) nombreBodega = bodega.nombre;
-            }
-
-            const { data: items } = await _supabase
-                .from('verificacion_items')
-                .select(`*, usuarios (nombre)`)
-                .eq('verificacion_id', verif.id);
-
-            let correctos = 0;
-            let errores = 0;
-            let pendientes = 0;
-
-            itemsErroresGlobal = [];
-
-            items.forEach(item => {
-                if (item.estado === 'correcto') correctos++;
-                else if (item.estado === 'incorrecto') {
-                    errores++;
-                    itemsErroresGlobal.push(item);
+                if (!verificaciones || verificaciones.length === 0) {
+                    document.getElementById('mensajeEstado').classList.add('hidden');
+                    document.getElementById('mensajeVacio').classList.remove('hidden');
+                    return;
                 }
-                else pendientes++;
-            });
 
-            let fechaFormat = verif.fecha_verificacion ? verif.fecha_verificacion.split('-').reverse().join('/') : 'Sin fecha';
+                const verif = verificaciones[0];
+                
+                // 2. Buscar nombre de la bodega
+                let nombreBodega = 'Bodega no especificada';
+                if (verif.bodega_id) {
+                    const { data: bodega } = await _supabase.from('bodegas').select('nombre').eq('id', verif.bodega_id).single();
+                    if (bodega) nombreBodega = bodega.nombre;
+                }
 
-            document.getElementById('nombreBodega').innerText = nombreBodega;
-            document.getElementById('nombreArchivo').innerText = verif.nombre_archivo;
-            document.getElementById('fechaVerif').innerText = fechaFormat;
-            document.getElementById('umbral').innerText = verif.umbral_importe;
-            document.getElementById('resTotal').innerText = items.length;
-            document.getElementById('resCorrectos').innerText = correctos;
-            document.getElementById('resErrores').innerText = errores;
-            document.getElementById('resPendientes').innerText = pendientes;
+                // 3. Obtener ítems
+                const { data: items, error: errItems } = await _supabase
+                    .from('verificacion_items')
+                    .select('*')
+                    .eq('verificacion_id', verif.id);
 
-            document.getElementById('mensajeEstado').classList.add('hidden');
-            document.getElementById('panelProgreso').classList.remove('hidden');
+                if (errItems) throw errItems;
+
+                let correctos = 0;
+                let errores = 0;
+                let pendientes = 0;
+
+                itemsErroresGlobal = [];
+
+                items.forEach(item => {
+                    if (item.estado === 'correcto') correctos++;
+                    else if (item.estado === 'incorrecto') {
+                        errores++;
+                        itemsErroresGlobal.push(item);
+                    }
+                    else pendientes++;
+                });
+
+                // 4. Actualizar UI
+                let fechaFormat = verif.fecha_verificacion ? verif.fecha_verificacion.split('-').reverse().join('/') : 'Sin fecha';
+
+                document.getElementById('nombreBodega').innerText = nombreBodega;
+                document.getElementById('nombreArchivo').innerText = verif.nombre_archivo;
+                document.getElementById('fechaVerif').innerText = fechaFormat;
+                document.getElementById('umbral').innerText = verif.umbral_importe;
+                document.getElementById('resTotal').innerText = items.length;
+                document.getElementById('resCorrectos').innerText = correctos;
+                document.getElementById('resErrores').innerText = errores;
+                document.getElementById('resPendientes').innerText = pendientes;
+
+                document.getElementById('mensajeEstado').classList.add('hidden');
+                document.getElementById('panelProgreso').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error cargando progreso:", error);
+                document.getElementById('mensajeEstado').innerHTML = `<p class="text-rose-500 font-bold text-lg"><i class="fa-solid fa-triangle-exclamation mb-2 text-3xl block"></i> Error al cargar los datos: ${error.message}</p>`;
+            }
         }
 
         document.getElementById('btnDescargarErrores').addEventListener('click', async () => {
@@ -203,7 +215,6 @@
                     { header: 'Código', key: 'codigo', width: 20 },
                     { header: 'Descripción', key: 'desc', width: 40 },
                     { header: 'Laboratorio', key: 'lab', width: 25 },
-                    { header: 'Asignado a', key: 'asignado', width: 20 },
                     { header: 'Conteo Físico', key: 'conteo', width: 15 },
                     { header: 'Cant. Correcta', key: 'correcta', width: 15 },
                     { header: 'Diferencia Real', key: 'dif_real', width: 20 },
@@ -224,7 +235,6 @@
                         codigo: item.codigo,
                         desc: item.descripcion,
                         lab: item.laboratorio,
-                        asignado: item.usuarios ? item.usuarios.nombre : 'Sin Asignar',
                         conteo: item.conteo_fisico,
                         correcta: item.cantidad_correcta,
                         dif_real: difReal,
