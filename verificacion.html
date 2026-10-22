@@ -39,7 +39,7 @@
 
         <div class="p-4 md:p-8 flex-1 max-w-5xl mx-auto w-full">
             
-            <!-- BARRA PARA ABRIR/CERRAR LA CARGA DE ARCHIVO -->
+            <!-- BARRA DE CARGA DE ARCHIVO -->
             <div class="mb-6 relative z-20">
                 <button id="toggleUploadBtn" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition mb-3">
                     <span class="flex items-center gap-3">
@@ -51,7 +51,6 @@
                     <i id="iconoFlechaUpload" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate"></i>
                 </button>
 
-                <!-- Contenedor del Upload -->
                 <div id="panelUpload" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -71,7 +70,7 @@
                 </div>
             </div>
 
-            <!-- Resumen de Carga -->
+            <!-- RESUMEN DE CARGA -->
             <div id="panelResumen" class="hidden">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">2. Resumen de la revisión</h3>
@@ -93,37 +92,44 @@
 
                     <h4 class="font-bold text-slate-700 mb-3">Ítems asignados por persona:</h4>
                     <div id="listaAsignaciones" class="space-y-2 mb-6 max-h-60 overflow-y-auto">
-                        <!-- Aquí se muestran las personas y cuántos ítems les tocan -->
+                        <!-- Aquí se muestran las personas -->
                     </div>
 
                     <button id="btnProcesar" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
                         <i class="fa-solid fa-check-double"></i> Confirmar y Repartir Ítems
                     </button>
+                    
+                    <!-- Mensaje de estado de guardado -->
+                    <div id="mensajeGuardado" class="mt-4 text-center font-bold hidden"></div>
                 </div>
             </div>
 
         </div>
     </main>
 
+    <!-- Librería de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
+        const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
+        const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
         const excelFileInput = document.getElementById('excelFile');
         const fileNameDisplay = document.getElementById('fileName');
         const panelResumen = document.getElementById('panelResumen');
         
-        // Variables para el acordeón
         const toggleUploadBtn = document.getElementById('toggleUploadBtn');
         const panelUpload = document.getElementById('panelUpload');
         const iconoFlechaUpload = document.getElementById('iconoFlechaUpload');
 
         let datosExcelGlobal = [];
+        let datosFiltradosGlobal = [];
 
-        // Lógica para abrir/cerrar el panel de subida manual
         toggleUploadBtn.addEventListener('click', () => {
             panelUpload.classList.toggle('hidden');
             iconoFlechaUpload.classList.toggle('rotate-180');
         });
 
-        // Lógica para leer el Excel
         excelFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -136,10 +142,7 @@
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                
-                const json = XLSX.utils.sheet_to_json(firstSheet);
-                datosExcelGlobal = json;
-                
+                datosExcelGlobal = XLSX.utils.sheet_to_json(firstSheet);
                 procesarDatosExcel();
             };
             reader.readAsArrayBuffer(file);
@@ -148,62 +151,140 @@
         function procesarDatosExcel() {
             const umbral = parseFloat(document.getElementById('umbralImporte').value) || 70;
             
-            const itemsFiltrados = datosExcelGlobal.filter(row => {
+            // Filtrar por importe
+            datosFiltradosGlobal = datosExcelGlobal.filter(row => {
                 let difKey = Object.keys(row).find(k => k.toUpperCase().includes('IMPORTE'));
                 if (!difKey) return false;
-                
-                let dif = Math.abs(parseFloat(row[difKey]) || 0);
-                return dif >= umbral;
+                return Math.abs(parseFloat(row[difKey]) || 0) >= umbral;
             });
 
             const conteoAsignados = {};
-            itemsFiltrados.forEach(row => {
-                let asignadoKey = Object.keys(row).find(k => k.toUpperCase().includes('ASIGNACION') || k.toUpperCase().includes('ASIGNADO'));
+            datosFiltradosGlobal.forEach(row => {
+                let asignadoKey = Object.keys(row).find(k => k.toUpperCase().includes('ASIGNACION'));
                 let nombre = asignadoKey ? (row[asignadoKey] || 'Sin Asignar').toString().trim().toUpperCase() : 'Sin Asignar';
-                
-                if (nombre !== '') {
-                    conteoAsignados[nombre] = (conteoAsignados[nombre] || 0) + 1;
-                }
+                if (nombre !== '') conteoAsignados[nombre] = (conteoAsignados[nombre] || 0) + 1;
             });
 
             document.getElementById('totalItems').innerText = datosExcelGlobal.length;
-            document.getElementById('itemsFiltrados').innerText = itemsFiltrados.length;
+            document.getElementById('itemsFiltrados').innerText = datosFiltradosGlobal.length;
             document.getElementById('totalAsignados').innerText = Object.keys(conteoAsignados).length;
 
             const contenedorLista = document.getElementById('listaAsignaciones');
             contenedorLista.innerHTML = '';
             
             if (Object.keys(conteoAsignados).length === 0) {
-                contenedorLista.innerHTML = '<p class="text-sm text-slate-500">No se encontraron nombres válidos en la columna de asignación.</p>';
+                contenedorLista.innerHTML = '<p class="text-sm text-slate-500">No se encontraron nombres válidos.</p>';
             } else {
                 for (const [nombre, cantidad] of Object.entries(conteoAsignados)) {
                     contenedorLista.innerHTML += `
                         <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
                             <span class="font-bold text-slate-700"><i class="fa-solid fa-user text-slate-400 mr-2"></i> ${nombre}</span>
-                            <span class="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full text-sm">${cantidad} ítems a revisar</span>
+                            <span class="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full text-sm">${cantidad} ítems</span>
                         </div>
                     `;
                 }
             }
 
-            // ¡MAGIA! Ocultar la barra de subida automáticamente y mostrar resultados
             panelUpload.classList.add('hidden');
             iconoFlechaUpload.classList.add('rotate-180');
             panelResumen.classList.remove('hidden');
-            
-            // Desplazarse suavemente hacia el resumen
             panelResumen.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Re-calcular si cambian el monto
         document.getElementById('umbralImporte').addEventListener('change', () => {
-            if (datosExcelGlobal.length > 0) {
-                procesarDatosExcel();
-            }
+            if (datosExcelGlobal.length > 0) procesarDatosExcel();
         });
 
-        document.getElementById('btnProcesar').addEventListener('click', () => {
-            alert('¡Excel leído con éxito! En el siguiente paso, guardaremos estos ítems en la base de datos para que cada persona entre a revisar los suyos.');
+        // --- GUARDAR EN SUPABASE ---
+        document.getElementById('btnProcesar').addEventListener('click', async () => {
+            const btn = document.getElementById('btnProcesar');
+            const msj = document.getElementById('mensajeGuardado');
+            
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en la nube...';
+            btn.disabled = true;
+            msj.classList.add('hidden');
+
+            try {
+                // 1. Obtener los usuarios para relacionar los nombres con sus IDs
+                const { data: usuariosDB } = await _supabase.from('usuarios').select('id, nombre');
+                
+                // Crear un diccionario para buscar rápido (ej. "MICHAEL" -> "uuid...")
+                const mapaUsuarios = {};
+                usuariosDB.forEach(u => {
+                    mapaUsuarios[u.nombre.toUpperCase()] = u.id;
+                });
+
+                // 2. Crear la cabecera de la verificación
+                const { data: verificacion, error: errorVerif } = await _supabase
+                    .from('verificaciones')
+                    .insert([{
+                        nombre_archivo: fileNameDisplay.innerText,
+                        umbral_importe: parseFloat(document.getElementById('umbralImporte').value),
+                        estado: 'en curso'
+                    }])
+                    .select()
+                    .single();
+
+                if (errorVerif) throw errorVerif;
+
+                // 3. Preparar los ítems para insertar
+                const itemsParaInsertar = datosFiltradosGlobal.map(row => {
+                    // Buscar las columnas exactas del Excel
+                    const getVal = (keyword) => {
+                        const key = Object.keys(row).find(k => k.toUpperCase().includes(keyword));
+                        return key ? row[key] : null;
+                    };
+
+                    let nombreAsignado = getVal('ASIGNACION');
+                    nombreAsignado = nombreAsignado ? nombreAsignado.toString().trim().toUpperCase() : '';
+                    
+                    // Buscar el ID del usuario. Si no lo encuentra exacto, intenta buscar coincidencia parcial.
+                    let operadorId = mapaUsuarios[nombreAsignado] || null;
+                    if (!operadorId && nombreAsignado) {
+                        const key = Object.keys(mapaUsuarios).find(k => k.includes(nombreAsignado) || nombreAsignado.includes(k));
+                        if (key) operadorId = mapaUsuarios[key];
+                    }
+
+                    return {
+                        verificacion_id: verificacion.id,
+                        numero_lista: parseInt(getVal('N')) || null,
+                        codigo: getVal('CODIGO')?.toString(),
+                        descripcion: getVal('DESCRIPCION'),
+                        laboratorio: getVal('LAB'),
+                        unidad: getVal('UNIDAD'),
+                        conteo_fisico: parseFloat(getVal('CONTEO')) || 0,
+                        saldo_sistema: parseFloat(getVal('SALDO')) || 0,
+                        diferencia: parseFloat(getVal('DIFERENCIA')) || 0,
+                        dif_importe: parseFloat(getVal('IMPORTE')) || 0,
+                        asignado_a: operadorId,
+                        estado: 'pendiente'
+                    };
+                });
+
+                // 4. Insertar todos los ítems
+                const { error: errorItems } = await _supabase
+                    .from('verificacion_items')
+                    .insert(itemsParaInsertar);
+
+                if (errorItems) throw errorItems;
+
+                // Éxito
+                msj.innerHTML = '<i class="fa-solid fa-check-circle"></i> ¡Verificación guardada y repartida con éxito!';
+                msj.className = 'mt-4 text-center font-bold block text-emerald-600';
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Completado';
+                
+                setTimeout(() => {
+                    // Aquí a futuro redirigiremos a la pantalla de verificación del usuario
+                    alert("¡Listo! En el siguiente paso crearemos la pantalla donde cada uno ve sus ítems.");
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+                msj.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error: ' + error.message;
+                msj.className = 'mt-4 text-center font-bold block text-rose-600';
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirmar y Repartir Ítems';
+                btn.disabled = false;
+            }
         });
 
     </script>
