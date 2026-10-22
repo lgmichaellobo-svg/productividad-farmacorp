@@ -18,6 +18,8 @@
         .drop-zone {
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23CBD5E1FF' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
         }
+        /* Transición suave para la cuadrícula */
+        .grid-layout { transition: all 0.4s ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
@@ -63,10 +65,10 @@
 
         <div class="p-4 md:p-8 flex-1 max-w-7xl mx-auto w-full">
             
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div id="gridPrincipal" class="grid grid-cols-1 lg:grid-cols-12 gap-6 grid-layout">
                 
-                <!-- COLUMNA IZQUIERDA: Carga de Archivo -->
-                <div class="lg:col-span-5 space-y-6">
+                <!-- COLUMNA IZQUIERDA: Carga de Archivo (Se oculta al procesar) -->
+                <div id="columnaSubida" class="lg:col-span-5 space-y-6">
                     <div class="card-premium p-6 rounded-2xl relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10"></div>
                         <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
@@ -94,10 +96,18 @@
                     </div>
                 </div>
 
-                <!-- COLUMNA DERECHA: Resumen y Confirmación -->
-                <div class="lg:col-span-7">
+                <!-- COLUMNA DERECHA: Resumen (Se expande al procesar) -->
+                <div id="columnaResumen" class="lg:col-span-7">
                     <div id="panelResumen" class="hidden">
                         <div class="card-premium p-6 rounded-2xl">
+                            
+                            <!-- Botón para volver a subir si se equivocó -->
+                            <div class="flex justify-end mb-2">
+                                <button id="btnCambiarArchivo" class="text-xs font-bold text-slate-500 hover:text-orange-600 transition flex items-center gap-1 bg-slate-100 hover:bg-orange-50 px-3 py-1.5 rounded-lg">
+                                    <i class="fa-solid fa-rotate-right"></i> Subir otro archivo
+                                </button>
+                            </div>
+
                             <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
                                 <i class="fa-solid fa-chart-pie text-blue-500"></i> 2. Resumen y Distribución
                             </h3>
@@ -145,6 +155,11 @@
         const excelFileInput = document.getElementById('excelFile');
         const fileNameDisplay = document.getElementById('fileName');
         const panelResumen = document.getElementById('panelResumen');
+        
+        // Elementos de las columnas para ocultar/mostrar
+        const columnaSubida = document.getElementById('columnaSubida');
+        const columnaResumen = document.getElementById('columnaResumen');
+        const btnCambiarArchivo = document.getElementById('btnCambiarArchivo');
 
         let datosExcelGlobal = [];
         let datosFiltradosGlobal = [];
@@ -210,9 +225,25 @@
                 }
             }
 
+            // --- MAGIA: OCULTAR SUBIDA Y EXPANDIR RESUMEN ---
+            columnaSubida.classList.add('hidden');
+            columnaResumen.classList.remove('lg:col-span-7');
+            columnaResumen.classList.add('lg:col-span-12');
+
             panelResumen.classList.remove('hidden');
-            panelResumen.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+
+        // Botón para volver a mostrar la zona de subida
+        btnCambiarArchivo.addEventListener('click', () => {
+            columnaSubida.classList.remove('hidden');
+            columnaResumen.classList.add('lg:col-span-7');
+            columnaResumen.classList.remove('lg:col-span-12');
+            panelResumen.classList.add('hidden');
+            
+            // Limpiar input
+            excelFileInput.value = '';
+            fileNameDisplay.classList.add('hidden');
+        });
 
         document.getElementById('umbralImporte').addEventListener('change', () => {
             if (datosExcelGlobal.length > 0) procesarDatosExcel();
@@ -227,11 +258,9 @@
             const { data: activas } = await _supabase.from('verificaciones').select('id').eq('estado', 'en curso');
 
             if (activas && activas.length > 0) {
-                // Si hay una activa, preguntar al usuario
                 const confirmar = confirm("⚠️ Ya existe una verificación en curso.\n\nSi continúas, la verificación anterior se borrará y se reemplazará por esta nueva.\n\n¿Deseas reemplazarla?");
-                if (!confirmar) return; // Si dice que no, cancelamos
+                if (!confirmar) return;
 
-                // Si dice que sí, borramos la anterior (el borrado en cascada eliminará sus ítems)
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando anterior...';
                 btn.disabled = true;
                 await _supabase.from('verificaciones').delete().eq('id', activas[0].id);
@@ -246,7 +275,6 @@
                 const mapaUsuarios = {};
                 usuariosDB.forEach(u => { mapaUsuarios[u.nombre.toUpperCase()] = u.id; });
 
-                // Crear la nueva verificación
                 const { data: verificacion, error: errorVerif } = await _supabase
                     .from('verificaciones')
                     .insert([{
