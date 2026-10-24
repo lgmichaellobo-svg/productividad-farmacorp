@@ -84,11 +84,11 @@
 
                     <div id="panelFiltros" class="hidden card-premium p-5 rounded-2xl mt-2 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
                         <div class="flex-1 w-full">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde (Fecha Inventario)</label>
                             <input type="date" id="filtroDesde" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
                         </div>
                         <div class="flex-1 w-full">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta (Fecha Inventario)</label>
                             <input type="date" id="filtroHasta" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
                         </div>
                         <div class="flex-1 w-full">
@@ -124,7 +124,7 @@
 
                 <div class="card-premium rounded-2xl p-6 mb-8">
                     <h3 class="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-bar text-rose-500"></i> Errores por Fecha
+                        <i class="fa-solid fa-chart-bar text-rose-500"></i> Errores por Fecha de Inventario
                     </h3>
                     <div id="mensajeSinErrores" class="hidden text-center py-8 bg-emerald-50 rounded-xl border border-emerald-100">
                         <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
@@ -150,6 +150,7 @@
         let chartErrores = null; 
         let todosLosItems = []; 
         let mapaUsuariosGlobal = {};
+        let mapaFechasVerificacion = {}; // NUEVO: Guardaremos la fecha del inventario
 
         const toggleFiltrosBtn = document.getElementById('toggleFiltros');
         const panelFiltros = document.getElementById('panelFiltros');
@@ -161,9 +162,16 @@
         });
 
         async function cargarEstadisticas() {
-            const { data: items, error: errItems } = await _supabase
-                .from('verificacion_items')
-                .select('*');
+            // 1. Traer todas las verificaciones para saber la fecha real del inventario
+            const { data: verificaciones } = await _supabase.from('verificaciones').select('id, fecha_verificacion');
+            if (verificaciones) {
+                verificaciones.forEach(v => {
+                    mapaFechasVerificacion[v.id] = v.fecha_verificacion; // Guardamos la fecha (YYYY-MM-DD)
+                });
+            }
+
+            // 2. Traer todos los items
+            const { data: items, error: errItems } = await _supabase.from('verificacion_items').select('*');
 
             if (errItems) {
                 document.getElementById('mensajeEstado').innerHTML = '<p class="text-rose-500">Error al cargar datos</p>';
@@ -211,11 +219,14 @@
                 } else if (item.estado === 'incorrecto') {
                     errores++;
                     item.nombre_usuario = nombre;
+                    
+                    // Asignar la fecha del inventario (no la de cuando se marcó el error)
+                    item.fecha_inventario = mapaFechasVerificacion[item.verificacion_id] || item.fecha_verificacion.split('T')[0];
+                    
                     itemsErroresGlobal.push(item);
 
-                    if (item.fecha_verificacion) {
-                        let fechaStr = item.fecha_verificacion.split('T')[0]; 
-                        erroresPorFecha[fechaStr] = (erroresPorFecha[fechaStr] || 0) + 1;
+                    if (item.fecha_inventario) {
+                        erroresPorFecha[item.fecha_inventario] = (erroresPorFecha[item.fecha_inventario] || 0) + 1;
                     }
                 } else {
                     pendientes++;
@@ -302,19 +313,15 @@
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
-            // CONVERTIR FECHAS A TIMESTAMPS PARA COMPARAR CORRECTAMENTE
-            // Desde: 2026-10-28 00:00:00
             const fechaDesdeObj = new Date(desde + 'T00:00:00');
-            // Hasta: 2026-10-28 23:59:59
             const fechaHastaObj = new Date(hasta + 'T23:59:59');
 
             const itemsFiltrados = todosLosItems.filter(item => {
-                if (!item.fecha_verificacion) return false; 
+                // AHORA USAMOS LA FECHA DEL INVENTARIO (la del Excel subido)
+                const fechaInventario = mapaFechasVerificacion[item.verificacion_id];
+                if (!fechaInventario) return false; 
                 
-                // Convertir la fecha del ítem a un objeto Date
-                const fechaItemObj = new Date(item.fecha_verificacion);
-                
-                // Validar si está dentro del rango
+                const fechaItemObj = new Date(fechaInventario + 'T12:00:00');
                 const cumpleFecha = fechaItemObj >= fechaDesdeObj && fechaItemObj <= fechaHastaObj;
 
                 let cumplePersona = true;
@@ -348,7 +355,7 @@
                     { header: 'Diferencia Real', key: 'dif_real', width: 20 },
                     { header: 'Diferencia Sistema', key: 'dif_sist', width: 20 },
                     { header: 'Dif. Importe', key: 'importe', width: 15 },
-                    { header: 'Fecha Verificación', key: 'fecha', width: 20 }
+                    { header: 'Fecha Inventario', key: 'fecha', width: 20 } // Ahora exportamos la fecha del inventario
                 ];
 
                 const headerRow = worksheet.getRow(1);
@@ -359,7 +366,7 @@
 
                 itemsErroresGlobal.forEach(item => {
                     let difReal = (item.cantidad_correcta || 0) - item.conteo_fisico;
-                    let fechaFormat = item.fecha_verificacion ? item.fecha_verificacion.split('T')[0].split('-').reverse().join('/') : '-';
+                    let fechaFormat = item.fecha_inventario ? item.fecha_inventario.split('-').reverse().join('/') : '-';
 
                     const row = worksheet.addRow({
                         n: item.numero_lista,
