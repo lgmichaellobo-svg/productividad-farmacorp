@@ -79,10 +79,11 @@
                             </div>
                             Filtros de búsqueda
                         </span>
-                        <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate"></i>
+                        <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <div id="panelFiltros" class="card-premium p-5 rounded-2xl mt-2 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
+                    <!-- PANEL OCULTO POR DEFECTO AHORA -->
+                    <div id="panelFiltros" class="hidden card-premium p-5 rounded-2xl mt-2 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
                         <div class="flex-1 w-full">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
                             <input type="date" id="filtroDesde" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
@@ -105,7 +106,7 @@
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div class="bg-white p-4 rounded-xl text-center border border-slate-200 shadow-sm">
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total</p>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total Revisados</p>
                         <p class="text-3xl font-black text-slate-800" id="resTotal">0</p>
                     </div>
                     <div class="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100 shadow-sm">
@@ -161,7 +162,7 @@
         });
 
         async function cargarEstadisticas() {
-            // TRAER TODOS LOS ITEMS SIN IMPORTAR LA VERIFICACIÓN (Historial completo)
+            // TRAER TODOS LOS ITEMS SIN IMPORTAR LA VERIFICACIÓN
             const { data: items, error: errItems } = await _supabase
                 .from('verificacion_items')
                 .select('*');
@@ -184,14 +185,7 @@
 
             todosLosItems = items || []; 
 
-            const hoy = new Date();
-            const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
-            const hoyFormat = hoy.toISOString().split('T')[0];
-            
-            document.getElementById('filtroDesde').value = primerDiaMes;
-            document.getElementById('filtroHasta').value = hoyFormat;
-
-            // Por defecto mostramos todo al cargar
+            // NO PONEMOS FECHAS POR DEFECTO, DEJAMOS QUE MUESTRE TODO AL INICIO
             procesarVista(todosLosItems);
 
             document.getElementById('mensajeEstado').classList.add('hidden');
@@ -301,7 +295,13 @@
             const hasta = document.getElementById('filtroHasta').value;
             const personaId = document.getElementById('filtroPersona').value;
 
-            if(!desde || !hasta) return alert("Por favor, selecciona ambas fechas.");
+            if(!desde || !hasta) {
+                // Si no hay fechas, mostrar todo
+                procesarVista(todosLosItems);
+                panelFiltros.classList.add('hidden');
+                iconoFlecha.classList.add('rotate-180');
+                return;
+            }
 
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
