@@ -82,7 +82,6 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <!-- PANEL OCULTO POR DEFECTO AHORA -->
                     <div id="panelFiltros" class="hidden card-premium p-5 rounded-2xl mt-2 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
                         <div class="flex-1 w-full">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
@@ -162,7 +161,6 @@
         });
 
         async function cargarEstadisticas() {
-            // TRAER TODOS LOS ITEMS SIN IMPORTAR LA VERIFICACIÓN
             const { data: items, error: errItems } = await _supabase
                 .from('verificacion_items')
                 .select('*');
@@ -185,7 +183,6 @@
 
             todosLosItems = items || []; 
 
-            // NO PONEMOS FECHAS POR DEFECTO, DEJAMOS QUE MUESTRE TODO AL INICIO
             procesarVista(todosLosItems);
 
             document.getElementById('mensajeEstado').classList.add('hidden');
@@ -296,7 +293,6 @@
             const personaId = document.getElementById('filtroPersona').value;
 
             if(!desde || !hasta) {
-                // Si no hay fechas, mostrar todo
                 procesarVista(todosLosItems);
                 panelFiltros.classList.add('hidden');
                 iconoFlecha.classList.add('rotate-180');
@@ -306,11 +302,20 @@
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
+            // CONVERTIR FECHAS A TIMESTAMPS PARA COMPARAR CORRECTAMENTE
+            // Desde: 2026-10-28 00:00:00
+            const fechaDesdeObj = new Date(desde + 'T00:00:00');
+            // Hasta: 2026-10-28 23:59:59
+            const fechaHastaObj = new Date(hasta + 'T23:59:59');
+
             const itemsFiltrados = todosLosItems.filter(item => {
                 if (!item.fecha_verificacion) return false; 
                 
-                const fechaItem = item.fecha_verificacion.split('T')[0]; 
-                const cumpleFecha = fechaItem >= desde && fechaItem <= hasta;
+                // Convertir la fecha del ítem a un objeto Date
+                const fechaItemObj = new Date(item.fecha_verificacion);
+                
+                // Validar si está dentro del rango
+                const cumpleFecha = fechaItemObj >= fechaDesdeObj && fechaItemObj <= fechaHastaObj;
 
                 let cumplePersona = true;
                 if (personaId !== 'todos') cumplePersona = (item.asignado_a === personaId);
