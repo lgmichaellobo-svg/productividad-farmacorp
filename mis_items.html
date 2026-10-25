@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mis Ítems - Farma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,15 +10,22 @@
     <style> 
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; } 
         .no-select { user-select: none; -webkit-user-select: none; }
-        /* Animación para cuando cambia el ítem */
+        
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
         }
         .animate-item { animation: slideIn 0.3s ease-out forwards; }
+
+        /* Animación para el modal de error */
+        @keyframes slideUpModal {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-modal { animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans h-screen flex flex-col overflow-hidden no-select">
+<body class="bg-slate-50 font-sans h-[100dvh] flex flex-col overflow-hidden no-select">
 
     <!-- Barra Superior -->
     <header class="bg-white/80 backdrop-blur-md shadow-sm px-4 py-3 flex flex-col xl:flex-row justify-between items-center z-20 border-b border-slate-200 gap-3 shrink-0">
@@ -29,13 +36,11 @@
                 </div>
                 <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Mis Ítems</h2>
             </div>
-            <!-- Botón Salir solo para móvil -->
             <a href="app.html" class="xl:hidden text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1 bg-slate-100 px-3 py-2 rounded-lg transition">
                 <i class="fa-solid fa-arrow-left"></i> Salir
             </a>
         </div>
         
-        <!-- Pestañas (con scroll horizontal si es necesario) -->
         <div class="flex overflow-x-auto w-full xl:w-auto bg-slate-100 rounded-xl p-1 hide-scrollbar">
             <a href="verificacion.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
             <a href="mis_items.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-blue-600 shadow-sm transition">Mis Ítems</a>
@@ -48,16 +53,14 @@
         </a>
     </header>
 
-    <!-- Área de Trabajo Principal (CON SCROLL) -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-6 w-full max-w-2xl mx-auto flex flex-col relative pb-24">
+    <!-- Área de Trabajo Principal -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 w-full max-w-2xl mx-auto flex flex-col relative">
         
-        <!-- 1. Estado de Carga -->
         <div id="loadingState" class="text-center py-20 m-auto">
             <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
             <p class="text-slate-500 font-bold">Buscando tus ítems pendientes...</p>
         </div>
 
-        <!-- 2. Estado Vacío (No hay ítems) -->
         <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200 m-auto w-full">
             <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-check-double text-4xl text-emerald-500"></i>
@@ -66,10 +69,8 @@
             <p class="text-slate-500 font-medium" id="emptyText">No tienes ítems pendientes de verificar en este momento.</p>
         </div>
 
-        <!-- 3. Interfaz de Verificación -->
         <div id="verificacionUI" class="hidden w-full">
             
-            <!-- Barra de Progreso -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-10">
                 <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
                     <button id="btnAnterior" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center" disabled>
@@ -85,7 +86,6 @@
                 </div>
             </div>
 
-            <!-- Tarjeta del Ítem -->
             <div id="tarjetaItem" class="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-6 relative animate-item">
                 <div class="bg-slate-900 p-4 flex justify-between items-center">
                     <span class="bg-white/10 backdrop-blur-sm text-white font-black px-4 py-1.5 rounded-xl text-sm border border-white/20">
@@ -113,11 +113,8 @@
                 </div>
             </div>
 
-            <!-- Espacio para que los botones no queden pegados al final -->
-            <div class="h-4"></div>
-
-            <!-- Botones de Acción (Fijos en la parte inferior en móvil) -->
-            <div id="accionesCorrecto" class="grid grid-cols-2 gap-3 md:gap-4">
+            <!-- Botones de Acción -->
+            <div id="accionesCorrecto" class="grid grid-cols-2 gap-3 md:gap-4 mb-4">
                 <button id="btnIncorrecto" class="bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-4 md:py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-1 md:gap-2 group">
                     <div class="w-10 h-10 md:w-12 md:h-12 bg-rose-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-xmark text-xl md:text-2xl"></i>
@@ -133,34 +130,37 @@
                 </button>
             </div>
 
-            <!-- Panel de Cantidad Incorrecta -->
-            <div id="panelIncorrecto" class="hidden bg-white p-5 md:p-6 rounded-3xl shadow-xl border-2 border-rose-200 mt-4 animate-item">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600">
-                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-rose-600 font-black text-lg">Registrar Error</h4>
-                        <p class="text-xs text-slate-500 font-medium">Ingresa la cantidad que contaste realmente.</p>
-                    </div>
-                </div>
-                
-                <input type="number" id="inputCantidadCorrecta" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-rose-100 focus:border-rose-500 outline-none text-2xl font-black text-center mb-4 text-slate-800 transition" placeholder="0" autocomplete="off">
-                
-                <div class="flex gap-3">
-                    <button id="btnCancelarError" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">Cancelar</button>
-                    <button id="btnGuardarError" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2 text-sm md:text-base">
-                        <i class="fa-solid fa-save"></i> Guardar
-                    </button>
-                </div>
-            </div>
-
         </div>
     </main>
 
+    <!-- MODAL PARA REGISTRAR ERROR (Flota sobre la pantalla) -->
+    <div id="panelIncorrecto" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col justify-end">
+        <div class="bg-white w-full md:max-w-md md:mx-auto rounded-t-3xl md:rounded-3xl p-6 shadow-2xl animate-modal pb-8 md:pb-6">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 md:hidden"></div> <!-- Barra para arrastrar en móvil -->
+            
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600">
+                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="text-rose-600 font-black text-xl">Registrar Error</h4>
+                    <p class="text-xs text-slate-500 font-medium">Ingresa la cantidad real contada.</p>
+                </div>
+            </div>
+            
+            <input type="number" id="inputCantidadCorrecta" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-rose-100 focus:border-rose-500 outline-none text-3xl font-black text-center mb-6 text-slate-800 transition" placeholder="0" autocomplete="off">
+            
+            <div class="flex gap-3">
+                <button id="btnCancelarError" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-xl transition">Cancelar</button>
+                <button id="btnGuardarError" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2 text-lg">
+                    <i class="fa-solid fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // [La lógica de JavaScript se mantiene exactamente igual que en el código anterior]
         const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
         const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -268,16 +268,17 @@
             mostrarItem(itemActualIndex);
         });
 
+        // ABRIR MODAL
         document.getElementById('btnIncorrecto').addEventListener('click', () => {
-            document.getElementById('accionesCorrecto').classList.add('hidden');
             document.getElementById('panelIncorrecto').classList.remove('hidden');
-            document.getElementById('inputCantidadCorrecta').focus();
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            // Pequeño delay para que el teclado no estorbe al abrir
+            setTimeout(() => { document.getElementById('inputCantidadCorrecta').focus(); }, 100);
         });
 
+        // CERRAR MODAL
         document.getElementById('btnCancelarError').addEventListener('click', () => {
             document.getElementById('panelIncorrecto').classList.add('hidden');
-            document.getElementById('accionesCorrecto').classList.remove('hidden');
+            document.getElementById('inputCantidadCorrecta').blur(); // Cierra el teclado
         });
 
         document.getElementById('btnGuardarError').addEventListener('click', async () => {
