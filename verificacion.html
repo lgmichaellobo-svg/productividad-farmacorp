@@ -23,6 +23,10 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Transición suave para el panel colapsable */
+        .collapse-content { max-height: 500px; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out; opacity: 1; }
+        .collapse-content.collapsed { max-height: 0; opacity: 0; margin-top: 0; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
@@ -109,21 +113,33 @@
                 <!-- COLUMNA IZQUIERDA -->
                 <div id="columnaSubida" class="lg:col-span-5 space-y-6 animate-fade-up">
                     
-                    <!-- Configuración de Rangos con Botón + -->
-                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden">
+                    <!-- Configuración de Rangos (Ahora Colapsable) -->
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden transition-all duration-300">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10"></div>
-                        <div class="flex justify-between items-center mb-2">
+                        
+                        <div class="flex justify-between items-center mb-1">
                             <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
                                 <i class="fa-solid fa-users-gear text-indigo-600"></i> 1. Configurar Rangos
                             </h3>
-                            <button id="btnAgregarRango" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-3 rounded-lg text-xs transition flex items-center gap-1">
-                                <i class="fa-solid fa-plus"></i> Agregar
-                            </button>
+                            
+                            <!-- Botones de Acción -->
+                            <div class="flex items-center gap-2">
+                                <button id="btnAgregarRango" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-3 rounded-lg text-xs transition flex items-center gap-1">
+                                    <i class="fa-solid fa-plus"></i> Agregar
+                                </button>
+                                <!-- Botón para colapsar/expandir -->
+                                <button id="btnToggleRangos" class="bg-slate-100 hover:bg-slate-200 text-slate-600 p-2 rounded-lg transition">
+                                    <i class="fa-solid fa-chevron-up text-sm transition-transform duration-300" id="iconoToggle"></i>
+                                </button>
+                            </div>
                         </div>
-                        <p class="text-xs text-slate-500 mb-4 font-medium">Agrega los operadores y el rango de "N" que revisará cada uno.</p>
-                        
-                        <div id="contenedorRangos" class="space-y-3 mb-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
-                            <!-- Filas de asignación inyectadas aquí -->
+
+                        <!-- Contenedor Colapsable -->
+                        <div id="seccionRangos" class="collapse-content mt-3">
+                            <p class="text-xs text-slate-500 mb-4 font-medium">Agrega los operadores y el rango de "N" que revisará cada uno.</p>
+                            <div id="contenedorRangos" class="space-y-3 mb-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Filas de asignación inyectadas aquí -->
+                            </div>
                         </div>
                     </div>
 
@@ -264,10 +280,28 @@
         const contenedorRangos = document.getElementById('contenedorRangos');
         const btnAgregarRango = document.getElementById('btnAgregarRango');
 
+        // Elementos para el colapso
+        const btnToggleRangos = document.getElementById('btnToggleRangos');
+        const seccionRangos = document.getElementById('seccionRangos');
+        const iconoToggle = document.getElementById('iconoToggle');
+
         let datosActualizable = []; 
         let datosRevision = [];     
         let datosCruzados = [];     
         let usuariosDBGlobal = [];
+
+        // --- Lógica para Colapsar/Expandir ---
+        btnToggleRangos.addEventListener('click', () => {
+            seccionRangos.classList.toggle('collapsed');
+            // Rotar el icono de la flecha
+            if(seccionRangos.classList.contains('collapsed')) {
+                iconoToggle.classList.remove('fa-chevron-up');
+                iconoToggle.classList.add('fa-chevron-down');
+            } else {
+                iconoToggle.classList.remove('fa-chevron-down');
+                iconoToggle.classList.add('fa-chevron-up');
+            }
+        });
 
         // --- 1. Cargar Usuarios ---
         async function cargarUsuarios() {
@@ -282,7 +316,6 @@
             const div = document.createElement('div');
             div.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100 rango-row animate-fade-up';
             
-            // Crear opciones del select
             let opciones = '<option value="">Seleccione...</option>';
             usuariosDBGlobal.forEach(u => {
                 opciones += `<option value="${u.id}">${u.nombre}</option>`;
@@ -300,13 +333,11 @@
                 </button>
             `;
 
-            // Lógica para eliminar la fila
             div.querySelector('.btn-eliminar-rango').addEventListener('click', () => {
                 div.remove();
                 if (datosCruzados.length > 0) procesarAsignacionYTabla();
             });
 
-            // Lógica para recalcular al cambiar un valor
             div.querySelectorAll('input, select').forEach(el => {
                 el.addEventListener('input', () => {
                     if (datosCruzados.length > 0) procesarAsignacionYTabla();
@@ -457,8 +488,6 @@
         // --- 5. Asignar y Pintar ---
         function procesarAsignacionYTabla() {
             const umbral = parseFloat(document.getElementById('umbralImporte').value) || 70;
-
-            // Filtrar los ítems que cumplen el monto mínimo
             const datosFiltrados = datosCruzados.filter(row => Math.abs(row.importe_dife) >= umbral);
 
             const rangos = [];
@@ -506,7 +535,6 @@
                 `;
             });
 
-            // Actualizar contadores con los datos filtrados
             document.getElementById('totalItems').innerText = datosFiltrados.length;
             document.getElementById('itemsAsignados').innerText = asignadosCount;
             document.getElementById('itemsSinAsignar').innerText = sinAsignarCount;
@@ -518,7 +546,6 @@
             btnProcesar.disabled = false;
         }
 
-        // Recalcular si cambia el umbral
         document.getElementById('umbralImporte').addEventListener('change', () => {
             if (datosCruzados.length > 0) procesarAsignacionYTabla();
         });
@@ -574,7 +601,6 @@
                     .select().single();
                 if (errorVerif) throw errorVerif;
 
-                // Guardamos solo los ítems que pasaron el filtro del umbral
                 const datosParaGuardar = datosCruzados.filter(row => Math.abs(row.importe_dife) >= umbral);
 
                 const itemsParaInsertar = datosParaGuardar.map(row => {
