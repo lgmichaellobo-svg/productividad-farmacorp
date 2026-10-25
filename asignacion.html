@@ -3,24 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva Asignación - Farmacorp</title>
+    <title>Nueva Asignación - Farma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; } 
         .glass-effect { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
+        
+        /* Animaciones */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
+        
+        /* Scrollbar personalizada */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 border-r border-slate-800">
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
             <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
                 <i class="fa-solid fa-pills text-lg"></i>
             </div>
             <div>
-                <h1 class="text-lg font-extrabold text-white tracking-tight">Farmacorp</h1>
+                <h1 class="text-lg font-extrabold text-white tracking-tight">Farma</h1>
             </div>
         </div>
         <nav class="flex-1 p-4 space-y-1.5 mt-2 overflow-y-auto">
@@ -33,51 +46,64 @@
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-50/70 to-slate-50 -z-10"></div>
 
         <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex justify-between items-center border-b border-slate-200/60 shadow-sm">
-            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Registrar Nueva Asignación</h2>
-            <a href="productividad.html" class="text-sm text-blue-600 hover:text-blue-800 font-bold flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl transition">
+            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Nueva Asignación</h2>
+            <a href="productividad.html" class="text-sm text-slate-500 hover:text-blue-700 font-bold flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl transition shadow-sm">
                 <i class="fa-solid fa-arrow-left"></i> Volver
             </a>
         </header>
 
-        <div class="p-4 md:p-8 flex-1 max-w-4xl mx-auto w-full">
-            <form id="formAsignacion" class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 md:p-8 flex-1 max-w-5xl mx-auto w-full">
+            <form id="formAsignacion" class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 animate-fade-up">
+                
+                <h3 class="text-lg font-extrabold text-slate-800 mb-6 border-b border-slate-100 pb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-blue-500"></i> Datos de la Jornada
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Fecha</label>
-                        <input type="date" id="fechaAsig" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-800 transition">
+                        <input type="date" id="fechaAsig" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none font-bold text-slate-800 transition">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Encargado</label>
-                        <select id="encargadoAsig" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-800 transition">
+                        <select id="encargadoAsig" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none font-bold text-slate-800 transition">
                             <option value="">Cargando personal...</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Bodega</label>
-                        <select id="bodegaAsig" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-800 transition">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Bodega / Sucursal</label>
+                        <select id="bodegaAsig" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none font-bold text-slate-800 transition">
                             <option value="">Cargando bodegas...</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Tipo de Negocio</label>
-                        <select id="negocioAsig" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-800 transition">
+                        <select id="negocioAsig" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none font-bold text-slate-800 transition">
                             <option value="">Cargando negocios...</option>
                         </select>
                     </div>
-                    
-                    <div class="md:col-span-2 mt-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Asistentes (Equipo de trabajo)</label>
-                        <div id="listaAsistentes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 border border-slate-200 p-4 rounded-2xl max-h-60 overflow-y-auto bg-slate-50">
-                            <p class="text-sm text-slate-500 col-span-full text-center py-4">Cargando personal...</p>
+                </div>
+                
+                <div class="mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-3">
+                        <label class="block text-sm font-bold text-slate-700">Asistentes (Equipo de trabajo)</label>
+                        <!-- BUSCADOR DE PERSONAL -->
+                        <div class="relative w-full md:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="buscadorPersonal" placeholder="Buscar persona..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
                         </div>
+                    </div>
+                    
+                    <div id="listaAsistentes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 border border-slate-200 p-4 rounded-2xl max-h-72 overflow-y-auto bg-slate-50 custom-scrollbar">
+                        <p class="text-sm text-slate-500 col-span-full text-center py-4 font-medium">Cargando personal...</p>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-blue-500/30 mt-4 flex items-center justify-center gap-2">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-extrabold py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 text-lg">
                     <i class="fa-solid fa-save"></i> Guardar Asignación
                 </button>
             </form>
-            <div id="mensaje" class="mt-4 text-center font-bold hidden p-3 rounded-lg"></div>
+            <div id="mensaje" class="mt-4 text-center font-bold hidden p-4 rounded-xl animate-fade-up"></div>
         </div>
     </main>
 
@@ -87,9 +113,11 @@
         const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        let todosLosAsistentes = []; // Guardaremos la lista completa para el buscador
+
         async function cargarDatos() {
-            // 1. Cargar Encargados (Cualquier usuario que pueda ser encargado o mixto)
-            const { data: encargados, error: errEnc } = await _supabase
+            // 1. Cargar Encargados
+            const { data: encargados } = await _supabase
                 .from('usuarios')
                 .select('id, nombre, rol')
                 .in('rol', ['encargado', 'mixto', 'admin', 'jefe', 'supervisor'])
@@ -117,26 +145,37 @@
                 negocios.forEach(n => select.innerHTML += `<option value="${n.id}">${n.nombre}</option>`);
             }
 
-            // 4. Cargar Asistentes (Todos los que puedan ser asistentes, encargados o mixtos)
-            const { data: asistentes } = await _supabase
-                .from('usuarios')
-                .select('id, nombre')
-                .order('nombre');
-
-            const lista = document.getElementById('listaAsistentes');
-            if (asistentes && asistentes.length > 0) {
-                lista.innerHTML = '';
-                asistentes.forEach(a => {
-                    lista.innerHTML += `
-                    <label class="flex items-center gap-3 cursor-pointer p-3 hover:bg-white bg-white/50 rounded-xl border border-slate-200 hover:border-blue-300 transition shadow-sm">
-                        <input type="checkbox" value="${a.id}" class="asistente-check w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
-                        <span class="text-sm text-slate-700 font-bold">${a.nombre}</span>
-                    </label>`;
-                });
-            } else {
-                lista.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay personal registrado.</p>';
-            }
+            // 4. Cargar Asistentes (Todos los usuarios)
+            const { data: asistentes } = await _supabase.from('usuarios').select('id, nombre').order('nombre');
+            todosLosAsistentes = asistentes || [];
+            renderizarAsistentes(todosLosAsistentes);
         }
+
+        // Función para dibujar los checkboxes de asistentes
+        function renderizarAsistentes(lista) {
+            const contenedor = document.getElementById('listaAsistentes');
+            
+            if (lista.length === 0) {
+                contenedor.innerHTML = '<p class="text-sm text-slate-500 col-span-full text-center py-4 font-medium">No se encontraron personas.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            lista.forEach(a => {
+                contenedor.innerHTML += `
+                <label class="flex items-center gap-3 cursor-pointer p-3 hover:bg-white bg-white/60 rounded-xl border border-slate-200 hover:border-blue-300 transition-all shadow-sm group">
+                    <input type="checkbox" value="${a.id}" class="asistente-check w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
+                    <span class="text-sm text-slate-700 font-bold group-hover:text-blue-700 transition-colors">${a.nombre}</span>
+                </label>`;
+            });
+        }
+
+        // Lógica del buscador
+        document.getElementById('buscadorPersonal').addEventListener('input', (e) => {
+            const termino = e.target.value.toLowerCase();
+            const filtrados = todosLosAsistentes.filter(a => a.nombre.toLowerCase().includes(termino));
+            renderizarAsistentes(filtrados);
+        });
 
         document.getElementById('formAsignacion').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -190,7 +229,7 @@
             
             if (asistentesSeleccionados.length > 0) {
                 const personalRows = asistentesSeleccionados
-                    .filter(id => id !== encargadoId) // Evitar que el encargado se duplique si se marcó a sí mismo
+                    .filter(id => id !== encargadoId) // Evitar que el encargado se duplique
                     .map(opId => ({
                         asignacion_id: asigGuardada.id,
                         operador_id: opId,
