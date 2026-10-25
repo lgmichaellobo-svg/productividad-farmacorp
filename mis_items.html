@@ -3,37 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Ítems - Farmacorp</title>
+    <title>Mis Ítems - Farma</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; } 
-        /* Deshabilitar la selección de texto para evitar copias accidentales al tocar rápido */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; } 
         .no-select { user-select: none; -webkit-user-select: none; }
+        /* Animación para cuando cambia el ítem */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-item { animation: slideIn 0.3s ease-out forwards; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans h-screen flex flex-col overflow-hidden no-select">
 
-    <!-- Barra Superior con Pestañas -->
-    <header class="bg-white shadow-sm px-4 py-3 flex flex-col xl:flex-row justify-between items-center z-20 border-b border-slate-100 gap-3">
-        <div class="flex items-center gap-2 w-full xl:w-auto">
-            <div class="w-8 h-8 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-lg flex items-center justify-center text-white shadow-md">
+    <!-- Barra Superior -->
+    <header class="bg-white/80 backdrop-blur-md shadow-sm px-4 py-3 flex flex-col xl:flex-row justify-between items-center z-20 border-b border-slate-200 gap-3">
+        <div class="flex items-center gap-3 w-full xl:w-auto">
+            <div class="w-9 h-9 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md">
                 <i class="fa-solid fa-clipboard-check text-sm"></i>
             </div>
-            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight">Mis Ítems</h2>
+            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Mis Ítems</h2>
         </div>
         
-        <!-- Pestañas de Navegación -->
-        <div class="flex flex-wrap bg-slate-100 rounded-lg p-1 w-full xl:w-auto">
-            <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-1.5 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
-            <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-1.5 rounded-md font-bold text-xs bg-white text-orange-600 shadow-sm transition">Mis Ítems</a>
-            <a href="progreso_verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-1.5 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Progreso</a>
-            <a href="estadisticas.html" class="flex-1 xl:flex-none text-center px-4 py-1.5 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Estadísticas</a>
+        <!-- Pestañas -->
+        <div class="flex flex-wrap bg-slate-100 rounded-xl p-1 w-full xl:w-auto">
+            <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
+            <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-blue-600 shadow-sm transition">Mis Ítems</a>
+            <a href="progreso_verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Progreso</a>
+            <a href="estadisticas.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Estadísticas</a>
         </div>
 
-        <a href="app.html" class="text-xs text-slate-500 hover:text-slate-800 font-semibold flex items-center justify-center gap-1 w-full xl:w-auto mt-2 xl:mt-0 bg-slate-100 xl:bg-transparent py-2 xl:py-0 rounded-lg">
-            <i class="fa-solid fa-arrow-left"></i> Salir al Panel
+        <a href="app.html" class="text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center justify-center gap-1 w-full xl:w-auto mt-2 xl:mt-0 bg-slate-100 xl:bg-transparent py-2 xl:py-0 rounded-lg transition">
+            <i class="fa-solid fa-arrow-left"></i> Salir
         </a>
     </header>
 
@@ -42,8 +47,8 @@
         
         <!-- 1. Estado de Carga -->
         <div id="loadingState" class="text-center py-20">
-            <i class="fa-solid fa-spinner fa-spin text-4xl text-orange-500 mb-4"></i>
-            <p class="text-slate-500 font-medium">Buscando tus ítems pendientes...</p>
+            <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+            <p class="text-slate-500 font-bold">Buscando tus ítems pendientes...</p>
         </div>
 
         <!-- 2. Estado Vacío (No hay ítems) -->
@@ -53,36 +58,37 @@
             </div>
             <h3 class="text-2xl font-extrabold text-slate-800 mb-2" id="emptyTitle">¡Todo al día!</h3>
             <p class="text-slate-500 font-medium" id="emptyText">No tienes ítems pendientes de verificar en este momento.</p>
-            <a href="progreso_verificacion.html" class="mt-6 inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md">
-                <i class="fa-solid fa-chart-simple"></i> Ver progreso del equipo
+            <a href="progreso_verificacion.html" class="mt-6 inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl transition shadow-md">
+                <i class="fa-solid fa-chart-simple"></i> Ver progreso
             </a>
         </div>
 
-        <!-- 3. Interfaz de Verificación (Oculta hasta cargar) -->
+        <!-- 3. Interfaz de Verificación -->
         <div id="verificacionUI" class="hidden">
             
             <!-- Barra de Progreso y Botón Anterior -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button id="btnAnterior" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center" disabled>
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Anterior
+                    <button id="btnAnterior" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center" disabled>
+                        <i class="fa-solid fa-arrow-left mr-2"></i> Anterior
                     </button>
                     <div class="text-center md:text-left">
-                        <p class="text-sm font-semibold text-slate-800">Ítem <span id="indiceActual" class="text-orange-600 text-lg font-black">1</span> de <span id="totalItems" class="text-lg font-black">0</span></p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Progreso</p>
+                        <p class="text-sm font-extrabold text-slate-800">Ítem <span id="indiceActual" class="text-blue-600 text-lg">1</span> de <span id="totalItems" class="text-lg">0</span></p>
                     </div>
                 </div>
                 <div class="w-full md:w-48 bg-slate-100 rounded-full h-3 shadow-inner">
-                    <div id="barraProgreso" class="bg-gradient-to-r from-orange-400 to-orange-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div id="barraProgreso" class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
                 </div>
             </div>
 
             <!-- Tarjeta del Ítem -->
-            <div class="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-6 relative">
-                <div class="bg-gradient-to-r from-orange-50 to-orange-100 p-4 border-b border-orange-200 flex justify-between items-center">
-                    <span class="bg-white text-orange-600 font-black px-4 py-1.5 rounded-xl text-sm shadow-sm border border-orange-200">
+            <div id="tarjetaItem" class="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-6 relative animate-item">
+                <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-4 flex justify-between items-center">
+                    <span class="bg-white/10 backdrop-blur-sm text-white font-black px-4 py-1.5 rounded-xl text-sm border border-white/20">
                         N° <span id="itemNumLista">-</span>
                     </span>
-                    <span class="text-xs font-bold text-orange-800 uppercase tracking-wider bg-orange-200/50 px-3 py-1 rounded-lg"><i class="fa-solid fa-flask mr-1"></i> <span id="itemLab">-</span></span>
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider"><i class="fa-solid fa-flask mr-1"></i> <span id="itemLab">-</span></span>
                 </div>
 
                 <div class="p-6 md:p-8 text-center">
@@ -104,36 +110,41 @@
                 </div>
             </div>
 
-            <!-- Botones de Acción Principales -->
+            <!-- Botones de Acción -->
             <div id="accionesCorrecto" class="grid grid-cols-2 gap-4">
-                <button id="btnIncorrecto" class="bg-white border-2 border-rose-200 hover:bg-rose-50 text-rose-600 font-bold py-5 rounded-2xl transition shadow-sm flex flex-col items-center justify-center gap-2">
-                    <i class="fa-solid fa-xmark text-3xl"></i> 
+                <button id="btnIncorrecto" class="bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-2 group">
+                    <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-xmark text-2xl"></i>
+                    </div>
                     <span class="text-lg">INCORRECTO</span>
                 </button>
-                <button id="btnCorrecto" class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-5 rounded-2xl transition shadow-lg shadow-emerald-500/30 flex flex-col items-center justify-center gap-2">
-                    <i class="fa-solid fa-check text-3xl"></i> 
+                
+                <button id="btnCorrecto" class="bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-6 rounded-3xl transition-all shadow-lg shadow-emerald-500/30 flex flex-col items-center justify-center gap-2 group">
+                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-check text-2xl"></i>
+                    </div>
                     <span class="text-lg">CORRECTO</span>
                 </button>
             </div>
 
-            <!-- Panel de Cantidad Incorrecta (Se despliega) -->
-            <div id="panelIncorrecto" class="hidden bg-white p-6 rounded-3xl shadow-lg border-2 border-rose-200 mt-4 animate-fade-in">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
-                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            <!-- Panel de Cantidad Incorrecta -->
+            <div id="panelIncorrecto" class="hidden bg-white p-6 rounded-3xl shadow-xl border-2 border-rose-200 mt-4 animate-item">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600">
+                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
                     </div>
                     <div>
-                        <h4 class="text-rose-600 font-black text-lg">Registrar Error</h4>
-                        <p class="text-xs text-slate-500 font-medium">Ingresa la cantidad que contaste realmente.</p>
+                        <h4 class="text-rose-600 font-black text-xl">Registrar Error</h4>
+                        <p class="text-sm text-slate-500 font-medium">Ingresa la cantidad que contaste realmente.</p>
                     </div>
                 </div>
                 
-                <input type="number" id="inputCantidadCorrecta" class="w-full px-4 py-4 border-2 border-slate-300 rounded-xl focus:ring-4 focus:ring-rose-100 focus:border-rose-500 outline-none text-2xl font-black text-center mb-4 text-slate-800" placeholder="0" autocomplete="off">
+                <input type="number" id="inputCantidadCorrecta" class="w-full px-4 py-5 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-rose-100 focus:border-rose-500 outline-none text-3xl font-black text-center mb-6 text-slate-800 transition" placeholder="0" autocomplete="off">
                 
                 <div class="flex gap-3">
-                    <button id="btnCancelarError" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition">Cancelar</button>
-                    <button id="btnGuardarError" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-save"></i> Guardar
+                    <button id="btnCancelarError" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-xl transition">Cancelar</button>
+                    <button id="btnGuardarError" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2 text-lg">
+                        <i class="fa-solid fa-save"></i> Guardar Error
                     </button>
                 </div>
             </div>
@@ -169,7 +180,6 @@
 
             usuarioActualId = usuarioDB.id;
 
-            // Buscar TODOS los ítems pendientes del usuario (sin importar la fecha o verificación)
             const { data: items, error } = await _supabase
                 .from('verificacion_items')
                 .select('*')
@@ -207,6 +217,12 @@
 
             const item = itemsUsuario[index];
             
+            // Reiniciar animación de la tarjeta
+            const tarjeta = document.getElementById('tarjetaItem');
+            tarjeta.classList.remove('animate-item');
+            void tarjeta.offsetWidth; // Truco para reiniciar la animación
+            tarjeta.classList.add('animate-item');
+
             const btnAnterior = document.getElementById('btnAnterior');
             btnAnterior.disabled = (index === 0);
 
@@ -242,7 +258,7 @@
 
         document.getElementById('btnCorrecto').addEventListener('click', async () => {
             const btn = document.getElementById('btnCorrecto');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-3xl"></i>';
             btn.disabled = true;
 
             const item = itemsUsuario[itemActualIndex];
@@ -256,12 +272,12 @@
 
             if (error) {
                 alert("Error al guardar: " + error.message);
-                btn.innerHTML = '<i class="fa-solid fa-check text-3xl"></i> <span class="text-lg">CORRECTO</span>';
+                btn.innerHTML = '<div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-2xl"></i></div><span class="text-lg">CORRECTO</span>';
                 btn.disabled = false;
                 return;
             }
 
-            btn.innerHTML = '<i class="fa-solid fa-check text-3xl"></i> <span class="text-lg">CORRECTO</span>';
+            btn.innerHTML = '<div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-2xl"></i></div><span class="text-lg">CORRECTO</span>';
             btn.disabled = false;
             
             itemActualIndex++;
@@ -301,12 +317,12 @@
 
             if (error) {
                 alert("Error al guardar en la base de datos: " + error.message);
-                btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
+                btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Error';
                 btn.disabled = false;
                 return;
             }
 
-            btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
+            btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Error';
             btn.disabled = false;
             
             itemActualIndex++;
