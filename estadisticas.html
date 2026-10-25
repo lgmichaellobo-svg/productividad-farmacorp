@@ -3,78 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas - Farmacorp</title>
+    <title>Estadísticas - Farma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; } 
-        .card-premium { background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; } 
+        .glass-effect { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
         .chevron-rotate { transition: transform 0.3s ease; }
         .rotate-180 { transform: rotate(180deg); }
+        
+        /* Animaciones */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20">
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-                <i class="fa-solid fa-boxes-stacked text-lg"></i>
+            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
+                <i class="fa-solid fa-pills text-lg"></i>
             </div>
-            <div><h1 class="text-lg font-bold text-white tracking-tight">Farmacorp</h1></div>
+            <div>
+                <h1 class="text-lg font-extrabold text-white tracking-tight">Farma</h1>
+            </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 mt-4">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a>
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-orange-600 text-white rounded-xl shadow-lg shadow-orange-900/50 transition font-medium"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación</a>
+        <nav class="flex-1 p-4 space-y-1.5 mt-2 overflow-y-auto">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a>
+            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación</a>
         </nav>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
-        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-50/50 to-slate-50 -z-10"></div>
+        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-50/70 to-slate-50 -z-10"></div>
 
-        <header class="bg-white/80 backdrop-blur-md shadow-sm px-6 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center sticky top-0 z-10 border-b border-slate-200 gap-4">
+        <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center border-b border-slate-200/60 shadow-sm gap-4">
             <div>
-                <h2 class="text-xl font-bold text-slate-800 tracking-tight">Módulo de Verificación</h2>
+                <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Módulo de Verificación</h2>
             </div>
             
-            <div class="flex flex-wrap bg-slate-100 rounded-lg p-1 w-full xl:w-auto">
-                <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
-                <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Mis Ítems</a>
-                <a href="progreso_verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs text-slate-500 hover:bg-white transition">Progreso</a>
-                <a href="estadisticas.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-md font-bold text-xs bg-white text-orange-600 shadow-sm transition">Estadísticas</a>
+            <div class="flex flex-wrap bg-slate-100 rounded-xl p-1 w-full xl:w-auto">
+                <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
+                <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Mis Ítems</a>
+                <a href="progreso_verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Progreso</a>
+                <a href="estadisticas.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-indigo-600 shadow-sm transition">Estadísticas</a>
             </div>
             
-            <button id="btnDescargarErroresFiltrados" class="text-sm bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2 w-full xl:w-auto justify-center">
-                <i class="fa-solid fa-file-excel"></i> Descargar Errores Filtrados
+            <button id="btnDescargarErroresFiltrados" class="text-sm bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center gap-2 w-full xl:w-auto justify-center">
+                <i class="fa-solid fa-file-excel"></i> Descargar Errores
             </button>
         </header>
 
-        <div class="p-4 md:p-8 flex-1 max-w-5xl mx-auto w-full">
+        <div class="p-4 md:p-8 flex-1 max-w-6xl mx-auto w-full">
             
             <div id="mensajeEstado" class="text-center py-20 text-slate-500 font-bold text-lg">
-                <i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-orange-500"></i>
-                <p>Cargando estadísticas históricas...</p>
+                <i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-indigo-500"></i>
+                <p>Cargando estadísticas...</p>
             </div>
 
-            <div id="mensajeVacio" class="hidden text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
+            <div id="mensajeVacio" class="hidden text-center py-20 bg-white rounded-3xl shadow-sm border border-slate-200">
                 <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fa-solid fa-folder-open text-3xl text-slate-400"></i>
                 </div>
-                <h3 class="text-xl font-bold text-slate-800 mb-2">No hay datos registrados</h3>
-                <p class="text-slate-500 mb-6">Sube un archivo ACTUALIZABLE para empezar.</p>
-                <a href="verificacion.html" class="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-xl transition">
+                <h3 class="text-xl font-extrabold text-slate-800 mb-2">No hay verificación activa</h3>
+                <p class="text-slate-500 mb-6 font-medium">Sube un archivo ACTUALIZABLE para empezar.</p>
+                <a href="verificacion.html" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-md">
                     <i class="fa-solid fa-upload"></i> Ir a Subir Archivo
                 </a>
             </div>
 
             <div id="panelEstadisticas" class="hidden">
                 
-                <div class="mb-6">
-                    <button id="toggleFiltros" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition">
+                <!-- Acordeón de Filtros -->
+                <div class="mb-8 animate-fade-up">
+                    <button id="toggleFiltros" class="w-full bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center text-slate-700 font-bold hover:bg-slate-50 transition">
                         <span class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                                 <i class="fa-solid fa-filter"></i>
                             </div>
                             Filtros de búsqueda
@@ -82,55 +92,76 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <div id="panelFiltros" class="hidden card-premium p-5 rounded-2xl mt-2 flex flex-col lg:flex-row gap-4 items-end bg-blue-50/30 border-blue-100">
+                    <div id="panelFiltros" class="hidden bg-white p-5 rounded-2xl mt-3 flex flex-col lg:flex-row gap-4 items-end border border-slate-200 shadow-sm">
                         <div class="flex-1 w-full">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde (Fecha Inventario)</label>
-                            <input type="date" id="filtroDesde" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
+                            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                            <input type="date" id="filtroDesde" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         <div class="flex-1 w-full">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta (Fecha Inventario)</label>
-                            <input type="date" id="filtroHasta" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700">
+                            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                            <input type="date" id="filtroHasta" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         <div class="flex-1 w-full">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
-                            <select id="filtroPersona" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none transition text-slate-700 font-medium">
+                            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
+                            <select id="filtroPersona" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                                 <option value="todos">Todos los trabajadores</option>
                             </select>
                         </div>
-                        <button id="btnFiltrar" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-md w-full lg:w-auto flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-magnifying-glass"></i> Aplicar Filtros
+                        <button id="btnFiltrar" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-md w-full lg:w-auto flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i> Aplicar
                         </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-white p-4 rounded-xl text-center border border-slate-200 shadow-sm">
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total Revisados</p>
-                        <p class="text-3xl font-black text-slate-800" id="resTotal">0</p>
+                <!-- Tarjetas de Resumen (Estilo Dashboard) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fade-up">
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-slate-50 rounded-bl-full -z-10"></div>
+                        <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider mb-2">Total Revisados</p>
+                        <p class="text-4xl font-black text-slate-800" id="resTotal">0</p>
                     </div>
-                    <div class="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100 shadow-sm">
-                        <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-1">Correctos</p>
-                        <p class="text-3xl font-black text-emerald-800" id="resCorrectos">0</p>
+                    
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -z-10"></div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <p class="text-xs text-emerald-600 font-extrabold uppercase tracking-wider">Correctos</p>
+                        </div>
+                        <p class="text-4xl font-black text-slate-800" id="resCorrectos">0</p>
                     </div>
-                    <div class="bg-rose-50 p-4 rounded-xl text-center border border-rose-100 shadow-sm">
-                        <p class="text-xs text-rose-600 font-bold uppercase tracking-wider mb-1">Con Error</p>
-                        <p class="text-3xl font-black text-rose-800" id="resErrores">0</p>
+                    
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-rose-50 rounded-bl-full -z-10"></div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            <p class="text-xs text-rose-600 font-extrabold uppercase tracking-wider">Con Error</p>
+                        </div>
+                        <p class="text-4xl font-black text-slate-800" id="resErrores">0</p>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-xl text-center border border-blue-100 shadow-sm">
-                        <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Pendientes</p>
-                        <p class="text-3xl font-black text-blue-800" id="resPendientes">0</p>
+                    
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -z-10"></div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            <p class="text-xs text-indigo-600 font-extrabold uppercase tracking-wider">Pendientes</p>
+                        </div>
+                        <p class="text-4xl font-black text-slate-800" id="resPendientes">0</p>
                     </div>
                 </div>
 
-                <div class="card-premium rounded-2xl p-6 mb-8">
-                    <h3 class="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-bar text-rose-500"></i> Errores por Fecha de Inventario
-                    </h3>
-                    <div id="mensajeSinErrores" class="hidden text-center py-8 bg-emerald-50 rounded-xl border border-emerald-100">
+                <!-- Gráfico -->
+                <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm mb-8 animate-fade-up">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-bar text-indigo-500"></i> Errores por Fecha
+                        </h3>
+                    </div>
+                    
+                    <div id="mensajeSinErrores" class="hidden text-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
                         <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
                         <p class="text-emerald-700 font-bold">¡Excelente! No hay errores registrados con estos filtros.</p>
                     </div>
-                    <div id="contenedorGrafico" class="relative h-72 w-full hidden">
+                    <div id="contenedorGrafico" class="relative h-80 w-full hidden">
                         <canvas id="graficoErrores"></canvas>
                     </div>
                 </div>
@@ -150,7 +181,7 @@
         let chartErrores = null; 
         let todosLosItems = []; 
         let mapaUsuariosGlobal = {};
-        let mapaFechasVerificacion = {}; // NUEVO: Guardaremos la fecha del inventario
+        let mapaFechasVerificacion = {};
 
         const toggleFiltrosBtn = document.getElementById('toggleFiltros');
         const panelFiltros = document.getElementById('panelFiltros');
@@ -162,26 +193,17 @@
         });
 
         async function cargarEstadisticas() {
-            // 1. Traer todas las verificaciones para saber la fecha real del inventario
             const { data: verificaciones } = await _supabase.from('verificaciones').select('id, fecha_verificacion');
             if (verificaciones) {
-                verificaciones.forEach(v => {
-                    mapaFechasVerificacion[v.id] = v.fecha_verificacion; // Guardamos la fecha (YYYY-MM-DD)
-                });
+                verificaciones.forEach(v => { mapaFechasVerificacion[v.id] = v.fecha_verificacion; });
             }
 
-            // 2. Traer todos los items
             const { data: items, error: errItems } = await _supabase.from('verificacion_items').select('*');
-
-            if (errItems) {
-                document.getElementById('mensajeEstado').innerHTML = '<p class="text-rose-500">Error al cargar datos</p>';
-                return;
-            }
+            if (errItems) return;
 
             const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
             if(usuarios) {
                 usuarios.forEach(u => mapaUsuariosGlobal[u.id] = u.nombre);
-                
                 const selectPersona = document.getElementById('filtroPersona');
                 selectPersona.innerHTML = '<option value="todos">Todos los trabajadores</option>';
                 usuarios.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(u => {
@@ -190,7 +212,6 @@
             }
 
             todosLosItems = items || []; 
-
             procesarVista(todosLosItems);
 
             document.getElementById('mensajeEstado').classList.add('hidden');
@@ -219,9 +240,7 @@
                 } else if (item.estado === 'incorrecto') {
                     errores++;
                     item.nombre_usuario = nombre;
-                    
-                    // Asignar la fecha del inventario (no la de cuando se marcó el error)
-                    item.fecha_inventario = mapaFechasVerificacion[item.verificacion_id] || item.fecha_verificacion.split('T')[0];
+                    item.fecha_inventario = mapaFechasVerificacion[item.verificacion_id] || (item.fecha_verificacion ? item.fecha_verificacion.split('T')[0] : null);
                     
                     itemsErroresGlobal.push(item);
 
@@ -255,9 +274,14 @@
                 if (chartErrores) chartErrores.destroy();
 
                 const ctx = document.getElementById('graficoErrores').getContext('2d');
-                const gradientRed = ctx.createLinearGradient(0, 0, 0, 400);
-                gradientRed.addColorStop(0, '#fb7185');
-                gradientRed.addColorStop(1, '#e11d48');
+                
+                // Degradado sutil para las barras (Estilo Dashboard)
+                const gradientIndigo = ctx.createLinearGradient(0, 0, 0, 400);
+                gradientIndigo.addColorStop(0, '#818cf8'); // indigo-400
+                gradientIndigo.addColorStop(1, '#4f46e5'); // indigo-600
+
+                Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+                Chart.defaults.color = '#94a3b8';
 
                 chartErrores = new Chart(ctx, {
                     type: 'bar',
@@ -266,10 +290,10 @@
                         datasets: [{
                             label: 'Errores',
                             data: erroresParaGrafico,
-                            backgroundColor: gradientRed,
-                            borderRadius: 8,
+                            backgroundColor: gradientIndigo,
+                            borderRadius: 6, // Bordes redondeados
                             borderSkipped: false,
-                            maxBarThickness: 80 
+                            maxBarThickness: 60 
                         }]
                     },
                     options: {
@@ -278,17 +302,26 @@
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                titleFont: { size: 13 },
+                                backgroundColor: '#1e293b', // slate-800
+                                titleFont: { size: 13, weight: 'bold' },
                                 bodyFont: { size: 14, weight: 'bold' },
-                                padding: 10,
-                                cornerRadius: 8,
+                                padding: 12,
+                                cornerRadius: 12,
+                                displayColors: false,
                                 callbacks: { label: function(context) { return ` ${context.raw} error(es)`; } }
                             }
                         },
                         scales: {
-                            x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: 'bold' } } },
-                            y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] }, ticks: { stepSize: 1 } }
+                            x: { 
+                                grid: { display: false, drawBorder: false }, 
+                                ticks: { font: { weight: 'bold', size: 11 } } 
+                            },
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: '#f1f5f9', drawBorder: false }, 
+                                ticks: { stepSize: 1, font: { weight: 'bold', size: 11 } },
+                                border: { display: false }
+                            }
                         }
                     }
                 });
@@ -317,7 +350,6 @@
             const fechaHastaObj = new Date(hasta + 'T23:59:59');
 
             const itemsFiltrados = todosLosItems.filter(item => {
-                // AHORA USAMOS LA FECHA DEL INVENTARIO (la del Excel subido)
                 const fechaInventario = mapaFechasVerificacion[item.verificacion_id];
                 if (!fechaInventario) return false; 
                 
@@ -355,12 +387,12 @@
                     { header: 'Diferencia Real', key: 'dif_real', width: 20 },
                     { header: 'Diferencia Sistema', key: 'dif_sist', width: 20 },
                     { header: 'Dif. Importe', key: 'importe', width: 15 },
-                    { header: 'Fecha Inventario', key: 'fecha', width: 20 } // Ahora exportamos la fecha del inventario
+                    { header: 'Fecha Inventario', key: 'fecha', width: 20 }
                 ];
 
                 const headerRow = worksheet.getRow(1);
                 headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE11D48' } }; 
+                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }; 
                 headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
                 headerRow.height = 25;
 
@@ -403,7 +435,7 @@
             } catch (error) {
                 alert('Error al generar el Excel.');
             } finally {
-                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> Descargar Errores Filtrados';
+                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> Descargar Errores';
                 btn.disabled = false;
             }
         });
