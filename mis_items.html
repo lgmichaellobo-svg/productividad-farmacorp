@@ -17,7 +17,6 @@
         }
         .animate-item { animation: slideIn 0.3s ease-out forwards; }
 
-        /* Animación para el modal de error */
         @keyframes slideUpModal {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
@@ -113,7 +112,6 @@
                 </div>
             </div>
 
-            <!-- Botones de Acción -->
             <div id="accionesCorrecto" class="grid grid-cols-2 gap-3 md:gap-4 mb-4">
                 <button id="btnIncorrecto" class="bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-4 md:py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-1 md:gap-2 group">
                     <div class="w-10 h-10 md:w-12 md:h-12 bg-rose-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -133,10 +131,11 @@
         </div>
     </main>
 
-    <!-- MODAL PARA REGISTRAR ERROR (Flota sobre la pantalla) -->
+    <!-- MODAL PARA REGISTRAR ERROR (Ajustado para el teclado) -->
     <div id="panelIncorrecto" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col justify-end">
-        <div class="bg-white w-full md:max-w-md md:mx-auto rounded-t-3xl md:rounded-3xl p-6 shadow-2xl animate-modal pb-8 md:pb-6">
-            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 md:hidden"></div> <!-- Barra para arrastrar en móvil -->
+        <!-- Agregamos pb-32 en móvil para que el teclado no tape los botones -->
+        <div class="bg-white w-full md:max-w-md md:mx-auto rounded-t-3xl md:rounded-3xl p-6 shadow-2xl animate-modal pb-32 md:pb-8">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 md:hidden"></div>
             
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600">
@@ -268,17 +267,14 @@
             mostrarItem(itemActualIndex);
         });
 
-        // ABRIR MODAL
         document.getElementById('btnIncorrecto').addEventListener('click', () => {
             document.getElementById('panelIncorrecto').classList.remove('hidden');
-            // Pequeño delay para que el teclado no estorbe al abrir
             setTimeout(() => { document.getElementById('inputCantidadCorrecta').focus(); }, 100);
         });
 
-        // CERRAR MODAL
         document.getElementById('btnCancelarError').addEventListener('click', () => {
             document.getElementById('panelIncorrecto').classList.add('hidden');
-            document.getElementById('inputCantidadCorrecta').blur(); // Cierra el teclado
+            document.getElementById('inputCantidadCorrecta').blur();
         });
 
         document.getElementById('btnGuardarError').addEventListener('click', async () => {
