@@ -24,7 +24,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Transición suave para el panel colapsable */
         .collapse-content { max-height: 500px; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out; opacity: 1; }
         .collapse-content.collapsed { max-height: 0; opacity: 0; margin-top: 0; }
     </style>
@@ -113,7 +112,7 @@
                 <!-- COLUMNA IZQUIERDA -->
                 <div id="columnaSubida" class="lg:col-span-5 space-y-6 animate-fade-up">
                     
-                    <!-- Configuración de Rangos (Ahora Colapsable) -->
+                    <!-- Configuración de Rangos (Colapsable) -->
                     <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden transition-all duration-300">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10"></div>
                         
@@ -122,19 +121,16 @@
                                 <i class="fa-solid fa-users-gear text-indigo-600"></i> 1. Configurar Rangos
                             </h3>
                             
-                            <!-- Botones de Acción -->
                             <div class="flex items-center gap-2">
                                 <button id="btnAgregarRango" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-3 rounded-lg text-xs transition flex items-center gap-1">
                                     <i class="fa-solid fa-plus"></i> Agregar
                                 </button>
-                                <!-- Botón para colapsar/expandir -->
                                 <button id="btnToggleRangos" class="bg-slate-100 hover:bg-slate-200 text-slate-600 p-2 rounded-lg transition">
                                     <i class="fa-solid fa-chevron-up text-sm transition-transform duration-300" id="iconoToggle"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Contenedor Colapsable -->
                         <div id="seccionRangos" class="collapse-content mt-3">
                             <p class="text-xs text-slate-500 mb-4 font-medium">Agrega los operadores y el rango de "N" que revisará cada uno.</p>
                             <div id="contenedorRangos" class="space-y-3 mb-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
@@ -161,7 +157,6 @@
                             <input type="hidden" id="bodegaIdInput" value="">
                         </div>
 
-                        <!-- CAMPO DE MONTO MÍNIMO DE DIFERENCIA -->
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Monto mínimo de diferencia (Bs)</label>
                             <div class="relative">
@@ -280,7 +275,6 @@
         const contenedorRangos = document.getElementById('contenedorRangos');
         const btnAgregarRango = document.getElementById('btnAgregarRango');
 
-        // Elementos para el colapso
         const btnToggleRangos = document.getElementById('btnToggleRangos');
         const seccionRangos = document.getElementById('seccionRangos');
         const iconoToggle = document.getElementById('iconoToggle');
@@ -293,7 +287,6 @@
         // --- Lógica para Colapsar/Expandir ---
         btnToggleRangos.addEventListener('click', () => {
             seccionRangos.classList.toggle('collapsed');
-            // Rotar el icono de la flecha
             if(seccionRangos.classList.contains('collapsed')) {
                 iconoToggle.classList.remove('fa-chevron-up');
                 iconoToggle.classList.add('fa-chevron-down');
@@ -311,7 +304,6 @@
             }
         }
 
-        // --- Lógica para agregar filas de rangos ---
         function agregarFilaRango() {
             const div = document.createElement('div');
             div.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100 rango-row animate-fade-up';
@@ -389,7 +381,7 @@
             });
         });
 
-        // --- 3. Leer Revisión ---
+        // --- 3. Leer Revisión (CON CORRECCIÓN DE FECHA) ---
         excelRevision.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -407,14 +399,33 @@
                     const fila = rawJson[i];
                     for (let j = 0; j < fila.length; j++) {
                         const celda = String(fila[j]).toUpperCase();
+                        
                         if (celda.includes("FECHA:")) {
                             for(let k = j+1; k < fila.length; k++) {
-                                if(String(fila[k]).trim() !== "") { fechaEncontrada = String(fila[k]).trim(); break; }
+                                if(String(fila[k]).trim() !== "") { 
+                                    let valorFecha = fila[k];
+                                    
+                                    // VALIDACIÓN: Si es un número (fecha serial de Excel), lo convertimos
+                                    if (typeof valorFecha === 'number') {
+                                        const fechaJS = new Date(Math.round((valorFecha - 25569) * 86400 * 1000));
+                                        const year = fechaJS.getUTCFullYear();
+                                        const month = String(fechaJS.getUTCMonth() + 1).padStart(2, '0');
+                                        const day = String(fechaJS.getUTCDate()).padStart(2, '0');
+                                        fechaEncontrada = `${year}-${month}-${day}`;
+                                    } else {
+                                        fechaEncontrada = String(valorFecha).trim(); 
+                                    }
+                                    break; 
+                                }
                             }
                         }
+                        
                         if (celda.includes("BODEGA:")) {
                             for(let k = j+1; k < fila.length; k++) {
-                                if(String(fila[k]).trim() !== "") { bodegaEncontrada = String(fila[k]).trim(); break; }
+                                if(String(fila[k]).trim() !== "") { 
+                                    bodegaEncontrada = String(fila[k]).trim(); 
+                                    break; 
+                                }
                             }
                         }
                     }
