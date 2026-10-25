@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificación - Farma</title>
+    <title>Verificación - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,72 +18,118 @@
         .drop-zone:hover { background-color: #f8fafc; border-color: #94a3b8; }
         .grid-layout { transition: all 0.4s ease-in-out; }
         
-        /* Animaciones de entrada */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
+        
+        /* Scrollbar personalizado para la lista */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
 
-    <!-- Menú Lateral -->
+    <!-- Menú Lateral (Igual que app.html) -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
             <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
                 <i class="fa-solid fa-pills text-lg"></i>
             </div>
             <div>
-                <h1 class="text-lg font-extrabold text-white tracking-tight">Farma</h1>
+                <h1 class="text-lg font-extrabold text-white tracking-tight">Farmacorp</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-1.5 mt-2 overflow-y-auto">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a>
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-orange-600/10 text-orange-400 border border-orange-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación</a>
+        <nav class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>
+            <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>
+            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>
+            
+            <!-- Activo -->
+            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>
+            
+            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>
         </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button id="btnLogoutDesktop" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-3 rounded-xl transition font-medium shadow-md">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
     </aside>
 
     <!-- Contenido Principal -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
-        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-50/70 to-slate-50 -z-10"></div>
+        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-50/50 to-slate-50 -z-10"></div>
 
-        <!-- Cabecera con Pestañas -->
-        <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center border-b border-slate-200/60 shadow-sm gap-4">
-            <div>
-                <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Módulo de Verificación</h2>
+        <!-- Header Superior (Igual que app.html) -->
+        <header class="glass-effect sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center shadow-sm border-b border-slate-200 gap-4">
+            
+            <!-- Título + Móvil -->
+            <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
+                <div class="flex items-center gap-3 md:hidden">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                        <i class="fa-solid fa-pills text-lg"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-base font-extrabold text-slate-800 leading-tight">Farmacorp</h1>
+                        <p class="text-[10px] text-slate-500 font-bold leading-tight" id="userNameMobile">Cargando...</p>
+                    </div>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-800 hidden md:block tracking-tight">Módulo de Verificación</h2>
             </div>
             
+            <!-- Pestañas -->
             <div class="flex flex-wrap bg-slate-100 rounded-xl p-1 w-full xl:w-auto">
                 <a href="verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-orange-600 shadow-sm transition">Subir Archivo</a>
                 <a href="mis_items.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Mis Ítems</a>
                 <a href="progreso_verificacion.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Progreso</a>
                 <a href="estadisticas.html" class="flex-1 xl:flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Estadísticas</a>
             </div>
-            
-            <a href="app.html" class="text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center justify-center gap-1 w-full xl:w-auto mt-2 xl:mt-0 bg-slate-100 xl:bg-transparent py-2 xl:py-0 rounded-lg transition"><i class="fa-solid fa-arrow-left"></i> Salir</a>
+
+            <!-- Usuario -->
+            <div class="flex items-center gap-3 ml-auto xl:ml-0">
+                <div class="text-right hidden md:block">
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider" id="userRoleDisplay">Cargando...</p>
+                    <p class="text-sm font-extrabold text-slate-800" id="userNameDisplay">Cargando...</p>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-blue-600 flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <button id="btnLogoutMobile" class="md:hidden w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center font-bold shadow-sm hover:bg-rose-100 transition shrink-0">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+            </div>
         </header>
 
         <div class="p-4 md:p-8 flex-1 max-w-7xl mx-auto w-full">
             
+            <!-- Botón Salir -->
+            <a href="app.html" class="inline-flex items-center text-xs text-slate-500 hover:text-slate-800 font-bold mb-6 bg-slate-100 hover:bg-slate-200 py-2 px-4 rounded-lg transition">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Salir
+            </a>
+
             <div id="gridPrincipal" class="grid grid-cols-1 lg:grid-cols-12 gap-6 grid-layout">
                 
                 <!-- COLUMNA IZQUIERDA: Carga de Archivo -->
                 <div id="columnaSubida" class="lg:col-span-5 space-y-6 animate-fade-up">
-                    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10"></div>
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-full -z-10"></div>
                         <h3 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
                             <i class="fa-solid fa-file-excel text-orange-500"></i> 1. Subir Archivo
                         </h3>
                         
                         <div class="mb-5">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Fecha de Verificación</label>
-                            <input type="date" id="fechaVerificacion" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-slate-800 transition">
+                            <input type="date" id="fechaVerificacion" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-slate-800 transition">
                         </div>
 
                         <div class="mb-5">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Bodega / Sucursal</label>
-                            <select id="selectBodega" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-slate-800 transition">
+                            <select id="selectBodega" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-slate-800 transition">
                                 <option value="">Cargando bodegas...</option>
                             </select>
                         </div>
@@ -92,7 +138,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">Monto mínimo de diferencia (Bs)</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 font-bold">Bs</span>
-                                <input type="number" id="umbralImporte" value="70" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-lg text-slate-800 transition">
+                                <input type="number" id="umbralImporte" value="70" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-lg text-slate-800 transition">
                             </div>
                             <p class="text-xs text-slate-500 mt-2 font-medium">Los ítems con menor diferencia a este monto no serán tomados en cuenta.</p>
                         </div>
@@ -112,7 +158,7 @@
                 <!-- COLUMNA DERECHA: Resumen (Se expande al procesar) -->
                 <div id="columnaResumen" class="lg:col-span-7">
                     <div id="panelResumen" class="hidden animate-fade-up">
-                        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+                        <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200">
                             
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
@@ -184,7 +230,25 @@
         let datosExcelGlobal = [];
         let datosFiltradosGlobal = [];
 
+        // Inicializar fecha de hoy
         fechaVerificacion.value = new Date().toISOString().split('T')[0];
+
+        async function checkUser() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; return; }
+
+            const userEmail = session.user.email;
+            const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', userEmail).single();
+
+            if (usuarioDB && usuarioDB.nombre) {
+                document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
+                document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
+                
+                let rolBonito = usuarioDB.rol.toUpperCase();
+                if (usuarioDB.rol === 'mixto') rolBonito = "ENCARGADO / ASISTENTE";
+                document.getElementById('userRoleDisplay').innerText = rolBonito;
+            }
+        }
 
         async function cargarBodegas() {
             const { data } = await _supabase.from('bodegas').select('id, nombre').order('nombre');
@@ -193,7 +257,6 @@
                 data.forEach(b => selectBodega.innerHTML += `<option value="${b.id}">${b.nombre}</option>`);
             }
         }
-        cargarBodegas();
 
         excelFileInput.addEventListener('change', (e) => {
             if(!selectBodega.value) {
@@ -375,6 +438,18 @@
                 btn.disabled = false;
             }
         });
+
+        const logoutFunc = async () => {
+            await _supabase.auth.signOut();
+            window.location.href = 'index.html';
+        };
+        
+        document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
+        document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
+
+        // Inicializar
+        checkUser();
+        cargarBodegas();
     </script>
 </body>
 </html>
