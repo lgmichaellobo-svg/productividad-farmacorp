@@ -5,95 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        .glass-effect { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+        .glass-effect { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); }
+        
+        /* Animaciones de entrada suaves */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 relative flex-shrink-0">
+    <!-- MODAL DE VINCULACIÓN -->
+    <div id="modalVinculacion" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center relative overflow-hidden animate-fade-up">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+            <div class="w-20 h-20 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3">
+                <i class="fa-solid fa-user-check text-4xl -rotate-3"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">¡Bienvenido!</h3>
+            <p class="text-slate-500 text-sm mb-6 font-medium">Para continuar, por favor identifícate seleccionando tu nombre de la lista.</p>
+            
+            <select id="selectNombreVinculacion" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none font-bold text-slate-800 mb-4 transition uppercase">
+                <option value="">Cargando personal...</option>
+            </select>
+            <p id="errorVinculacion" class="text-rose-500 text-sm font-bold hidden mb-4"></p>
+
+            <button id="btnVincular" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-orange-500/30">
+                Confirmar Identidad
+            </button>
+        </div>
+    </div>
+
+    <!-- Menú Lateral -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/50">
+            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
                 <i class="fa-solid fa-pills text-lg"></i>
             </div>
             <div>
-                <h1 class="text-lg font-bold text-white tracking-tight">Farmacorp</h1>
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
+                <h1 class="text-lg font-extrabold text-white tracking-tight">Farmacorp</h1>
+                <p class="text-[10px] text-blue-400 uppercase tracking-widest font-bold">Sistema Interno</p>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 mt-4 overflow-y-auto">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-900/50 transition">
-                <i class="fa-solid fa-house w-5 text-center"></i> <span class="font-medium">Inicio</span>
-            </a>
-            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
-                <i class="fa-solid fa-chart-line w-5 text-center"></i> Productividad
-            </a>
-            <!-- ÚNICO BOTÓN DE VERIFICACIÓN -->
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
-                <i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación
-            </a>
-            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-medium">
-                <i class="fa-solid fa-file-excel w-5 text-center"></i> Excel Automatizados
-            </a>
+        <nav id="menuLateral" class="flex-1 p-4 space-y-1.5 mt-2 overflow-y-auto">
+            <!-- Inyectado por JS -->
         </nav>
         <div class="p-4 border-t border-slate-800">
-            <button id="btnLogout" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-3 rounded-xl transition font-medium shadow-md">
+            <button id="btnLogout" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white py-3 rounded-xl transition-all duration-300 font-semibold text-sm shadow-md">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
             </button>
         </div>
     </aside>
 
+    <!-- Contenido Principal -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
-        <div class="absolute top-0 left-0 w-full h-72 bg-gradient-to-b from-blue-50/50 to-slate-50 -z-10"></div>
-        <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex justify-between items-center shadow-sm border-b border-slate-200">
-            <h2 class="text-xl font-bold text-slate-800 hidden md:block tracking-tight">Resumen General</h2>
-            <div class="md:hidden flex items-center"><a href="app.html" class="text-slate-800 font-bold text-lg">Farmacorp</a></div>
+        <!-- Fondo decorativo -->
+        <div class="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-blue-50/70 to-slate-50 -z-10"></div>
+
+        <header class="glass-effect sticky top-0 z-10 px-6 py-4 flex justify-between items-center border-b border-slate-200/60">
+            <h2 class="text-xl font-extrabold text-slate-800 hidden md:block tracking-tight">Resumen General</h2>
+            
+            <div class="md:hidden flex items-center">
+                <a href="app.html" class="text-slate-800 font-extrabold text-lg">Farmacorp</a>
+            </div>
+
             <div class="flex items-center gap-4 ml-auto">
                 <div class="text-right hidden sm:block">
-                    <p class="text-xs text-slate-500 font-medium">Bienvenido</p>
-                    <p class="text-sm font-bold text-slate-800" id="userEmail">Cargando...</p>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider" id="userRoleDisplay">Cargando...</p>
+                    <p class="text-sm font-extrabold text-slate-800" id="userNameDisplay">Cargando...</p>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-500/30"><i class="fa-solid fa-user text-sm"></i></div>
+                <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200 text-blue-600 flex items-center justify-center font-bold shadow-sm hover:scale-105 transition-transform cursor-pointer">
+                    <i class="fa-solid fa-user text-lg"></i>
+                </div>
             </div>
         </header>
 
         <div class="p-6 md:p-10 flex-1 max-w-7xl mx-auto w-full">
-            <div class="mb-10 text-center md:text-left">
+            
+            <div class="mb-10 text-center md:text-left animate-fade-up">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">¡Hola de nuevo! 👋</h2>
-                <p class="text-slate-500 mt-2 text-base md:text-lg font-medium">¿Qué módulo deseas abrir hoy?</p>
+                <p class="text-slate-500 mt-2 text-base font-medium">¿Qué módulo deseas abrir hoy?</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                <!-- Tarjeta 1: Productividad -->
-                <a href="productividad.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-blue-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-chart-pie text-2xl md:text-3xl drop-shadow-md"></i></div>
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Productividad</h3>
-                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">Registra y gestiona los SKU revisados por cada persona. Administra equipos y metas diarias.</p>
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-blue-600 font-bold text-sm">Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i></div>
-                </a>
-
-                <!-- Tarjeta 2: Verificación -->
-                <a href="verificacion.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-orange-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-orange-500/40 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-boxes-stacked text-2xl md:text-3xl drop-shadow-md"></i></div>
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Verificación de Inventario</h3>
-                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">Sube el ACTUALIZABLE, revisa tus ítems asignados y descarga el reporte de errores.</p>
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-orange-500 font-bold text-sm">Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i></div>
-                </a>
-
-                <!-- Tarjeta 3: Excel -->
-                <a href="excel.html" class="group bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-100 hover:shadow-2xl hover:border-emerald-100 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50/50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-2xl flex items-center justify-center mb-5 md:mb-6 shadow-lg shadow-emerald-500/40 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-file-excel text-2xl md:text-3xl drop-shadow-md"></i></div>
-                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Excel Automatizados</h3>
-                    <p class="text-slate-500 leading-relaxed text-sm md:text-base font-medium mb-6 flex-grow">Accede a las últimas versiones de tus herramientas, macros y archivos automatizados.</p>
-                    <div class="pt-4 border-t border-slate-100 flex items-center text-emerald-600 font-bold text-sm">Ingresar al módulo <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i></div>
-                </a>
+            <!-- TARJETAS DINÁMICAS -->
+            <div id="contenedorTarjetas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <!-- Inyectado por JS -->
             </div>
+
         </div>
     </main>
 
@@ -102,15 +110,156 @@
         const supabaseUrl = 'https://wwurfjenenlvrhwakmso.supabase.co';
         const supabaseKey = 'sb_publishable_cn1zFLzla27K4l4EPltEbw_8YAgoq0C'; 
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const modulos = {
+            productividad: { titulo: 'Productividad', desc: 'Registra los SKU revisados y administra las metas del equipo.', icono: 'fa-chart-pie', color: 'blue', url: 'productividad.html' },
+            verificacion: { titulo: 'Verificación', desc: 'Sube el ACTUALIZABLE, revisa ítems y descarga reportes de errores.', icono: 'fa-boxes-stacked', color: 'orange', url: 'verificacion.html' },
+            excel: { titulo: 'Excel Automatizados', desc: 'Accede a las últimas versiones de tus herramientas y macros.', icono: 'fa-file-excel', color: 'emerald', url: 'excel.html' },
+            mis_items: { titulo: 'Mis Ítems', desc: 'Verifica las cantidades de los productos que te fueron asignados hoy.', icono: 'fa-clipboard-check', color: 'purple', url: 'mis_items.html' }
+        };
+
         async function checkUser() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) window.location.href = 'index.html';
-            else document.getElementById('userEmail').innerText = session.user.email;
+            const { data: { session }, error } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; return; }
+
+            const userEmail = session.user.email;
+
+            const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', userEmail).single();
+
+            if (usuarioDB && usuarioDB.nombre) {
+                document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
+                
+                let rolBonito = usuarioDB.rol.toUpperCase();
+                if (usuarioDB.rol === 'mixto') rolBonito = "ENCARGADO / ASISTENTE";
+                document.getElementById('userRoleDisplay').innerText = rolBonito;
+                
+                construirMenu(usuarioDB.rol);
+                construirTarjetas(usuarioDB.rol);
+            } else {
+                document.getElementById('userNameDisplay').innerText = userEmail;
+                document.getElementById('userRoleDisplay').innerText = "Nuevo Usuario";
+                abrirModalVinculacion();
+            }
         }
+
+        function construirMenu(rol) {
+            const menu = document.getElementById('menuLateral');
+            let html = `<a href="app.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span>Inicio</span></a>`;
+            
+            // Todos ven Mis Ítems
+            html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> Mis Ítems</a>`;
+            
+            // Productividad
+            if (['admin', 'jefe', 'supervisor', 'encargado', 'mixto'].includes(rol)) {
+                html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> Productividad</a>`;
+            }
+
+            // Verificación
+            if (['admin', 'jefe', 'supervisor', 'mixto'].includes(rol)) {
+                html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación</a>`;
+            }
+
+            html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> Excel Automatizados</a>`;
+            menu.innerHTML = html;
+        }
+
+        function construirTarjetas(rol) {
+            const contenedor = document.getElementById('contenedorTarjetas');
+            let html = '';
+            let delay = 1;
+
+            const addCard = (mod) => {
+                html += crearTarjetaHTML(mod, delay);
+                delay++;
+            };
+
+            if (['admin', 'jefe', 'supervisor', 'encargado', 'mixto'].includes(rol)) addCard(modulos.productividad);
+            if (['admin', 'jefe', 'supervisor', 'mixto'].includes(rol)) addCard(modulos.verificacion);
+            if (['admin', 'jefe', 'supervisor', 'encargado', 'mixto', 'asistente'].includes(rol)) addCard(modulos.mis_items);
+            addCard(modulos.excel);
+
+            contenedor.innerHTML = html;
+        }
+
+        function crearTarjetaHTML(mod, delay) {
+            // Paleta curada: Colores vibrantes pero corporativos
+            const colores = {
+                blue: { text: 'text-blue-600', grad: 'from-blue-500 to-blue-700', shadow: 'shadow-blue-500/30', border: 'hover:border-blue-200', bgcorner: 'bg-blue-100/50', hoverText: 'text-blue-600' },
+                orange: { text: 'text-orange-600', grad: 'from-orange-400 to-orange-600', shadow: 'shadow-orange-500/30', border: 'hover:border-orange-200', bgcorner: 'bg-orange-100/50', hoverText: 'text-orange-600' },
+                emerald: { text: 'text-emerald-600', grad: 'from-emerald-400 to-emerald-600', shadow: 'shadow-emerald-500/30', border: 'hover:border-emerald-200', bgcorner: 'bg-emerald-100/50', hoverText: 'text-emerald-600' },
+                purple: { text: 'text-purple-600', grad: 'from-purple-500 to-purple-700', shadow: 'shadow-purple-500/30', border: 'hover:border-purple-200', bgcorner: 'bg-purple-100/50', hoverText: 'text-purple-600' }
+            };
+            const c = colores[mod.color];
+
+            return `
+                <a href="${mod.url}" class="group bg-white rounded-[2rem] p-7 md:p-8 shadow-sm border border-slate-200 hover:shadow-2xl ${c.border} hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden flex flex-col h-full animate-fade-up delay-${delay}">
+                    <!-- Gradiente de fondo sutil -->
+                    <div class="absolute top-0 right-0 w-40 h-40 ${c.bgcorner} rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500"></div>
+                    
+                    <div class="w-16 h-16 bg-gradient-to-br ${c.grad} text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg ${c.shadow} group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300">
+                        <i class="fa-solid ${mod.icono} text-2xl drop-shadow-md"></i>
+                    </div>
+                    
+                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-3 tracking-tight group-hover:${c.hoverText} transition-colors">${mod.titulo}</h3>
+                    <p class="text-slate-500 leading-relaxed text-sm font-medium mb-8 flex-grow">${mod.desc}</p>
+                    
+                    <div class="pt-4 border-t border-slate-100 flex items-center ${c.text} font-bold text-sm">
+                        Ingresar al módulo 
+                        <span class="ml-2 w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:translate-x-2 group-hover:bg-${mod.color}-50 transition-all duration-300">
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </span>
+                    </div>
+                </a>
+            `;
+        }
+
+        async function abrirModalVinculacion() {
+            const modal = document.getElementById('modalVinculacion');
+            const select = document.getElementById('selectNombreVinculacion');
+            modal.classList.remove('hidden');
+
+            const { data: nombresDisponibles } = await _supabase.from('usuarios').select('id, nombre').is('email', null).order('nombre');
+            select.innerHTML = '<option value="">Selecciona tu nombre...</option>';
+            if (nombresDisponibles && nombresDisponibles.length > 0) {
+                nombresDisponibles.forEach(u => { select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`; });
+            }
+        }
+
+        document.getElementById('btnVincular').addEventListener('click', async () => {
+            const select = document.getElementById('selectNombreVinculacion');
+            const nombreId = select.value;
+            const errorMsg = document.getElementById('errorVinculacion');
+            const btn = document.getElementById('btnVincular');
+
+            if (!nombreId) {
+                errorMsg.innerText = "Por favor, selecciona tu nombre.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Vinculando...';
+            btn.disabled = true;
+
+            const { data: { session } } = await _supabase.auth.getSession();
+            const { error } = await _supabase.from('usuarios').update({ email: session.user.email, id: session.user.id }).eq('id', nombreId);
+
+            if (error) {
+                errorMsg.innerText = "Error al vincular. Intenta de nuevo.";
+                errorMsg.classList.remove('hidden');
+                btn.innerHTML = 'Confirmar Identidad';
+                btn.disabled = false;
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Listo!';
+                btn.className = 'w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg';
+                setTimeout(() => { window.location.reload(); }, 1000);
+            }
+        });
+
         document.getElementById('btnLogout').addEventListener('click', async () => {
             await _supabase.auth.signOut();
             window.location.href = 'index.html';
         });
+
         checkUser();
     </script>
 </body>
