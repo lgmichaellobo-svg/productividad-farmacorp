@@ -151,11 +151,11 @@
                 document.getElementById('userRoleDisplay').innerText = rolBonito;
                 
                 // Cargar permisos y configuración de diseño ANTES de construir el menú
-                const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
+                const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
                 if (config) {
                     permisosGlobales = config;
                     
-                    document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa);
+                    document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
                     if (config.logo_url) {
                         document.querySelectorAll('.logo-empresa').forEach(el => {
                             el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-cover">`;
@@ -225,11 +225,14 @@
                 return permitidos.split(',').includes(rol);
             };
 
-            if (tienePermiso('productividad')) addCard(modulos.productividad);
+            // ORDEN LÓGICO: Verificación primero, luego su progreso y estadísticas.
             if (tienePermiso('verificacion')) addCard(modulos.verificacion);
             if (tienePermiso('progreso')) addCard(modulos.progreso);
             if (tienePermiso('estadisticas')) addCard(modulos.estadisticas);
+            
+            // Otros módulos
             if (tienePermiso('mis_items')) addCard(modulos.mis_items);
+            if (tienePermiso('productividad')) addCard(modulos.productividad);
             if (tienePermiso('excel')) addCard(modulos.excel);
 
             contenedor.innerHTML = html;
