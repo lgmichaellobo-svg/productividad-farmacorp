@@ -234,8 +234,8 @@
             const contenedor = document.getElementById('contenedorTarjetas');
             contenedor.innerHTML = '';
 
-            // Permiso para gestionar (Borrar / Finalizar)
-            const puedeGestionar = ['admin', 'jefe', 'supervisor'].includes(usuarioLogueado.rol);
+            // AQUÍ SE AGREGA 'encargado' y 'mixto' PARA QUE PUEDAN VER LOS BOTONES
+            const puedeGestionar = ['admin', 'jefe', 'supervisor', 'encargado', 'mixto'].includes(usuarioLogueado.rol);
 
             verificacionesActivas.forEach(v => {
                 let nombreBodega = v.bodegas ? v.bodegas.nombre : 'Bodega no especificada';
@@ -276,7 +276,6 @@
             });
         }
 
-        // --- NUEVA FUNCIÓN PARA FINALIZAR ---
         window.finalizarVerificacion = async (id, nombreBodega) => {
             if (confirm(`¿Finalizar la verificación de "${nombreBodega}"? Desaparecerá de esta lista pero sus datos se guardarán en el historial y estadísticas.`)) {
                 try {
@@ -291,7 +290,6 @@
             }
         }
 
-        // --- FUNCIÓN PARA ELIMINAR ---
         window.eliminarVerificacion = async (id, nombreBodega) => {
             if (confirm(`⚠️ ¿Estás seguro de ELIMINAR la verificación de "${nombreBodega}"? Esto borrará TODOS los datos y no se podrá recuperar.`)) {
                 try {
