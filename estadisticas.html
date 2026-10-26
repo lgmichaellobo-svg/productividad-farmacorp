@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas - Farma</title>
+    <title>Estadísticas - Farmacorp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
@@ -20,39 +20,62 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
 
+    <!-- MENÚ LATERAL CORREGIDO -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
             <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
                 <i class="fa-solid fa-pills text-lg"></i>
             </div>
             <div>
-                <h1 class="text-lg font-extrabold text-white tracking-tight">Farma</h1>
+                <h1 class="text-lg font-extrabold text-white tracking-tight">Farmacorp</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-1.5 mt-2 overflow-y-auto">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a>
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Verificación</a>
+        <nav class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
+            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>
+            <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>
+            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>
+            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>
+            <a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>
+            
+            <!-- Activo -->
+            <a href="estadisticas.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="uppercase">Estadísticas</span></a>
+            
+            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>
         </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button id="btnLogoutDesktop" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-3 rounded-xl transition font-medium shadow-md">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-50/70 to-slate-50 -z-10"></div>
 
+        <!-- CABECERA CORREGIDA -->
         <header class="glass-effect sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center border-b border-slate-200/60 shadow-sm gap-4">
             
-            <!-- TÍTULO E INFO DE USUARIO MÓVIL -->
-            <div class="flex w-full xl:w-auto justify-between items-center xl:items-start">
-                <div>
-                    <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Módulo de Verificación</h2>
-                    <p class="xl:hidden text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5" id="userNameMobileStats">Cargando...</p>
+            <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
+                <div class="flex items-center gap-3 md:hidden">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                        <i class="fa-solid fa-pills text-lg"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-base font-extrabold text-slate-800 leading-tight">Farmacorp</h1>
+                        <p class="text-[10px] text-slate-500 font-bold leading-tight" id="userNameMobile">Cargando...</p>
+                    </div>
                 </div>
+                <h2 class="text-xl font-extrabold text-slate-800 hidden md:block tracking-tight">Estadísticas Históricas</h2>
             </div>
             
-            <!-- PESTAÑAS (Con scroll horizontal en móvil) -->
             <div class="flex overflow-x-auto w-full xl:w-auto bg-slate-100 rounded-xl p-1 hide-scrollbar">
                 <a href="verificacion.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Subir Archivo</a>
                 <a href="mis_items.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Mis Ítems</a>
@@ -60,10 +83,21 @@
                 <a href="estadisticas.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-indigo-600 shadow-sm transition">Estadísticas</a>
             </div>
             
-            <!-- BOTÓN DESCARGAR (Alineado a la derecha en desktop, ancho completo en móvil) -->
-            <button id="btnDescargarErroresFiltrados" class="text-sm bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center gap-2 w-full xl:w-auto justify-center">
-                <i class="fa-solid fa-file-excel"></i> Descargar Errores
-            </button>
+            <div class="flex items-center gap-3 ml-auto xl:ml-0 w-full xl:w-auto justify-end">
+                <button id="btnDescargarErroresFiltrados" class="text-sm bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center gap-2 justify-center">
+                    <i class="fa-solid fa-file-excel"></i> <span class="hidden md:inline">Descargar Errores</span>
+                </button>
+                <div class="text-right hidden md:block">
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider" id="userRoleDisplay">Cargando...</p>
+                    <p class="text-sm font-extrabold text-slate-800" id="userNameDisplay">Cargando...</p>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-blue-600 flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <button id="btnLogoutMobile" class="md:hidden w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center font-bold shadow-sm hover:bg-rose-100 transition shrink-0">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+            </div>
         </header>
 
         <div class="p-4 md:p-8 flex-1 max-w-6xl mx-auto w-full">
@@ -77,8 +111,8 @@
                 <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fa-solid fa-folder-open text-3xl text-slate-400"></i>
                 </div>
-                <h3 class="text-xl font-extrabold text-slate-800 mb-2">No hay verificación activa</h3>
-                <p class="text-slate-500 mb-6 font-medium">Sube un archivo ACTUALIZABLE para empezar.</p>
+                <h3 class="text-xl font-extrabold text-slate-800 mb-2">No hay datos registrados</h3>
+                <p class="text-slate-500 mb-6 font-medium">Sube un archivo ACTUALIZABLE para empezar a generar estadísticas.</p>
                 <a href="verificacion.html" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-md">
                     <i class="fa-solid fa-upload"></i> Ir a Subir Archivo
                 </a>
@@ -119,7 +153,7 @@
                     </div>
                 </div>
 
-                <!-- Tarjetas de Resumen (Grid 2x2 en móvil) -->
+                <!-- Tarjetas de Resumen -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 animate-fade-up">
                     <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-12 h-12 md:w-16 md:h-16 bg-slate-50 rounded-bl-full -z-10"></div>
@@ -167,7 +201,6 @@
                         <i class="fa-solid fa-check-circle text-3xl md:text-4xl text-emerald-500 mb-2"></i>
                         <p class="text-emerald-700 font-bold text-sm md:text-base">¡Excelente! No hay errores registrados.</p>
                     </div>
-                    <!-- Gráfico más bajo en móvil -->
                     <div id="contenedorGrafico" class="relative h-56 md:h-80 w-full hidden">
                         <canvas id="graficoErrores"></canvas>
                     </div>
@@ -190,15 +223,19 @@
         let mapaUsuariosGlobal = {};
         let mapaFechasVerificacion = {};
 
-        // Cargar nombre de usuario
-        async function cargarNombreUsuario() {
+        // Inicializar Usuario
+        async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
-            if (session) {
-                const { data: userDB } = await _supabase.from('usuarios').select('nombre').eq('email', session.user.email).single();
-                if (userDB) document.getElementById('userNameMobileStats').innerText = userDB.nombre;
+            if (!session) { window.location.href = 'index.html'; return; }
+            
+            const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', session.user.email).single();
+            if (usuarioDB) {
+                document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
+                document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
+                document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
             }
+            cargarEstadisticas();
         }
-        cargarNombreUsuario();
 
         const toggleFiltrosBtn = document.getElementById('toggleFiltros');
         const panelFiltros = document.getElementById('panelFiltros');
@@ -343,15 +380,13 @@
             const hasta = document.getElementById('filtroHasta').value;
             const personaId = document.getElementById('filtroPersona').value;
 
-            if(!desde || !hasta) {
-                procesarVista(todosLosItems);
-                panelFiltros.classList.add('hidden');
-                iconoFlecha.classList.add('rotate-180');
-                return;
-            }
-
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
+
+            if(!desde || !hasta) {
+                procesarVista(todosLosItems);
+                return;
+            }
 
             const fechaDesdeObj = new Date(desde + 'T00:00:00');
             const fechaHastaObj = new Date(hasta + 'T23:59:59');
@@ -442,12 +477,17 @@
             } catch (error) {
                 alert('Error al generar el Excel.');
             } finally {
-                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> Descargar Errores';
+                btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> <span class="hidden md:inline">Descargar Errores</span>';
                 btn.disabled = false;
             }
         });
 
-        cargarEstadisticas();
+        // Logout
+        const logoutFunc = async () => { await _supabase.auth.signOut(); window.location.href = 'index.html'; };
+        document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
+        document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
+
+        checkUser();
     </script>
 </body>
 </html>
