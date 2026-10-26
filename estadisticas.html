@@ -15,19 +15,14 @@
         .chevron-rotate { transition: transform 0.3s ease; }
         .rotate-180 { transform: rotate(180deg); }
         
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
-        
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
 
-    <!-- MENÚ LATERAL CORREGIDO -->
+    <!-- Menú Lateral -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
             <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
@@ -41,7 +36,6 @@
         <nav class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
             <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>
             <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>
-            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>
             <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>
             <a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>
             
@@ -60,7 +54,6 @@
     <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-50/70 to-slate-50 -z-10"></div>
 
-        <!-- CABECERA CORREGIDA -->
         <header class="glass-effect sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center border-b border-slate-200/60 shadow-sm gap-4">
             
             <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
@@ -73,7 +66,7 @@
                         <p class="text-[10px] text-slate-500 font-bold leading-tight" id="userNameMobile">Cargando...</p>
                     </div>
                 </div>
-                <h2 class="text-xl font-extrabold text-slate-800 hidden md:block tracking-tight">Estadísticas Históricas</h2>
+                <h2 class="text-xl font-extrabold text-slate-800 hidden md:block tracking-tight">Estadísticas</h2>
             </div>
             
             <div class="flex overflow-x-auto w-full xl:w-auto bg-slate-100 rounded-xl p-1 hide-scrollbar">
@@ -83,11 +76,19 @@
                 <a href="estadisticas.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-indigo-600 shadow-sm transition">Estadísticas</a>
             </div>
             
-            <div class="flex items-center gap-3 ml-auto xl:ml-0 w-full xl:w-auto justify-end">
+            <!-- BOTONES DE ACCIÓN (Descargar y Borrar Todo) -->
+            <div class="flex items-center gap-2 ml-auto xl:ml-0 w-full xl:w-auto justify-end">
+                
+                <!-- BOTÓN DE BORRAR HISTORIAL (Solo Admin/Jefe/Super) -->
+                <button id="btnBorrarHistorial" class="hidden text-sm bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Limpiar Historial
+                </button>
+
                 <button id="btnDescargarErroresFiltrados" class="text-sm bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-rose-500/30 flex items-center gap-2 justify-center">
                     <i class="fa-solid fa-file-excel"></i> <span class="hidden md:inline">Descargar Errores</span>
                 </button>
-                <div class="text-right hidden md:block">
+                
+                <div class="text-right hidden md:block ml-2">
                     <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider" id="userRoleDisplay">Cargando...</p>
                     <p class="text-sm font-extrabold text-slate-800" id="userNameDisplay">Cargando...</p>
                 </div>
@@ -222,17 +223,24 @@
         let todosLosItems = []; 
         let mapaUsuariosGlobal = {};
         let mapaFechasVerificacion = {};
+        let usuarioRol = "";
 
-        // Inicializar Usuario
+        // --- 1. VERIFICAR USUARIO Y ROL ---
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'index.html'; return; }
             
             const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', session.user.email).single();
             if (usuarioDB) {
+                usuarioRol = usuarioDB.rol;
                 document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
                 document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                 document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
+
+                // Mostrar botón de borrar solo a Admin/Jefe/Supervisor
+                if (['admin', 'jefe', 'supervisor'].includes(usuarioRol)) {
+                    document.getElementById('btnBorrarHistorial').classList.remove('hidden');
+                }
             }
             cargarEstadisticas();
         }
@@ -407,6 +415,30 @@
             procesarVista(itemsFiltrados);
         });
 
+        // --- BOTÓN PARA BORRAR TODO EL HISTORIAL ---
+        document.getElementById('btnBorrarHistorial').addEventListener('click', async () => {
+            if (confirm("⚠️ ¿Estás seguro de borrar TODAS las verificaciones y los ítems registrados? Esta acción no se puede deshacer y limpiará todos los datos de prueba.")) {
+                const btn = document.getElementById('btnBorrarHistorial');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando...';
+                btn.disabled = true;
+
+                try {
+                    // Borrar todos los ítems (Supabase requiere que borres primero los hijos si no hay CASCADE)
+                    await _supabase.from('verificacion_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                    // Borrar todas las verificaciones
+                    await _supabase.from('verificaciones').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                    
+                    alert('Historial limpiado correctamente.');
+                    window.location.reload();
+                } catch (error) {
+                    alert('Error al borrar: ' + error.message);
+                } finally {
+                    btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Limpiar Historial';
+                    btn.disabled = false;
+                }
+            }
+        });
+
         document.getElementById('btnDescargarErroresFiltrados').addEventListener('click', async () => {
             if (itemsErroresGlobal.length === 0) return alert('No hay errores registrados para los filtros seleccionados.');
 
@@ -482,7 +514,6 @@
             }
         });
 
-        // Logout
         const logoutFunc = async () => { await _supabase.auth.signOut(); window.location.href = 'index.html'; };
         document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
         document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
