@@ -601,13 +601,17 @@
                     bodegaId = nuevaBodega.id;
                 }
 
+                // OBTENER ID DEL USUARIO ACTUAL
+                const { data: { session } } = await _supabase.auth.getSession();
+
                 const { data: verificacion, error: errorVerif } = await _supabase
                     .from('verificaciones')
                     .insert([{ 
                         nombre_archivo: nombreRevision.innerText, 
                         bodega_id: bodegaId, 
                         fecha_verificacion: fecha,
-                        estado: 'en curso' 
+                        estado: 'en curso',
+                        creado_por: session.user.id // GUARDAMOS EL ID DEL CREADOR
                     }])
                     .select().single();
                 if (errorVerif) throw errorVerif;
