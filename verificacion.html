@@ -33,23 +33,20 @@
     <!-- Menú Lateral -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
+            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40 logo-empresa">
                 <i class="fa-solid fa-pills text-lg"></i>
             </div>
             <div>
-                <h1 class="text-lg font-extrabold text-white tracking-tight">Farmacorp</h1>
+                <h1 class="text-lg font-extrabold text-white tracking-tight nombre-empresa">Farmacorp</h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>
-            <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>
-            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>
-            
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>
-            
-            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>
+        
+        <!-- NAVEGACIÓN DINÁMICA -->
+        <nav id="menuLateral" class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
+            <!-- Inyectado por JS -->
         </nav>
+
         <div class="p-4 border-t border-slate-800">
             <button id="btnLogoutDesktop" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-3 rounded-xl transition font-medium shadow-md">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
@@ -64,11 +61,11 @@
         <header class="glass-effect sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 flex flex-col xl:flex-row justify-between items-start xl:items-center shadow-sm border-b border-slate-200 gap-4">
             <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
                 <div class="flex items-center gap-3 md:hidden">
-                    <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 logo-empresa">
                         <i class="fa-solid fa-pills text-lg"></i>
                     </div>
                     <div class="flex flex-col">
-                        <h1 class="text-base font-extrabold text-slate-800 leading-tight">Farmacorp</h1>
+                        <h1 class="text-base font-extrabold text-slate-800 leading-tight nombre-empresa">Farmacorp</h1>
                         <p class="text-[10px] text-slate-500 font-bold leading-tight" id="userNameMobile">Cargando...</p>
                     </div>
                 </div>
@@ -107,10 +104,9 @@
                 <h2 class="text-lg font-extrabold text-indigo-900 tracking-tight">Subir Archivos y Asignar</h2>
             </div>
 
-            <!-- GRILLA PRINCIPAL -->
             <div id="gridPrincipal" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                <!-- COLUMNA IZQUIERDA (Inicia ocupando todo el ancho en laptops) -->
+                <!-- COLUMNA IZQUIERDA -->
                 <div id="columnaSubida" class="lg:col-span-12 xl:col-span-8 mx-auto w-full max-w-2xl space-y-6 animate-fade-up transition-all duration-500">
                     
                     <!-- Configuración de Rangos (Colapsable) -->
@@ -280,6 +276,44 @@
         let datosRevision = [];     
         let datosCruzados = [];     
         let usuariosDBGlobal = [];
+
+        // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO SEGÚN PERMISOS ---
+        async function construirMenu(rol) {
+            const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+            
+            const tienePermiso = (modulo) => {
+                if (rol === 'admin') return true;
+                const permitidos = config ? (config['visible_' + modulo] || '') : '';
+                return permitidos.split(',').includes(rol);
+            };
+
+            const menu = document.getElementById('menuLateral');
+            let html = `<a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>`;
+            
+            if (tienePermiso('mis_items')) {
+                html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>`;
+            }
+            if (tienePermiso('productividad')) {
+                html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>`;
+            }
+            if (tienePermiso('verificacion')) {
+                html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
+            }
+            if (tienePermiso('progreso')) {
+                html += `<a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>`;
+            }
+            if (tienePermiso('estadisticas')) {
+                html += `<a href="estadisticas.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="uppercase">Estadísticas</span></a>`;
+            }
+            if (rol === 'admin') {
+                html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
+            }
+            if (tienePermiso('excel')) {
+                html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>`;
+            }
+            
+            menu.innerHTML = html;
+        }
 
         // --- Lógica para Colapsar/Expandir ---
         btnToggleRangos.addEventListener('click', () => {
@@ -662,6 +696,9 @@
                 document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
                 document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                 document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
+                
+                // LLAMAMOS A LA FUNCIÓN QUE DIBUJA EL MENÚ SEGÚN SU ROL
+                construirMenu(usuarioDB.rol);
             }
         }
 
