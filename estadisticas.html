@@ -25,23 +25,23 @@
     <!-- Menú Lateral -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
-                <i class="fa-solid fa-pills text-lg"></i>
+            
+            <!-- LOGO LIMPIO (SIN FONDO CELESTE) -->
+            <div class="w-12 h-12 flex items-center justify-center overflow-hidden logo-empresa">
+                <i class="fa-solid fa-pills text-2xl text-blue-500"></i>
             </div>
+            
             <div>
-                <h1 class="text-lg font-extrabold text-white tracking-tight">Farmacorp</h1>
+                <h1 class="text-lg font-extrabold text-white tracking-tight nombre-empresa">Farmacorp</h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
             </div>
         </div>
         <nav class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
+            <!-- Enlaces fijos para Estadísticas -->
             <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>
             <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>
+            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>
             <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>
-            <a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>
-            
-            <!-- Activo -->
-            <a href="estadisticas.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="uppercase">Estadísticas</span></a>
-            
             <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>
         </nav>
         <div class="p-4 border-t border-slate-800">
@@ -58,11 +58,12 @@
             
             <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
                 <div class="flex items-center gap-3 md:hidden">
-                    <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-                        <i class="fa-solid fa-pills text-lg"></i>
+                    <!-- LOGO LIMPIO MÓVIL -->
+                    <div class="w-10 h-10 flex items-center justify-center overflow-hidden logo-empresa">
+                        <i class="fa-solid fa-pills text-xl text-blue-500"></i>
                     </div>
                     <div class="flex flex-col">
-                        <h1 class="text-base font-extrabold text-slate-800 leading-tight">Farmacorp</h1>
+                        <h1 class="text-base font-extrabold text-slate-800 leading-tight nombre-empresa">Farmacorp</h1>
                         <p class="text-[10px] text-slate-500 font-bold leading-tight" id="userNameMobile">Cargando...</p>
                     </div>
                 </div>
@@ -76,10 +77,9 @@
                 <a href="estadisticas.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-indigo-600 shadow-sm transition">Estadísticas</a>
             </div>
             
-            <!-- BOTONES DE ACCIÓN (Descargar y Borrar Todo) -->
+            <!-- BOTONES DE ACCIÓN -->
             <div class="flex items-center gap-2 ml-auto xl:ml-0 w-full xl:w-auto justify-end">
                 
-                <!-- BOTÓN DE BORRAR HISTORIAL (Solo Admin/Jefe/Super) -->
                 <button id="btnBorrarHistorial" class="hidden text-sm bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Limpiar Historial
                 </button>
@@ -225,7 +225,7 @@
         let mapaFechasVerificacion = {};
         let usuarioRol = "";
 
-        // --- 1. VERIFICAR USUARIO Y ROL ---
+        // --- 1. VERIFICAR USUARIO Y CARGAR DISEÑO ---
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'index.html'; return; }
@@ -240,6 +240,17 @@
                 // Mostrar botón de borrar solo a Admin/Jefe/Supervisor
                 if (['admin', 'jefe', 'supervisor'].includes(usuarioRol)) {
                     document.getElementById('btnBorrarHistorial').classList.remove('hidden');
+                }
+
+                // Cargar configuración para el logo dinámico
+                const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+                if (config) {
+                    document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
+                    if (config.logo_url) {
+                        document.querySelectorAll('.logo-empresa').forEach(el => {
+                            el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-contain">`;
+                        });
+                    }
                 }
             }
             cargarEstadisticas();
@@ -417,15 +428,13 @@
 
         // --- BOTÓN PARA BORRAR TODO EL HISTORIAL ---
         document.getElementById('btnBorrarHistorial').addEventListener('click', async () => {
-            if (confirm("⚠️ ¿Estás seguro de borrar TODAS las verificaciones y los ítems registrados? Esta acción no se puede deshacer y limpiará todos los datos de prueba.")) {
+            if (confirm("⚠️ ¿Estás seguro de borrar TODAS las verificaciones y los ítems registrados? Esta acción no se puede deshacer y limpiará todos los datos.")) {
                 const btn = document.getElementById('btnBorrarHistorial');
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando...';
                 btn.disabled = true;
 
                 try {
-                    // Borrar todos los ítems (Supabase requiere que borres primero los hijos si no hay CASCADE)
                     await _supabase.from('verificacion_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    // Borrar todas las verificaciones
                     await _supabase.from('verificaciones').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                     
                     alert('Historial limpiado correctamente.');
