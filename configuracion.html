@@ -283,10 +283,10 @@
         // --- LÓGICA GENERAL Y PERSONALIZACIÓN ---
         async function cargarConfiguracion() {
             // Intentamos buscar la fila
-            let { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
+            let { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
             
             // Si no existe la fila, la creamos
-            if (error && error.code === 'PGRST116') {
+            if (!data) {
                 const { data: nuevaData, error: insertError } = await _supabase.from('configuracion').insert([{
                     id: 1,
                     nombre_empresa: 'Farmacorp',
@@ -335,7 +335,7 @@
             registrarAuditoria('Cambio Diseño', `Actualizó el nombre de la empresa a "${nombre}" o el logo.`);
         });
 
-        // --- LÓGICA PERMISOS (CON MANEJO DE ERRORES VISUAL) ---
+        // --- LÓGICA PERMISOS ---
         const modulosAConfigurar = [
             { id: 'productividad', nombre: 'Productividad' },
             { id: 'verificacion', nombre: 'Verificación Inventario' },
@@ -351,7 +351,7 @@
             contenedor.innerHTML = '<div class="text-center py-4 text-indigo-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Cargando permisos...</div>';
 
             try {
-                const { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
+                const { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
                 
                 if (error) {
                     contenedor.innerHTML = `<div class="bg-rose-100 text-rose-700 p-4 rounded-xl font-bold text-center">Error de Base de Datos: ${error.message}</div>`;
