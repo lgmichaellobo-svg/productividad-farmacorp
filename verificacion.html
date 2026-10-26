@@ -685,34 +685,47 @@
             }
         });
 
-        // Autenticación
-        async function checkUser() {
-    const { data: { session } } = await _supabase.auth.getSession();
-    if (!session) { window.location.href = 'index.html'; return; }
-    
-    const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', session.user.email).single();
-    
-    if (usuarioDB) {
-        document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
-        document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
-        document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
-    }
-
-    // --- ESTO ES LO QUE FALTA: CARGAR EL LOGO Y NOMBRE DE LA EMPRESA ---
-    const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
-    if (config) {
-        // Cambiar el nombre de la empresa
-        document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
+        // Aasync function checkUser() {
+    try {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return; }
         
-        // Cambiar el logo (si se subió uno)
-        if (config.logo_url) {
-            document.querySelectorAll('.logo-empresa').forEach(el => {
-                el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-contain">`;
-            });
+        // 1. Traer datos del usuario
+        const { data: usuarioDB, error: errUsr } = await _supabase
+            .from('usuarios')
+            .select('nombre, rol')
+            .eq('email', session.user.email)
+            .single();
+        
+        if (usuarioDB) {
+            document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
+            document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
+            document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
+        } else {
+            document.getElementById('userNameDisplay').innerText = session.user.email;
+            document.getElementById('userNameMobile').innerText = session.user.email;
         }
-    }
-    // -----------------------------------------------------------------
 
-    // Aquí van las funciones propias de cada página (ej. cargarExcel(), cargarVerificaciones(), etc.)
-    cargarVerificacionesActivas(); // <-- OJO: Cambia esto por la función que corresponda en cada archivo
+        // 2. Traer configuración del logo y nombre de empresa
+        const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+        if (config) {
+            document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
+            if (config.logo_url) {
+                document.querySelectorAll('.logo-empresa').forEach(el => {
+                    el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-contain">`;
+                });
+            }
         }
+
+        // 3. Cargar el menú dinámico (por si tienes la función)
+        if (typeof construirMenu === 'function') {
+            construirMenu(usuarioDB ? usuarioDB.rol : 'mixto');
+        }
+
+    } catch (error) {
+        console.error("Error al cargar usuario:", error);
+        document.getElementById('userNameDisplay').innerText = "Error";
+        document.getElementById('userRoleDisplay').innerText = "Error de conexión";
+    }
+        }utenticación
+        
