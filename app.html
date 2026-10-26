@@ -132,6 +132,8 @@
             estadisticas: { titulo: 'ESTADÍSTICAS', desc: 'Analiza el historial de errores, filtra por fecha y descarga reportes.', icono: 'fa-chart-bar', color: 'rose', url: 'estadisticas.html' }
         };
 
+        let permisosGlobales = {};
+
         async function checkUser() {
             const { data: { session }, error } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'index.html'; return; }
@@ -148,23 +150,21 @@
                 if (usuarioDB.rol === 'mixto') rolBonito = "ENCARGADO / ASISTENTE";
                 document.getElementById('userRoleDisplay').innerText = rolBonito;
                 
-                construirMenu(usuarioDB.rol);
-                construirTarjetas(usuarioDB.rol);
-
-                // --- CARGAR DISEÑO PERSONALIZADO (LOGO Y NOMBRE) ---
-                const { data: config } = await _supabase.from('configuracion').select('nombre_empresa, logo_url').eq('id', 1).single();
+                // Cargar permisos y configuración de diseño ANTES de construir el menú
+                const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
                 if (config) {
-                    // Cambiar el texto del nombre en el menú lateral y cabecera móvil
-                    document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa);
+                    permisosGlobales = config;
                     
-                    // Cambiar el logo si es que se subió uno en la configuración
+                    document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa);
                     if (config.logo_url) {
                         document.querySelectorAll('.logo-empresa').forEach(el => {
                             el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-cover">`;
                         });
                     }
                 }
-                // --- FIN DE CARGA DE DISEÑO ---
+
+                construirMenu(usuarioDB.rol);
+                construirTarjetas(usuarioDB.rol);
 
             } else {
                 document.getElementById('userNameDisplay').innerText = userEmail;
@@ -176,29 +176,35 @@
 
         function construirMenu(rol) {
             const menu = document.getElementById('menuLateral');
-            
             let html = `<a href="app.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>`;
-            
-            // Todos tienen acceso a Mis Ítems
-            html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>`;
-            
-            if (['admin', 'jefe', 'supervisor', 'encargado', 'mixto'].includes(rol)) {
+
+            const tienePermiso = (modulo) => {
+                if (rol === 'admin') return true;
+                const permitidos = permisosGlobales['visible_' + modulo] || '';
+                return permitidos.split(',').includes(rol);
+            };
+
+            if (tienePermiso('mis_items')) {
+                html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>`;
+            }
+            if (tienePermiso('productividad')) {
                 html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>`;
-                
+            }
+            if (tienePermiso('verificacion')) {
                 html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
-                
+            }
+            if (tienePermiso('progreso')) {
                 html += `<a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>`;
-                
+            }
+            if (tienePermiso('estadisticas')) {
                 html += `<a href="estadisticas.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="uppercase">Estadísticas</span></a>`;
             }
-
-            // BOTÓN DE CONFIGURACIÓN (Solo Admin)
             if (rol === 'admin') {
                 html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
             }
-
-            // Excel está para todos
-            html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>`;
+            if (tienePermiso('excel')) {
+                html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>`;
+            }
             
             menu.innerHTML = html;
         }
@@ -213,18 +219,18 @@
                 delay++;
             };
 
-            if (['admin', 'jefe', 'supervisor', 'encargado', 'mixto'].includes(rol)) {
-                addCard(modulos.productividad);
-                addCard(modulos.verificacion);
-                addCard(modulos.progreso);
-                addCard(modulos.estadisticas);
-            }
+            const tienePermiso = (modulo) => {
+                if (rol === 'admin') return true;
+                const permitidos = permisosGlobales['visible_' + modulo] || '';
+                return permitidos.split(',').includes(rol);
+            };
 
-            if (['admin', 'jefe', 'supervisor', 'encargado', 'mixto', 'asistente'].includes(rol)) {
-                addCard(modulos.mis_items);
-            }
-            
-            addCard(modulos.excel);
+            if (tienePermiso('productividad')) addCard(modulos.productividad);
+            if (tienePermiso('verificacion')) addCard(modulos.verificacion);
+            if (tienePermiso('progreso')) addCard(modulos.progreso);
+            if (tienePermiso('estadisticas')) addCard(modulos.estadisticas);
+            if (tienePermiso('mis_items')) addCard(modulos.mis_items);
+            if (tienePermiso('excel')) addCard(modulos.excel);
 
             contenedor.innerHTML = html;
         }
