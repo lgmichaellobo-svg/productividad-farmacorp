@@ -50,9 +50,12 @@
     <!-- Menú Lateral (Solo Desktop) -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden md:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/50 logo-empresa">
-                <i class="fa-solid fa-pills text-lg"></i>
+            
+            <!-- CONTENEDOR DEL LOGO CORREGIDO (SIN FONDO CELESTE NI BRILLO) -->
+            <div class="w-12 h-12 flex items-center justify-center overflow-hidden logo-empresa">
+                <i class="fa-solid fa-pills text-2xl text-blue-500"></i>
             </div>
+            
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight nombre-empresa">Farmacorp</h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
@@ -75,8 +78,9 @@
         <header class="glass-effect sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center shadow-sm border-b border-slate-200">
             
             <div class="flex items-center gap-3 md:hidden">
-                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 logo-empresa">
-                    <i class="fa-solid fa-pills text-lg"></i>
+                <!-- CONTENEDOR DEL LOGO MÓVIL CORREGIDO -->
+                <div class="w-10 h-10 flex items-center justify-center overflow-hidden logo-empresa">
+                    <i class="fa-solid fa-pills text-xl text-blue-500"></i>
                 </div>
                 <div class="flex flex-col">
                     <h1 class="text-base font-extrabold text-slate-800 leading-tight nombre-empresa">Farmacorp</h1>
@@ -150,15 +154,15 @@
                 if (usuarioDB.rol === 'mixto') rolBonito = "ENCARGADO / ASISTENTE";
                 document.getElementById('userRoleDisplay').innerText = rolBonito;
                 
-                // Cargar permisos y configuración de diseño ANTES de construir el menú
                 const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
                 if (config) {
                     permisosGlobales = config;
                     
                     document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
                     if (config.logo_url) {
+                        // Aquí inyectamos la imagen sin fondo si el contenedor está limpio
                         document.querySelectorAll('.logo-empresa').forEach(el => {
-                            el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-cover">`;
+                            el.innerHTML = `<img src="${config.logo_url}" class="w-full h-full object-contain">`;
                         });
                     }
                 }
@@ -193,10 +197,12 @@
             if (tienePermiso('verificacion')) {
                 html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
             }
-            
-            // NOTA: Se eliminaron "Progreso" y "Estadísticas" de aquí para que no salgan en el menú lateral.
-            // Esos módulos se manejan internamente dentro de la pantalla de Verificación.
-
+            if (tienePermiso('progreso')) {
+                html += `<a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>`;
+            }
+            if (tienePermiso('estadisticas')) {
+                html += `<a href="estadisticas.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="uppercase">Estadísticas</span></a>`;
+            }
             if (rol === 'admin') {
                 html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
             }
@@ -223,7 +229,6 @@
                 return permitidos.split(',').includes(rol);
             };
 
-            // SOLO TARJETAS PRINCIPALES EN EL INICIO
             if (tienePermiso('verificacion')) addCard(modulos.verificacion);
             if (tienePermiso('mis_items')) addCard(modulos.mis_items);
             if (tienePermiso('productividad')) addCard(modulos.productividad);
