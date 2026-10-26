@@ -352,9 +352,9 @@
             contenedor.innerHTML = '';
 
             modulosAConfigurar.forEach(mod => {
-                // Si la columna viene nula, la tratamos como un string vacío
-                const valorColumna = data && data['visible_' + mod.id] ? data['visible_' + mod.id] : '';
-                const rolesPermitidos = valorColumna.split(',');
+                // Si la columna viene nula, la tratamos como un string vacío para que no falle
+                let valorColumna = data && data['visible_' + mod.id] ? String(data['visible_' + mod.id]) : '';
+                let rolesPermitidos = valorColumna.split(',');
                 
                 let checkboxesHTML = '';
                 rolesDisponibles.forEach(rol => {
@@ -379,6 +379,7 @@
         document.getElementById('btnGuardarPermisos').addEventListener('click', async () => {
             const btn = document.getElementById('btnGuardarPermisos');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+            btn.disabled = true;
             
             let actualizaciones = {};
             
@@ -388,11 +389,17 @@
                 actualizaciones['visible_' + mod.id] = rolesSeleccionados;
             });
 
-            await _supabase.from('configuracion').update(actualizaciones).eq('id', 1);
+            const { error } = await _supabase.from('configuracion').update(actualizaciones).eq('id', 1);
             
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Guardado!';
-            setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Permisos'; }, 2000);
-            registrarAuditoria('Permisos', 'Actualizó los permisos de visibilidad de módulos');
+            if (error) {
+                alert("Error al guardar: " + error.message);
+                console.error(error);
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Guardado!';
+                setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Permisos'; }, 2000);
+                registrarAuditoria('Permisos', 'Actualizó los permisos de visibilidad de módulos');
+            }
+            btn.disabled = false;
         });
 
         // --- LÓGICA USUARIOS ---
