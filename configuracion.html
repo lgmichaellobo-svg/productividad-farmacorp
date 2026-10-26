@@ -335,7 +335,7 @@
             registrarAuditoria('Cambio Diseño', `Actualizó el nombre de la empresa a "${nombre}" o el logo.`);
         });
 
-        // --- LÓGICA PERMISOS ---
+        // --- LÓGICA PERMISOS (CON MANEJO DE ERRORES VISUAL) ---
         const modulosAConfigurar = [
             { id: 'productividad', nombre: 'Productividad' },
             { id: 'verificacion', nombre: 'Verificación Inventario' },
@@ -347,38 +347,52 @@
         const rolesDisponibles = ['admin', 'jefe', 'supervisor', 'encargado', 'mixto', 'asistente'];
 
         async function cargarPermisos() {
-            const { data } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
             const contenedor = document.getElementById('contenedorPermisos');
-            contenedor.innerHTML = '';
+            contenedor.innerHTML = '<div class="text-center py-4 text-indigo-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Cargando permisos...</div>';
 
-            if(!data) return;
+            try {
+                const { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
+                
+                if (error) {
+                    contenedor.innerHTML = `<div class="bg-rose-100 text-rose-700 p-4 rounded-xl font-bold text-center">Error de Base de Datos: ${error.message}</div>`;
+                    return;
+                }
 
-            modulosAConfigurar.forEach(mod => {
-                // Forzamos a que si es null, se vuelva un string vacío para que no falle
-                let valorColumna = data['visible_' + mod.id];
-                if (valorColumna === null || valorColumna === undefined) valorColumna = '';
-                
-                let rolesPermitidos = String(valorColumna).split(',');
-                
-                let checkboxesHTML = '';
-                rolesDisponibles.forEach(rol => {
-                    // .trim() elimina cualquier espacio en blanco accidental en la BD
-                    const checked = rolesPermitidos.includes(rol.trim()) ? 'checked' : '';
-                    checkboxesHTML += `
-                        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
-                            <input type="checkbox" value="${rol}" data-modulo="${mod.id}" ${checked} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 chk-permiso">
-                            <span class="text-xs font-bold text-slate-700 uppercase">${rol}</span>
-                        </label>
+                if (!data) {
+                    contenedor.innerHTML = `<div class="bg-amber-100 text-amber-700 p-4 rounded-xl font-bold text-center">No se encontró configuración. Ve a "General" y guarda un dato primero.</div>`;
+                    return;
+                }
+
+                contenedor.innerHTML = '';
+
+                modulosAConfigurar.forEach(mod => {
+                    let valorColumna = data['visible_' + mod.id];
+                    if (valorColumna === null || valorColumna === undefined) valorColumna = '';
+                    
+                    let rolesPermitidos = String(valorColumna).split(',');
+                    
+                    let checkboxesHTML = '';
+                    rolesDisponibles.forEach(rol => {
+                        const checked = rolesPermitidos.includes(rol.trim()) ? 'checked' : '';
+                        checkboxesHTML += `
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+                                <input type="checkbox" value="${rol}" data-modulo="${mod.id}" ${checked} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 chk-permiso">
+                                <span class="text-xs font-bold text-slate-700 uppercase">${rol}</span>
+                            </label>
+                        `;
+                    });
+
+                    contenedor.innerHTML += `
+                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm mb-4">
+                            <h4 class="font-extrabold text-slate-800 mb-3 text-sm">${mod.nombre}</h4>
+                            <div class="flex flex-wrap gap-2">${checkboxesHTML}</div>
+                        </div>
                     `;
                 });
 
-                contenedor.innerHTML += `
-                    <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                        <h4 class="font-extrabold text-slate-800 mb-3 text-sm">${mod.nombre}</h4>
-                        <div class="flex flex-wrap gap-2">${checkboxesHTML}</div>
-                    </div>
-                `;
-            });
+            } catch (err) {
+                contenedor.innerHTML = `<div class="bg-rose-100 text-rose-700 p-4 rounded-xl font-bold text-center">Error del sistema: ${err.message}</div>`;
+            }
         }
 
         document.getElementById('btnGuardarPermisos').addEventListener('click', async () => {
