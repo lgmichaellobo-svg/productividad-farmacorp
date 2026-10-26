@@ -60,9 +60,12 @@
     <!-- Menú Lateral -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <div id="sidebarLogo" class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/40 overflow-hidden">
-                <i class="fa-solid fa-pills text-lg"></i>
+            
+            <!-- LOGO LIMPIO (SIN FONDO CELESTE) -->
+            <div id="sidebarLogo" class="w-12 h-12 flex items-center justify-center overflow-hidden logo-empresa">
+                <i class="fa-solid fa-pills text-2xl text-blue-500"></i>
             </div>
+            
             <div>
                 <h1 class="text-lg font-extrabold text-white tracking-tight" id="sidebarNombre">Farmacorp</h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
@@ -183,7 +186,7 @@
                     <div class="mb-6">
                         <label class="block text-sm font-bold text-slate-700 mb-2">URL del Logo (Opcional)</label>
                         <input type="url" id="confLogoUrl" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none font-bold text-slate-800 transition" placeholder="https://ejemplo.com/logo.png">
-                        <p class="text-xs text-slate-500 mt-2">Pega el enlace directo de una imagen. Si lo dejas vacío, se usará el icono de la pastilla.</p>
+                        <p class="text-xs text-slate-500 mt-2">Pega el enlace directo de una imagen (preferiblemente con fondo transparente PNG).</p>
                     </div>
 
                     <button id="btnGuardarPersonalizacion" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-xl transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2">
@@ -258,7 +261,6 @@
                 document.getElementById('userNameDisplay').innerText = adminNombre;
                 document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
                 
-                // Inicializar datos
                 await cargarConfiguracion();
                 await cargarPermisos();
                 cargarUsuarios();
@@ -270,22 +272,19 @@
             }
         }
 
-        // Función para guardar en auditoría
         async function registrarAuditoria(accion, detalles) {
             await _supabase.from('auditoria').insert([{
                 usuario_nombre: adminNombre,
                 accion: accion,
                 detalles: detalles
             }]);
-            cargarAuditoria(); // Refrescar la lista
+            cargarAuditoria();
         }
 
         // --- LÓGICA GENERAL Y PERSONALIZACIÓN ---
         async function cargarConfiguracion() {
-            // Intentamos buscar la fila
             let { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
             
-            // Si no existe la fila, la creamos
             if (!data) {
                 const { data: nuevaData, error: insertError } = await _supabase.from('configuracion').insert([{
                     id: 1,
@@ -303,7 +302,7 @@
 
                 document.getElementById('sidebarNombre').innerText = data.nombre_empresa || 'Farmacorp';
                 if (data.logo_url) {
-                    document.getElementById('sidebarLogo').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                    document.getElementById('sidebarLogo').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
                 }
             }
         }
@@ -329,8 +328,8 @@
             setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Diseño'; }, 2000);
             
             document.getElementById('sidebarNombre').innerText = nombre;
-            if (logo) document.getElementById('sidebarLogo').innerHTML = `<img src="${logo}" class="w-full h-full object-cover">`;
-            else document.getElementById('sidebarLogo').innerHTML = `<i class="fa-solid fa-pills text-lg"></i>`;
+            if (logo) document.getElementById('sidebarLogo').innerHTML = `<img src="${logo}" class="w-full h-full object-contain">`;
+            else document.getElementById('sidebarLogo').innerHTML = `<i class="fa-solid fa-pills text-2xl text-blue-500"></i>`;
 
             registrarAuditoria('Cambio Diseño', `Actualizó el nombre de la empresa a "${nombre}" o el logo.`);
         });
@@ -347,52 +346,36 @@
         const rolesDisponibles = ['admin', 'jefe', 'supervisor', 'encargado', 'mixto', 'asistente'];
 
         async function cargarPermisos() {
+            const { data } = await _supabase.from('configuracion').select('*').eq('id', 1).single();
             const contenedor = document.getElementById('contenedorPermisos');
-            contenedor.innerHTML = '<div class="text-center py-4 text-indigo-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Cargando permisos...</div>';
+            contenedor.innerHTML = '';
 
-            try {
-                const { data, error } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+            if(!data) return;
+
+            modulosAConfigurar.forEach(mod => {
+                let valorColumna = data['visible_' + mod.id];
+                if (valorColumna === null || valorColumna === undefined) valorColumna = '';
                 
-                if (error) {
-                    contenedor.innerHTML = `<div class="bg-rose-100 text-rose-700 p-4 rounded-xl font-bold text-center">Error de Base de Datos: ${error.message}</div>`;
-                    return;
-                }
-
-                if (!data) {
-                    contenedor.innerHTML = `<div class="bg-amber-100 text-amber-700 p-4 rounded-xl font-bold text-center">No se encontró configuración. Ve a "General" y guarda un dato primero.</div>`;
-                    return;
-                }
-
-                contenedor.innerHTML = '';
-
-                modulosAConfigurar.forEach(mod => {
-                    let valorColumna = data['visible_' + mod.id];
-                    if (valorColumna === null || valorColumna === undefined) valorColumna = '';
-                    
-                    let rolesPermitidos = String(valorColumna).split(',');
-                    
-                    let checkboxesHTML = '';
-                    rolesDisponibles.forEach(rol => {
-                        const checked = rolesPermitidos.includes(rol.trim()) ? 'checked' : '';
-                        checkboxesHTML += `
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
-                                <input type="checkbox" value="${rol}" data-modulo="${mod.id}" ${checked} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 chk-permiso">
-                                <span class="text-xs font-bold text-slate-700 uppercase">${rol}</span>
-                            </label>
-                        `;
-                    });
-
-                    contenedor.innerHTML += `
-                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm mb-4">
-                            <h4 class="font-extrabold text-slate-800 mb-3 text-sm">${mod.nombre}</h4>
-                            <div class="flex flex-wrap gap-2">${checkboxesHTML}</div>
-                        </div>
+                let rolesPermitidos = String(valorColumna).split(',');
+                
+                let checkboxesHTML = '';
+                rolesDisponibles.forEach(rol => {
+                    const checked = rolesPermitidos.includes(rol.trim()) ? 'checked' : '';
+                    checkboxesHTML += `
+                        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+                            <input type="checkbox" value="${rol}" data-modulo="${mod.id}" ${checked} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 chk-permiso">
+                            <span class="text-xs font-bold text-slate-700 uppercase">${rol}</span>
+                        </label>
                     `;
                 });
 
-            } catch (err) {
-                contenedor.innerHTML = `<div class="bg-rose-100 text-rose-700 p-4 rounded-xl font-bold text-center">Error del sistema: ${err.message}</div>`;
-            }
+                contenedor.innerHTML += `
+                    <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                        <h4 class="font-extrabold text-slate-800 mb-3 text-sm">${mod.nombre}</h4>
+                        <div class="flex flex-wrap gap-2">${checkboxesHTML}</div>
+                    </div>
+                `;
+            });
         }
 
         document.getElementById('btnGuardarPermisos').addEventListener('click', async () => {
@@ -412,7 +395,6 @@
             
             if (error) {
                 alert("Error al guardar: " + error.message);
-                console.error(error);
             } else {
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Guardado!';
                 setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Permisos'; }, 2000);
