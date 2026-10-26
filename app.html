@@ -193,12 +193,10 @@
             if (tienePermiso('verificacion')) {
                 html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
             }
-            if (tienePermiso('progreso')) {
-                html += `<a href="progreso_verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-list-check w-5 text-center"></i> <span class="uppercase">Progreso</span></a>`;
-            }
-            if (tienePermiso('estadisticas')) {
-                html += `<a href="estadisticas.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="uppercase">Estadísticas</span></a>`;
-            }
+            
+            // NOTA: Se eliminaron "Progreso" y "Estadísticas" de aquí para que no salgan en el menú lateral.
+            // Esos módulos se manejan internamente dentro de la pantalla de Verificación.
+
             if (rol === 'admin') {
                 html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
             }
