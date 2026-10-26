@@ -335,7 +335,7 @@
             registrarAuditoria('Cambio Diseño', `Actualizó el nombre de la empresa a "${nombre}" o el logo.`);
         });
 
-        // --- LÓGICA PERMISOS ---
+        // --- LÓGICA PERMISOS (CORREGIDA) ---
         const modulosAConfigurar = [
             { id: 'productividad', nombre: 'Productividad' },
             { id: 'verificacion', nombre: 'Verificación Inventario' },
@@ -351,14 +351,19 @@
             const contenedor = document.getElementById('contenedorPermisos');
             contenedor.innerHTML = '';
 
+            if(!data) return;
+
             modulosAConfigurar.forEach(mod => {
-                // Si la columna viene nula, la tratamos como un string vacío para que no falle
-                let valorColumna = data && data['visible_' + mod.id] ? String(data['visible_' + mod.id]) : '';
-                let rolesPermitidos = valorColumna.split(',');
+                // Forzamos a que si es null, se vuelva un string vacío para que no falle
+                let valorColumna = data['visible_' + mod.id];
+                if (valorColumna === null || valorColumna === undefined) valorColumna = '';
+                
+                let rolesPermitidos = String(valorColumna).split(',');
                 
                 let checkboxesHTML = '';
                 rolesDisponibles.forEach(rol => {
-                    const checked = rolesPermitidos.includes(rol) ? 'checked' : '';
+                    // .trim() elimina cualquier espacio en blanco accidental en la BD
+                    const checked = rolesPermitidos.includes(rol.trim()) ? 'checked' : '';
                     checkboxesHTML += `
                         <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
                             <input type="checkbox" value="${rol}" data-modulo="${mod.id}" ${checked} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 chk-permiso">
