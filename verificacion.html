@@ -69,7 +69,6 @@
                     </div>
                     <div class="flex flex-col">
                         <h1 class="text-base font-extrabold text-slate-800 leading-tight nombre-empresa">Farmacorp</h1>
-                        <!-- AQUÍ ESTABA EL "CARGANDO" -->
                         <p class="text-[10px] text-slate-500 font-bold leading-tight" id="userNameMobile">Cargando...</p>
                     </div>
                 </div>
@@ -610,7 +609,7 @@
             datosCruzados = [];
         });
 
-        // --- 6. Guardar en Supabase (CON LA CORRECCIÓN DEL ENLACE) ---
+        // --- 6. Guardar en Supabase (BÚSQUEDA POR CÓDIGO INICIAL) ---
         btnProcesar.addEventListener('click', async () => {
             const msj = document.getElementById('mensajeGuardado');
             const bodegaNombre = document.getElementById('bodegaNombre').value;
@@ -626,21 +625,22 @@
             msj.classList.add('hidden');
 
             try {
-                // 🚨 AQUÍ ESTÁ LA CORRECCIÓN 🚨
-                // Cambiamos .eq() por .ilike() para buscar ignorando mayúsculas/minúsculas.
-                // Agregamos .trim() por si el Excel trae espacios en blanco extra.
+                // 🚨 CORRECCIÓN FINAL: Extraemos solo la primera palabra (ej: "B402") quitando todo lo que esté después de un guion
+                const codigoBodegaExcel = bodegaNombre.split('-')[0].trim();
+
+                // Buscamos que el nombre en la base de datos EMPIECE con ese código (ej: "B402%")
                 let { data: bodegas, error: errBusqueda } = await _supabase
                     .from('bodegas')
                     .select('id, nombre')
-                    .ilike('nombre', `%${bodegaNombre.trim()}%`);
+                    .ilike('nombre', `${codigoBodegaExcel}%`); // <--- Búsqueda flexible
 
                 let bodegaId;
                 
-                // Si encuentra al menos una coincidencia, usa esa.
+                // Si encontró coincidencias (la B402 ya existe), usa ese ID.
                 if (bodegas && bodegas.length > 0) {
                     bodegaId = bodegas[0].id;
                 } else {
-                    // Si no encuentra NINGUNA, crea la nueva bodega.
+                    // Si no existe NINGUNA que empiece con ese código, crea una nueva.
                     const { data: nuevaBodega, error: errBod } = await _supabase.from('bodegas').insert([{ nombre: bodegaNombre }]).select().single();
                     if (errBod) throw errBod;
                     bodegaId = nuevaBodega.id;
@@ -656,7 +656,7 @@
                         bodega_id: bodegaId, 
                         fecha_verificacion: fecha,
                         estado: 'en curso',
-                        creado_por: session.user.id // GUARDAMOS EL ID DEL CREADOR
+                        creado_por: session.user.id 
                     }])
                     .select().single();
                 if (errorVerif) throw errorVerif;
