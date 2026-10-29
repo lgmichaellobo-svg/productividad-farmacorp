@@ -26,7 +26,7 @@
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
             
-            <!-- LOGO LIMPIO (SIN FONDO CELESTE) -->
+            <!-- LOGO LIMPIO -->
             <div class="w-12 h-12 flex items-center justify-center overflow-hidden logo-empresa">
                 <i class="fa-solid fa-pills text-2xl text-blue-500"></i>
             </div>
@@ -36,14 +36,12 @@
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
-            <!-- Enlaces fijos para Estadísticas -->
-            <a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>
-            <a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>
-            <a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>
-            <a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>
-            <a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>
+        
+        <!-- MENÚ DINÁMICO -->
+        <nav id="menuLateral" class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
+            <!-- Inyectado por JS -->
         </nav>
+        
         <div class="p-4 border-t border-slate-800">
             <button id="btnLogoutDesktop" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-3 rounded-xl transition font-medium shadow-md">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
@@ -225,6 +223,40 @@
         let mapaFechasVerificacion = {};
         let usuarioRol = "";
 
+        // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
+        async function construirMenu(rol) {
+            const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+            
+            const tienePermiso = (modulo) => {
+                if (rol === 'admin') return true;
+                const permitidos = config ? (config['visible_' + modulo] || '') : '';
+                return permitidos.split(',').includes(rol);
+            };
+
+            const menu = document.getElementById('menuLateral');
+            let html = `<a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>`;
+            
+            if (tienePermiso('mis_items')) {
+                html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>`;
+            }
+            if (tienePermiso('productividad')) {
+                html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>`;
+            }
+            if (tienePermiso('verificacion')) {
+                // Como estamos en estadísticas, quizás quieras que Verificación no esté resaltado, pero mantengo tu lógica
+                html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
+            }
+            
+            if (rol === 'admin') {
+                html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
+            }
+            if (tienePermiso('excel')) {
+                html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>`;
+            }
+            
+            menu.innerHTML = html;
+        }
+
         // --- 1. VERIFICAR USUARIO Y CARGAR DISEÑO ---
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -236,6 +268,9 @@
                 document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
                 document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                 document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
+
+                // Construir el menú dinámico
+                construirMenu(usuarioDB.rol);
 
                 // Mostrar botón de borrar solo a Admin/Jefe/Supervisor
                 if (['admin', 'jefe', 'supervisor'].includes(usuarioRol)) {
@@ -527,6 +562,7 @@
         document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
         document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
 
+        // Inicializar
         checkUser();
     </script>
 </body>
