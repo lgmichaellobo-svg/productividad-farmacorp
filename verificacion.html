@@ -609,7 +609,7 @@
             datosCruzados = [];
         });
 
-        // --- 6. Guardar en Supabase (BÚSQUEDA POR CÓDIGO INICIAL) ---
+        // --- 6. Guardar en Supabase (BÚSQUEDA A PRUEBA DE BALAS) ---
         btnProcesar.addEventListener('click', async () => {
             const msj = document.getElementById('mensajeGuardado');
             const bodegaNombre = document.getElementById('bodegaNombre').value;
@@ -625,22 +625,30 @@
             msj.classList.add('hidden');
 
             try {
-                // 🚨 CORRECCIÓN FINAL: Extraemos solo la primera palabra (ej: "B402") quitando todo lo que esté después de un guion
-                const codigoBodegaExcel = bodegaNombre.split('-')[0].trim();
+                // 1. Extraemos el código base del Excel (Ej: "B402")
+                const codigoBaseExcel = bodegaNombre.split('-')[0].replace(/\s+/g, '').toUpperCase();
 
-                // Buscamos que el nombre en la base de datos EMPIECE con ese código (ej: "B402%")
-                let { data: bodegas, error: errBusqueda } = await _supabase
-                    .from('bodegas')
-                    .select('id, nombre')
-                    .ilike('nombre', `${codigoBodegaExcel}%`); // <--- Búsqueda flexible
+                // 2. Traemos TODAS las bodegas a la memoria del navegador (esto es rapidísimo)
+                const { data: todasLasBodegas, error: errTraer } = await _supabase.from('bodegas').select('id, nombre');
+                if (errTraer) throw errTraer;
 
-                let bodegaId;
-                
-                // Si encontró coincidencias (la B402 ya existe), usa ese ID.
-                if (bodegas && bodegas.length > 0) {
-                    bodegaId = bodegas[0].id;
-                } else {
-                    // Si no existe NINGUNA que empiece con ese código, crea una nueva.
+                let bodegaId = null;
+
+                // 3. Buscamos con JavaScript puro: limpiando espacios, mayúsculas, etc.
+                if (todasLasBodegas) {
+                    const bodegaEncontrada = todasLasBodegas.find(b => {
+                        const nombreDBLimpio = b.nombre.split('-')[0].replace(/\s+/g, '').toUpperCase();
+                        return nombreDBLimpio === codigoBaseExcel;
+                    });
+                    
+                    if (bodegaEncontrada) {
+                        bodegaId = bodegaEncontrada.id;
+                    }
+                }
+
+                // 4. Si no existe, recién ahí la crea.
+                if (!bodegaId) {
+                    console.log("No se encontró coincidencia, creando nueva bodega: ", bodegaNombre);
                     const { data: nuevaBodega, error: errBod } = await _supabase.from('bodegas').insert([{ nombre: bodegaNombre }]).select().single();
                     if (errBod) throw errBod;
                     bodegaId = nuevaBodega.id;
