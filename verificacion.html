@@ -625,28 +625,31 @@
             msj.classList.add('hidden');
 
             try {
-                // 1. Extraemos el código base del Excel (Ej: "B402")
+                // 1. Limpieza extrema del código de la bodega
+                // Quitamos todo lo que esté después de un guion y TODOS los espacios en blanco
                 const codigoBaseExcel = bodegaNombre.split('-')[0].replace(/\s+/g, '').toUpperCase();
 
-                // 2. Traemos TODAS las bodegas a la memoria del navegador (esto es rapidísimo)
+                // 2. Traemos TODAS las bodegas
                 const { data: todasLasBodegas, error: errTraer } = await _supabase.from('bodegas').select('id, nombre');
                 if (errTraer) throw errTraer;
 
                 let bodegaId = null;
 
-                // 3. Buscamos con JavaScript puro: limpiando espacios, mayúsculas, etc.
+                // 3. Buscamos comparando textos 100% limpios
                 if (todasLasBodegas) {
                     const bodegaEncontrada = todasLasBodegas.find(b => {
+                        // Aplicamos la misma limpieza al nombre de la base de datos
                         const nombreDBLimpio = b.nombre.split('-')[0].replace(/\s+/g, '').toUpperCase();
                         return nombreDBLimpio === codigoBaseExcel;
                     });
                     
                     if (bodegaEncontrada) {
                         bodegaId = bodegaEncontrada.id;
+                        console.log("Bodega enlazada con éxito:", bodegaEncontrada.nombre);
                     }
                 }
 
-                // 4. Si no existe, recién ahí la crea.
+                // 4. Si realmente no existe, la crea.
                 if (!bodegaId) {
                     console.log("No se encontró coincidencia, creando nueva bodega: ", bodegaNombre);
                     const { data: nuevaBodega, error: errBod } = await _supabase.from('bodegas').insert([{ nombre: bodegaNombre }]).select().single();
@@ -657,6 +660,7 @@
                 // OBTENER ID DEL USUARIO ACTUAL
                 const { data: { session } } = await _supabase.auth.getSession();
 
+                // GUARDAR VERIFICACIÓN (Sin umbral_importe para evitar errores)
                 const { data: verificacion, error: errorVerif } = await _supabase
                     .from('verificaciones')
                     .insert([{ 
