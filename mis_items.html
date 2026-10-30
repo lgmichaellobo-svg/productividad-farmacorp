@@ -132,6 +132,7 @@
                 </div>
             </div>
 
+            <!-- BOTONES NORMALES -->
             <div id="accionesCorrecto" class="grid grid-cols-2 gap-3 md:gap-4 mb-4">
                 <button id="btnIncorrecto" class="bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-4 md:py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-1 md:gap-2 group">
                     <div class="w-10 h-10 md:w-12 md:h-12 bg-rose-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -147,6 +148,11 @@
                     <span class="text-sm md:text-lg">CORRECTO</span>
                 </button>
             </div>
+
+            <!-- BOTÓN DE TERMINAR (Oculto por defecto, aparece al final) -->
+            <button id="btnTerminar" class="hidden w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-5 rounded-3xl transition-all shadow-xl flex items-center justify-center gap-3 text-lg animate-fade-up">
+                <i class="fa-solid fa-flag-checkered text-xl"></i> Terminar Revisión
+            </button>
 
         </div>
 
@@ -260,7 +266,6 @@
                 return;
             }
 
-            // Mantenemos la posición en donde se quedó el usuario
             let idGuardado = localStorage.getItem('ultimo_item_id_' + usuarioActualId);
             if (idGuardado) {
                 let indexEncontrado = itemsPendientes.findIndex(i => i.id === idGuardado);
@@ -290,17 +295,19 @@
             void tarjeta.offsetWidth;
             tarjeta.classList.add('animate-item');
 
-            // Lógica visual si el ítem ya fue calificado en esta sesión
             const estaCalificado = item.estado_local; 
             const btnCorrecto = document.getElementById('btnCorrecto');
             const btnIncorrecto = document.getElementById('btnIncorrecto');
+            const btnTerminar = document.getElementById('btnTerminar');
 
-            // Resetear estilos de la tarjeta y botones
+            // Resetear estilos
             tarjeta.className = 'bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-6 relative animate-item transition-colors duration-300';
             btnCorrecto.className = 'bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-4 md:py-6 rounded-3xl transition-all shadow-lg shadow-emerald-500/30 flex flex-col items-center justify-center gap-1 md:gap-2 group';
             btnIncorrecto.className = 'bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-4 md:py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-1 md:gap-2 group';
-            
-            // Si ya estaba calificado, pintar la tarjeta y los botones de acuerdo al estado
+            btnTerminar.classList.add('hidden');
+            document.getElementById('accionesCorrecto').classList.remove('hidden');
+
+            // Pintar si ya está calificado
             if (estaCalificado === 'correcto') {
                 tarjeta.classList.add('border-emerald-400', 'ring-2', 'ring-emerald-100');
                 btnCorrecto.innerHTML = `<i class="fa-solid fa-check-double text-3xl"></i> <span class="text-sm md:text-lg">GUARDADO</span>`;
@@ -312,9 +319,16 @@
                 btnIncorrecto.innerHTML = `<div class="w-10 h-10 md:w-12 md:h-12 bg-rose-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fa-solid fa-xmark text-xl md:text-2xl"></i></div><span class="text-sm md:text-lg">INCORRECTO</span>`;
             }
 
-            document.getElementById('btnAnterior').disabled = (index === 0);
-            document.getElementById('btnSiguiente').disabled = (index === itemsPendientes.length - 1);
+            // 🚨 LÓGICA CLAVE: SI ES EL ÚLTIMO ÍTEM Y YA ESTÁ CALIFICADO, MOSTRAR BOTÓN DE TERMINAR 🚨
+            if (index === itemsPendientes.length - 1) {
+                btnTerminar.classList.remove('hidden'); // Mostrar botón de terminar
+                document.getElementById('accionesCorrecto').classList.add('hidden'); // Ocultar botones normales
+                document.getElementById('btnSiguiente').disabled = true; // Bloquear flecha
+            } else {
+                document.getElementById('btnSiguiente').disabled = false;
+            }
 
+            document.getElementById('btnAnterior').disabled = (index === 0);
             document.getElementById('indiceActual').innerText = index + 1;
             document.getElementById('barraProgreso').style.width = `${((index + 1) / itemsPendientes.length) * 100}%`;
 
@@ -342,21 +356,6 @@
             document.getElementById('emptyText').innerText = texto;
         }
 
-        // Función auxiliar para saber si ya se terminaron todos
-        function verificarFinDeLista() {
-            // Si el índice es el último de la lista, mostramos la pantalla de éxito
-            if (itemActualIndex >= itemsPendientes.length - 1) {
-                // Verificamos si todos los ítems en la lista ya tienen estado_local
-                const todosCalificados = itemsPendientes.every(i => i.estado_local !== undefined);
-                if (todosCalificados) {
-                    verificacionUI.classList.add('hidden');
-                    mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
-                    return true;
-                }
-            }
-            return false;
-        }
-
         // --- LÓGICA DE BOTONES ---
         document.getElementById('btnAnterior').addEventListener('click', () => {
             if (itemActualIndex > 0) { 
@@ -372,31 +371,33 @@
             }
         });
 
+        // 🚨 BOTÓN DE TERMINAR 🚨
+        document.getElementById('btnTerminar').addEventListener('click', () => {
+            verificacionUI.classList.add('hidden');
+            mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
+        });
+
         document.getElementById('btnCorrecto').addEventListener('click', async () => {
             const item = itemsPendientes[itemActualIndex];
             const btnCorrecto = document.getElementById('btnCorrecto');
             
             btnCorrecto.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-2xl"></i>';
 
-            // Guardar en Supabase
             await _supabase.from('verificacion_items').update({ 
                 estado: 'correcto', 
                 cantidad_correcta: item.conteo_fisico,
                 verificado_por: usuarioActualId
             }).eq('id', item.id);
 
-            // Marcar localmente que ya fue calificado
             item.estado_local = 'correcto';
             
-            // 🚨 AVANZAR AUTOMÁTICAMENTE AL SIGUIENTE
-            if (itemActualIndex < itemsPendientes.length - 1) {
-                itemActualIndex++;
+            // Si es el último, mostrar el botón de terminar
+            if (itemActualIndex === itemsPendientes.length - 1) {
                 mostrarItem(itemActualIndex);
             } else {
-                // Si era el último, comprobar si ya terminó todo y mostrar pantalla de fin
-                if(!verificarFinDeLista()) {
-                    mostrarItem(itemActualIndex);
-                }
+                // Si no es el último, avanzar
+                itemActualIndex++;
+                mostrarItem(itemActualIndex);
             }
         });
 
@@ -436,7 +437,6 @@
             const nuevaDiferencia = cantReal - item.saldo_sistema;
             const nuevoImporte = nuevaDiferencia * costoUnitario;
 
-            // Guardar en Supabase
             await _supabase.from('verificacion_items').update({ 
                 estado: 'incorrecto', 
                 cantidad_correcta: cantReal,
@@ -448,7 +448,6 @@
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
             btn.disabled = false;
 
-            // Actualizar datos locales
             item.estado_local = 'incorrecto';
             item.cantidad_correcta = cantReal;
             item.diferencia = nuevaDiferencia;
@@ -456,14 +455,12 @@
             
             document.getElementById('panelIncorrecto').classList.add('hidden');
 
-            // 🚨 AVANZAR AUTOMÁTICAMENTE AL SIGUIENTE
-            if (itemActualIndex < itemsPendientes.length - 1) {
-                itemActualIndex++;
+            // Si es el último, mostrar botón de terminar
+            if (itemActualIndex === itemsPendientes.length - 1) {
                 mostrarItem(itemActualIndex);
             } else {
-                if(!verificarFinDeLista()) {
-                    mostrarItem(itemActualIndex);
-                }
+                itemActualIndex++;
+                mostrarItem(itemActualIndex);
             }
         });
 
