@@ -243,7 +243,7 @@
                 return; 
             }
 
-            itemsPendientes = items;
+            itemsPendientes = items || [];
             loadingState.classList.add('hidden');
 
             if (itemsPendientes.length === 0) {
@@ -251,11 +251,22 @@
                 return;
             }
 
-            let indexGuardado = localStorage.getItem('ultimo_index_pendiente_' + usuarioActualId);
-            if (indexGuardado) {
-                itemActualIndex = parseInt(indexGuardado);
-                if (itemActualIndex >= itemsPendientes.length) itemActualIndex = 0;
+            // 🚨 LÓGICA DE MEMORIA SEGURA 🚨
+            // 1. Buscamos si hay un ID guardado en la memoria del navegador
+            let idGuardado = localStorage.getItem('ultimo_item_id_' + usuarioActualId);
+            
+            if (idGuardado) {
+                // 2. Si hay un ID guardado, buscamos en qué posición de la lista está ahora
+                let indexEncontrado = itemsPendientes.findIndex(i => i.id === idGuardado);
+                if (indexEncontrado !== -1) {
+                    // Si lo encuentra, nos posicionamos exactamente ahí
+                    itemActualIndex = indexEncontrado;
+                } else {
+                    // Si no lo encuentra (porque ya lo borraste), empezamos de cero
+                    itemActualIndex = 0;
+                }
             } else {
+                // Si es la primera vez que entra, empieza de cero
                 itemActualIndex = 0;
             }
 
@@ -265,35 +276,31 @@
         }
 
         function mostrarItem(index) {
-            localStorage.setItem('ultimo_index_pendiente_' + usuarioActualId, index);
-
-            // Si el índice se sale de la lista (porque ya terminó)
+            // Validar que el índice no se salga de rango
             if (index >= itemsPendientes.length) {
-                localStorage.removeItem('ultimo_index_pendiente_' + usuarioActualId);
                 verificacionUI.classList.add('hidden');
                 mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
                 return;
             }
-
-            // Si el índice es negativo (por si acaso)
-            if (index < 0) {
-                itemActualIndex = 0;
-                index = 0;
-            }
+            if (index < 0) index = 0;
 
             const item = itemsPendientes[index];
             
+            // 🚨 GUARDAMOS EL ID DEL ÍTEM ACTUAL EN LA MEMORIA 🚨
+            localStorage.setItem('ultimo_item_id_' + usuarioActualId, item.id);
+
+            // Animación de la tarjeta
             const tarjeta = document.getElementById('tarjetaItem');
             tarjeta.classList.remove('animate-item');
             void tarjeta.offsetWidth;
             tarjeta.classList.add('animate-item');
 
-            // Bloquear botón Anterior si estamos en el índice 0
+            // Actualizar UI del progreso
             document.getElementById('btnAnterior').disabled = (index === 0);
-
             document.getElementById('indiceActual').innerText = index + 1;
             document.getElementById('barraProgreso').style.width = `${((index + 1) / itemsPendientes.length) * 100}%`;
 
+            // Actualizar datos de la tarjeta
             document.getElementById('itemNumLista').innerText = item.numero_lista || '-';
             document.getElementById('itemLab').innerText = item.laboratorio || 'Sin Lab';
             document.getElementById('itemCodigo').innerText = item.codigo || '';
@@ -308,6 +315,7 @@
             
             document.getElementById('itemImporte').innerText = Math.abs(item.dif_importe).toFixed(2);
 
+            // Resetear UI
             document.getElementById('panelIncorrecto').classList.add('hidden');
             document.getElementById('accionesCorrecto').classList.remove('hidden');
             document.getElementById('inputCantidadCorrecta').value = '';
@@ -335,6 +343,7 @@
             btn.disabled = true;
 
             const item = itemsPendientes[itemActualIndex];
+            
             await _supabase.from('verificacion_items').update({ 
                 estado: 'correcto', 
                 cantidad_correcta: item.conteo_fisico,
@@ -344,22 +353,20 @@
 
             btn.innerHTML = originalHTML;
             btn.disabled = false;
-            
-            // 🚨 CORRECCIÓN AQUÍ: Eliminar el ítem y avanzar
+
+            // Limpiamos la memoria de este ítem porque ya lo terminamos
+            localStorage.removeItem('ultimo_item_id_' + usuarioActualId);
+
             itemsPendientes.splice(itemActualIndex, 1);
             document.getElementById('totalItems').innerText = itemsPendientes.length;
-            
-            // Si borramos el último, retrocedemos el índice para no salirnos
-            if (itemActualIndex >= itemsPendientes.length) {
-                itemActualIndex = itemsPendientes.length - 1;
-            }
-            
-            // Si ya no quedan ítems, mostrar vacío
+
             if (itemsPendientes.length === 0) {
-                 mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
-                 verificacionUI.classList.add('hidden');
+                await cargarPendientes();
             } else {
-                 mostrarItem(itemActualIndex);
+                if (itemActualIndex >= itemsPendientes.length) {
+                    itemActualIndex = itemsPendientes.length - 1;
+                }
+                mostrarItem(itemActualIndex);
             }
         });
 
@@ -403,19 +410,19 @@
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
             btn.disabled = false;
 
-            // 🚨 CORRECCIÓN AQUÍ: Eliminar el ítem y avanzar
+            // Limpiamos la memoria de este ítem
+            localStorage.removeItem('ultimo_item_id_' + usuarioActualId);
+
             itemsPendientes.splice(itemActualIndex, 1);
             document.getElementById('totalItems').innerText = itemsPendientes.length;
 
-            if (itemActualIndex >= itemsPendientes.length) {
-                itemActualIndex = itemsPendientes.length - 1;
-            }
-
             if (itemsPendientes.length === 0) {
-                 mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
-                 verificacionUI.classList.add('hidden');
+                await cargarPendientes();
             } else {
-                 mostrarItem(itemActualIndex);
+                if (itemActualIndex >= itemsPendientes.length) {
+                    itemActualIndex = itemsPendientes.length - 1;
+                }
+                mostrarItem(itemActualIndex);
             }
         });
 
