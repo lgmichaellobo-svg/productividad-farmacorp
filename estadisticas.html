@@ -134,14 +134,14 @@
                         
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
-                            <input list="listaUsuarios" id="filtroPersona" placeholder="Escriba para buscar..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
+                            <input list="listaUsuarios" id="filtroPersona" placeholder="Escriba o seleccione..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                             <datalist id="listaUsuarios"></datalist>
                         </div>
 
                         <div class="w-full flex flex-col">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodega</label>
                             <div class="flex gap-2">
-                                <input list="listaBodegas" id="filtroBodega" placeholder="Escriba para buscar..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
+                                <input list="listaBodegas" id="filtroBodega" placeholder="Escriba o seleccione..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                                 <datalist id="listaBodegas"></datalist>
                                 <button id="btnFiltrar" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition shadow-md flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -244,7 +244,6 @@
 
         let itemsErroresGlobal = [];
         
-        // Variables para los gráficos
         let chartErrores = null; 
         let chartEstados = null;
         let chartOperadores = null;
@@ -338,11 +337,12 @@
                 });
             }
 
-            // 2. Traer Bodegas
+            // 2. Traer Bodegas y llenar Datalist
             const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre').order('nombre');
             if (bodegas) {
                 const datalistBodega = document.getElementById('listaBodegas');
-                datalistBodega.innerHTML = '';
+                // Agregamos la opción "Todas" al principio
+                datalistBodega.innerHTML = `<option value="Todas las bodegas">`;
                 bodegas.forEach(b => {
                     datalistBodega.innerHTML += `<option value="${b.nombre}">`;
                 });
@@ -352,12 +352,13 @@
             const { data: items, error: errItems } = await _supabase.from('verificacion_items').select('*');
             if (errItems) return;
 
-            // 4. Traer Usuarios
+            // 4. Traer Usuarios y llenar Datalist
             const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
             if(usuarios) {
                 usuarios.forEach(u => mapaUsuariosGlobal[u.id] = u.nombre);
                 const datalistUsuario = document.getElementById('listaUsuarios');
-                datalistUsuario.innerHTML = '';
+                // Agregamos la opción "Todos" al principio
+                datalistUsuario.innerHTML = `<option value="Todos los trabajadores">`;
                 usuarios.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(u => {
                     datalistUsuario.innerHTML += `<option value="${u.nombre}">`;
                 });
@@ -375,9 +376,8 @@
             }
         }
 
-        // Configuración global para Chart.js
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
-        Chart.defaults.color = '#64748b'; // slate-500
+        Chart.defaults.color = '#64748b';
 
         function procesarVista(itemsAMostrar) {
             let total = itemsAMostrar.length;
@@ -386,7 +386,7 @@
             let pendientes = 0;
             
             let erroresPorFecha = {};
-            let erroresPorOperador = {}; // Para gráfico 3
+            let erroresPorOperador = {}; 
 
             itemsErroresGlobal = []; 
 
@@ -404,11 +404,9 @@
                     
                     itemsErroresGlobal.push(item);
 
-                    // Sumar para gráfico de fechas
                     if (item.fecha_inventario) {
                         erroresPorFecha[item.fecha_inventario] = (erroresPorFecha[item.fecha_inventario] || 0) + 1;
                     }
-                    // Sumar para gráfico de operador
                     erroresPorOperador[nombre] = (erroresPorOperador[nombre] || 0) + 1;
                 } else {
                     pendientes++;
@@ -425,13 +423,9 @@
             dibujarGraficoFechas(erroresPorFecha);
         }
 
-        // --- GRÁFICO 1: ESTADO GENERAL (TORTA) ---
         function dibujarGraficoEstados(correctos, errores, pendientes) {
             if (chartEstados) chartEstados.destroy();
-            
             const ctx = document.getElementById('graficoEstados').getContext('2d');
-            
-            // Si todo es cero, no dibujar
             if (correctos === 0 && errores === 0 && pendientes === 0) return;
 
             chartEstados = new Chart(ctx, {
@@ -440,7 +434,7 @@
                     labels: ['Correctos', 'Con Errores', 'Pendientes'],
                     datasets: [{
                         data: [correctos, errores, pendientes],
-                        backgroundColor: ['#10b981', '#f43f5e', '#cbd5e1'], // emerald, rose, slate-300
+                        backgroundColor: ['#10b981', '#f43f5e', '#cbd5e1'], 
                         borderWidth: 2,
                         borderColor: '#ffffff',
                         hoverOffset: 4
@@ -449,7 +443,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '70%', // Hace que sea una dona en vez de una torta completa
+                    cutout: '70%', 
                     plugins: {
                         legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: 'bold' } } },
                         tooltip: {
@@ -468,10 +462,8 @@
             });
         }
 
-        // --- GRÁFICO 3: ERRORES POR OPERADOR (TORTA) ---
         function dibujarGraficoOperadores(erroresPorOperador, totalErrores) {
             if (chartOperadores) chartOperadores.destroy();
-
             const contenedor = document.getElementById('contenedorGraficoOperador');
             const mensaje = document.getElementById('mensajeSinErroresOperador');
 
@@ -485,12 +477,8 @@
             mensaje.classList.add('hidden');
 
             const ctx = document.getElementById('graficoOperadores').getContext('2d');
-            
-            // Ordenar de mayor a menor para que se vea mejor
             const operadoresOrdenados = Object.keys(erroresPorOperador).sort((a, b) => erroresPorOperador[b] - erroresPorOperador[a]);
             const valores = operadoresOrdenados.map(op => erroresPorOperador[op]);
-
-            // Generar colores variados
             const colores = ['#6366f1', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#ef4444', '#3b82f6'];
 
             chartOperadores = new Chart(ctx, {
@@ -523,10 +511,8 @@
             });
         }
 
-        // --- GRÁFICO 4: EVOLUCIÓN EN EL TIEMPO (LÍNEA) ---
         function dibujarGraficoFechas(erroresPorFecha) {
             if (chartErrores) chartErrores.destroy();
-
             const fechasOrdenadas = Object.keys(erroresPorFecha).sort();
             const fechasParaGrafico = [];
             const erroresParaGrafico = [];
@@ -553,7 +539,7 @@
                         datasets: [{
                             label: 'Errores',
                             data: erroresParaGrafico,
-                            borderColor: '#4f46e5', // indigo-600
+                            borderColor: '#4f46e5', 
                             backgroundColor: gradientIndigo,
                             borderWidth: 3,
                             pointBackgroundColor: '#ffffff',
@@ -561,8 +547,8 @@
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
-                            fill: true, // Rellena debajo de la línea
-                            tension: 0.4 // Curva suave
+                            fill: true, 
+                            tension: 0.4 
                         }]
                     },
                     options: {
@@ -592,7 +578,7 @@
             }
         }
 
-        // --- FILTRADO ---
+        // --- FILTRADO CON LÓGICA DE "TODOS" ---
         document.getElementById('btnFiltrar').addEventListener('click', () => {
             const desde = document.getElementById('filtroDesde').value;
             const hasta = document.getElementById('filtroHasta').value;
@@ -602,7 +588,11 @@
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
-            if(!desde && !hasta && personaInput === '' && bodegaInput === '') {
+            // Verificamos si el usuario ingresó "Todos" o lo dejó vacío
+            const esTodosPersonas = personaInput === '' || personaInput.toUpperCase().includes('TODOS');
+            const esTodasBodegas = bodegaInput === '' || bodegaInput.toUpperCase().includes('TODAS');
+
+            if(!desde && !hasta && esTodosPersonas && esTodasBodegas) {
                 procesarVista(todosLosItems);
                 return;
             }
@@ -610,8 +600,9 @@
             const fechaDesdeObj = desde ? new Date(desde + 'T00:00:00') : null;
             const fechaHastaObj = hasta ? new Date(hasta + 'T23:59:59') : null;
 
+            // Lógica de búsqueda de Persona
             let personaIdFiltro = null;
-            if (personaInput !== '') {
+            if (!esTodosPersonas) {
                 const entradaMayus = personaInput.toUpperCase();
                 for (const [id, nombre] of Object.entries(mapaUsuariosGlobal)) {
                     if (nombre.toUpperCase().includes(entradaMayus)) {
@@ -634,14 +625,16 @@
                 }
 
                 let cumplePersona = true;
-                if (personaIdFiltro !== null) {
-                    cumplePersona = (item.asignado_a === personaIdFiltro);
-                } else if (personaInput !== '') {
-                    cumplePersona = false; 
+                if (!esTodosPersonas) {
+                    if (personaIdFiltro !== null) {
+                        cumplePersona = (item.asignado_a === personaIdFiltro);
+                    } else {
+                        cumplePersona = false; // Escribió algo que no existe
+                    }
                 }
 
                 let cumpleBodega = true;
-                if (bodegaInput !== '') {
+                if (!esTodasBodegas) {
                     const nombreBodegaItem = (mapaBodegasVerificacion[item.verificacion_id] || '').toUpperCase();
                     cumpleBodega = nombreBodegaItem.includes(bodegaInput.toUpperCase());
                 }
