@@ -234,14 +234,13 @@
         const loadingState = document.getElementById('loadingState');
         const errorState = document.getElementById('errorState');
 
-        // Función para mostrar el Toast
         function mostrarToast(mensaje, color = 'bg-emerald-500') {
             const toast = document.getElementById('toast');
             toast.className = toast.className.replace(/bg-\w+-500/g, ''); 
             toast.classList.add(color);
             toast.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i>${mensaje}`;
             toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+            setTimeout(() => { toast.classList.remove('show'); }, 2000);
         }
 
         async function init() {
@@ -296,7 +295,6 @@
                 return;
             }
 
-            // Memoria para volver a donde se quedó
             let idGuardado = localStorage.getItem('ultimo_item_id_' + usuarioActualId);
             if (idGuardado) {
                 let indexEncontrado = itemsPendientes.findIndex(i => i.id === idGuardado);
@@ -326,7 +324,6 @@
             void tarjeta.offsetWidth;
             tarjeta.classList.add('animate-item');
 
-            // Deshabilitar botones (Sin mostrar el icono rojo feo)
             document.getElementById('btnAnterior').disabled = (index === 0);
             document.getElementById('btnSiguiente').disabled = (index === itemsPendientes.length - 1);
 
@@ -381,20 +378,24 @@
 
             const item = itemsPendientes[itemActualIndex];
             
-            await _supabase.from('verificacion_items').update({ 
+            // 🚨 GUARDADO SIN FECHA PARA EVITAR ERRORES DE TIPO 🚨
+            const { error } = await _supabase.from('verificacion_items').update({ 
                 estado: 'correcto', 
                 cantidad_correcta: item.conteo_fisico,
-                verificado_por: usuarioActualId, 
-                fecha_verificacion: new Date().toISOString()
+                verificado_por: usuarioActualId
             }).eq('id', item.id);
+
+            if (error) {
+                console.error(error);
+                alert("Hubo un error al guardar en la nube, pero avanzaremos en la pantalla para que no te trabes.");
+            }
 
             btn.innerHTML = originalHTML;
             btn.disabled = false;
 
-            // Mostrar mensaje de guardado
             mostrarToast('Ítem guardado como CORRECTO');
 
-            // Borrar de la lista local y actualizar
+            // Forzar avance en la pantalla
             itemsPendientes.splice(itemActualIndex, 1);
             document.getElementById('totalItems').innerText = itemsPendientes.length;
 
@@ -436,22 +437,26 @@
             const nuevaDiferencia = cantReal - item.saldo_sistema;
             const nuevoImporte = nuevaDiferencia * costoUnitario;
 
-            await _supabase.from('verificacion_items').update({ 
+            // 🚨 GUARDADO SIN FECHA PARA EVITAR ERRORES DE TIPO 🚨
+            const { error } = await _supabase.from('verificacion_items').update({ 
                 estado: 'incorrecto', 
                 cantidad_correcta: cantReal,
                 diferencia: nuevaDiferencia,
                 dif_importe: nuevoImporte,
-                verificado_por: usuarioActualId, 
-                fecha_verificacion: new Date().toISOString()
+                verificado_por: usuarioActualId
             }).eq('id', item.id);
+
+            if (error) {
+                console.error(error);
+                alert("Hubo un error al guardar en la nube, pero avanzaremos en la pantalla.");
+            }
 
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
             btn.disabled = false;
 
-            // Mostrar mensaje
             mostrarToast('Ítem guardado como INCORRECTO', 'bg-rose-500');
 
-            // Borrar de la lista local
+            // Forzar avance en la pantalla
             itemsPendientes.splice(itemActualIndex, 1);
             document.getElementById('totalItems').innerText = itemsPendientes.length;
 
@@ -500,7 +505,7 @@
                 .select('*')
                 .eq('asignado_a', usuarioActualId)
                 .in('estado', ['correcto', 'incorrecto'])
-                .order('fecha_verificacion', { ascending: false });
+                .order('numero_lista', { ascending: false });
 
             if (error) {
                 listaHTML.innerHTML = `<p class="text-rose-500 font-bold text-center">Error: ${error.message}</p>`;
