@@ -18,6 +18,11 @@
         @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Estilos para las etiquetas de selección múltiple */
+        .tag { display: inline-flex; align-items: center; background-color: #e0e7ff; color: #3730a3; font-size: 0.75rem; font-weight: bold; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin: 0.125rem; }
+        .tag button { margin-left: 0.25rem; color: #4f46e5; }
+        .tag button:hover { color: #312e81; }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex overflow-hidden">
@@ -122,7 +127,9 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end border border-slate-200 shadow-sm">
+                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start border border-slate-200 shadow-sm">
+                        
+                        <!-- Fechas -->
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
                             <input type="date" id="filtroDesde" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
@@ -132,101 +139,121 @@
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         
-                        <div class="w-full">
-                            <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
-                            <input list="listaUsuarios" id="filtroPersona" placeholder="Escriba o seleccione..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
-                            <datalist id="listaUsuarios"></datalist>
+                        <!-- Multi-select Personas -->
+                        <div class="w-full relative">
+                            <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Personas</label>
+                            <div id="contenedorTagsPersona" class="min-h-[42px] w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
+                                <span class="text-slate-400 text-sm pl-2">Seleccionar...</span>
+                            </div>
+                            
+                            <div id="dropdownPersona" class="hidden absolute z-30 top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-2">
+                                <input type="text" id="buscadorPersona" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
+                                <div id="listaOpcionesPersona" class="space-y-1"></div>
+                            </div>
                         </div>
 
-                        <div class="w-full flex flex-col">
-                            <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodega</label>
+                        <!-- Multi-select Bodegas -->
+                        <div class="w-full relative">
+                            <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodegas</label>
                             <div class="flex gap-2">
-                                <input list="listaBodegas" id="filtroBodega" placeholder="Escriba o seleccione..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
-                                <datalist id="listaBodegas"></datalist>
+                                <div id="contenedorTagsBodega" class="min-h-[42px] flex-grow px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
+                                    <span class="text-slate-400 text-sm pl-2">Seleccionar...</span>
+                                </div>
                                 <button id="btnFiltrar" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition shadow-md flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
+                            </div>
+
+                            <div id="dropdownBodega" class="hidden absolute z-30 top-full right-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-2">
+                                <input type="text" id="buscadorBodega" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
+                                <div id="listaOpcionesBodega" class="space-y-1"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tarjetas de Resumen -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 animate-fade-up">
-                    <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-12 h-12 md:w-16 md:h-16 bg-slate-50 rounded-bl-full -z-10"></div>
-                        <p class="text-[10px] md:text-xs text-slate-500 font-extrabold uppercase tracking-wider mb-1 md:mb-2">Total Revisados</p>
+                <!-- Tarjetas de Resumen (Diseño Premium) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-8 animate-fade-up">
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col relative overflow-hidden transition-transform hover:-translate-y-1">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-slate-50 rounded-bl-full -z-10"></div>
+                        <p class="text-[10px] md:text-xs text-slate-400 font-extrabold uppercase tracking-wider mb-2">Total Revisados</p>
                         <p class="text-3xl md:text-4xl font-black text-slate-800" id="resTotal">0</p>
                     </div>
                     
-                    <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-12 h-12 md:w-16 md:h-16 bg-emerald-50 rounded-bl-full -z-10"></div>
-                        <div class="flex items-center gap-1.5 mb-1 md:mb-2">
-                            <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500"></span>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col relative overflow-hidden transition-transform hover:-translate-y-1">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -z-10"></div>
+                        <div class="flex items-center gap-1.5 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
                             <p class="text-[10px] md:text-xs text-emerald-600 font-extrabold uppercase tracking-wider">Correctos</p>
                         </div>
                         <p class="text-3xl md:text-4xl font-black text-slate-800" id="resCorrectos">0</p>
                     </div>
                     
-                    <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-12 h-12 md:w-16 md:h-16 bg-rose-50 rounded-bl-full -z-10"></div>
-                        <div class="flex items-center gap-1.5 mb-1 md:mb-2">
-                            <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-rose-500"></span>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col relative overflow-hidden transition-transform hover:-translate-y-1">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-rose-50 rounded-bl-full -z-10"></div>
+                        <div class="flex items-center gap-1.5 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
                             <p class="text-[10px] md:text-xs text-rose-600 font-extrabold uppercase tracking-wider">Con Error</p>
                         </div>
                         <p class="text-3xl md:text-4xl font-black text-slate-800" id="resErrores">0</p>
                     </div>
                     
-                    <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-12 h-12 md:w-16 md:h-16 bg-indigo-50 rounded-bl-full -z-10"></div>
-                        <div class="flex items-center gap-1.5 mb-1 md:mb-2">
-                            <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-500"></span>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col relative overflow-hidden transition-transform hover:-translate-y-1">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -z-10"></div>
+                        <div class="flex items-center gap-1.5 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span>
                             <p class="text-[10px] md:text-xs text-indigo-600 font-extrabold uppercase tracking-wider">Pendientes</p>
                         </div>
                         <p class="text-3xl md:text-4xl font-black text-slate-800" id="resPendientes">0</p>
                     </div>
                 </div>
 
-                <!-- GRÁFICOS -->
+                <!-- GRÁFICOS (Diseño Premium) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-up">
-                    <!-- Gráfico 1: Estado de los Ítems (Torta) -->
-                    <div class="bg-white rounded-3xl p-4 md:p-6 border border-slate-200 shadow-sm flex flex-col items-center">
-                        <h3 class="text-base font-extrabold text-slate-800 mb-4 w-full flex items-center gap-2">
+                    
+                    <!-- Gráfico 1: Estado (Dona con total en el centro) -->
+                    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col items-center">
+                        <h3 class="text-base font-extrabold text-slate-800 mb-2 w-full flex items-center gap-2">
                             <i class="fa-solid fa-chart-pie text-indigo-500"></i> Estado General
                         </h3>
-                        <div class="relative w-full max-w-[250px] h-64">
+                        <div class="relative w-full max-w-[220px] h-64 flex justify-center items-center">
                             <canvas id="graficoEstados"></canvas>
+                            <!-- Texto central de la dona -->
+                            <div class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none pb-8">
+                                <span class="text-3xl font-black text-slate-800" id="donutTotalText">0</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ítems</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Gráfico 3: Errores por Operador (Torta) -->
-                    <div class="bg-white rounded-3xl p-4 md:p-6 border border-slate-200 shadow-sm flex flex-col items-center">
-                        <h3 class="text-base font-extrabold text-slate-800 mb-4 w-full flex items-center gap-2">
+                    <!-- Gráfico 3: Operadores (Anillo) -->
+                    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col items-center">
+                        <h3 class="text-base font-extrabold text-slate-800 mb-2 w-full flex items-center gap-2">
                             <i class="fa-solid fa-users text-indigo-500"></i> Errores por Operador
                         </h3>
-                        <div id="mensajeSinErroresOperador" class="hidden w-full text-center py-10 bg-slate-50 rounded-2xl border border-slate-100 flex-grow flex flex-col justify-center">
+                        <div id="mensajeSinErroresOperador" class="hidden w-full text-center py-10 bg-slate-50 rounded-2xl border border-slate-100 flex-grow flex flex-col justify-center mt-4">
                             <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
-                            <p class="text-emerald-700 font-bold text-sm">Sin errores registrados en este filtro.</p>
+                            <p class="text-emerald-700 font-bold text-sm">Sin errores registrados.</p>
                         </div>
-                        <div class="relative w-full max-w-[250px] h-64" id="contenedorGraficoOperador">
+                        <div class="relative w-full max-w-[220px] h-64 flex justify-center items-center mt-4" id="contenedorGraficoOperador">
                             <canvas id="graficoOperadores"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Gráfico 4: Evolución (Línea) -->
-                <div class="bg-white rounded-3xl p-4 md:p-8 border border-slate-200 shadow-sm mb-8 animate-fade-up">
-                    <div class="flex justify-between items-center mb-4 md:mb-6">
+                <!-- Gráfico 4: Evolución (Área/Línea) -->
+                <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xl shadow-slate-200/40 mb-8 animate-fade-up">
+                    <div class="flex justify-between items-center mb-6">
                         <h3 class="text-base md:text-lg font-extrabold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-line text-indigo-500"></i> Tendencia de Errores en el Tiempo
+                            <i class="fa-solid fa-chart-line text-indigo-500"></i> Tendencia de Errores
                         </h3>
                     </div>
                     
-                    <div id="mensajeSinErrores" class="hidden text-center py-8 md:py-10 bg-slate-50 rounded-2xl border border-slate-100">
-                        <i class="fa-solid fa-check-circle text-3xl md:text-4xl text-emerald-500 mb-2"></i>
-                        <p class="text-emerald-700 font-bold text-sm md:text-base">¡Excelente! No hay errores registrados en estas fechas.</p>
+                    <div id="mensajeSinErrores" class="hidden text-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
+                        <p class="text-emerald-700 font-bold">¡Excelente! No hay errores en estas fechas.</p>
                     </div>
-                    <div id="contenedorGrafico" class="relative h-56 md:h-80 w-full hidden">
+                    <div id="contenedorGrafico" class="relative h-64 md:h-80 w-full hidden">
                         <canvas id="graficoErrores"></canvas>
                     </div>
                 </div>
@@ -243,7 +270,6 @@
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let itemsErroresGlobal = [];
-        
         let chartErrores = null; 
         let chartEstados = null;
         let chartOperadores = null;
@@ -254,10 +280,14 @@
         let mapaBodegasVerificacion = {};
         let usuarioRol = "";
 
+        let listaUsuarios = [];
+        let listaBodegas = [];
+        let seleccionPersonas = [];
+        let seleccionBodegas = [];
+
         // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
         async function construirMenu(rol) {
             const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
-            
             const tienePermiso = (modulo) => {
                 if (rol === 'admin') return true;
                 const permitidos = config ? (config['visible_' + modulo] || '') : '';
@@ -266,28 +296,15 @@
 
             const menu = document.getElementById('menuLateral');
             let html = `<a href="app.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-house w-5 text-center"></i> <span class="uppercase">Inicio</span></a>`;
-            
-            if (tienePermiso('mis_items')) {
-                html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>`;
-            }
-            if (tienePermiso('productividad')) {
-                html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>`;
-            }
-            if (tienePermiso('verificacion')) {
-                html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
-            }
-            
-            if (rol === 'admin') {
-                html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
-            }
-            if (tienePermiso('excel')) {
-                html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>`;
-            }
+            if (tienePermiso('mis_items')) html += `<a href="mis_items.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-clipboard-check w-5 text-center"></i> <span class="uppercase">Mis Ítems</span></a>`;
+            if (tienePermiso('productividad')) html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>`;
+            if (tienePermiso('verificacion')) html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
+            if (rol === 'admin') html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
+            if (tienePermiso('excel')) html += `<a href="excel.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-file-excel w-5 text-center"></i> <span class="uppercase">Excel Automatizados</span></a>`;
             
             menu.innerHTML = html;
         }
 
-        // --- 1. VERIFICAR USUARIO Y CARGAR DISEÑO ---
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'index.html'; return; }
@@ -298,7 +315,6 @@
                 document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
                 document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                 document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
-
                 construirMenu(usuarioDB.rol);
 
                 if (['admin', 'jefe', 'supervisor'].includes(usuarioRol)) {
@@ -328,7 +344,6 @@
         });
 
         async function cargarEstadisticas() {
-            // 1. Traer Verificaciones
             const { data: verificaciones } = await _supabase.from('verificaciones').select('id, fecha_verificacion, bodegas(nombre)');
             if (verificaciones) {
                 verificaciones.forEach(v => { 
@@ -337,32 +352,19 @@
                 });
             }
 
-            // 2. Traer Bodegas y llenar Datalist
             const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre').order('nombre');
-            if (bodegas) {
-                const datalistBodega = document.getElementById('listaBodegas');
-                // Agregamos la opción "Todas" al principio
-                datalistBodega.innerHTML = `<option value="Todas las bodegas">`;
-                bodegas.forEach(b => {
-                    datalistBodega.innerHTML += `<option value="${b.nombre}">`;
-                });
-            }
+            if (bodegas) listaBodegas = bodegas;
 
-            // 3. Traer Ítems
             const { data: items, error: errItems } = await _supabase.from('verificacion_items').select('*');
             if (errItems) return;
 
-            // 4. Traer Usuarios y llenar Datalist
             const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
             if(usuarios) {
                 usuarios.forEach(u => mapaUsuariosGlobal[u.id] = u.nombre);
-                const datalistUsuario = document.getElementById('listaUsuarios');
-                // Agregamos la opción "Todos" al principio
-                datalistUsuario.innerHTML = `<option value="Todos los trabajadores">`;
-                usuarios.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(u => {
-                    datalistUsuario.innerHTML += `<option value="${u.nombre}">`;
-                });
+                listaUsuarios = usuarios.sort((a,b) => a.nombre.localeCompare(b.nombre));
             }
+
+            renderizarOpcionesFiltros(); 
 
             todosLosItems = items || []; 
             procesarVista(todosLosItems);
@@ -376,15 +378,86 @@
             }
         }
 
+        // --- LÓGICA DE SELECCIÓN MÚLTIPLE (TAGS) ---
+        function renderizarOpcionesFiltros() {
+            const listaPersonas = document.getElementById('listaOpcionesPersona');
+            listaPersonas.innerHTML = '';
+            listaUsuarios.forEach(u => {
+                listaPersonas.innerHTML += `<div class="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm rounded-lg transition" onclick="toggleSeleccion('persona', '${u.id}', '${u.nombre}')">${u.nombre}</div>`;
+            });
+
+            const listaBodegasDiv = document.getElementById('listaOpcionesBodega');
+            listaBodegasDiv.innerHTML = '';
+            listaBodegas.forEach(b => {
+                listaBodegasDiv.innerHTML += `<div class="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm rounded-lg transition" onclick="toggleSeleccion('bodega', '${b.nombre}', '${b.nombre}')">${b.nombre}</div>`;
+            });
+        }
+
+        document.getElementById('contenedorTagsPersona').addEventListener('click', () => {
+            document.getElementById('dropdownPersona').classList.toggle('hidden');
+            document.getElementById('dropdownBodega').classList.add('hidden');
+        });
+        document.getElementById('contenedorTagsBodega').addEventListener('click', () => {
+            document.getElementById('dropdownBodega').classList.toggle('hidden');
+            document.getElementById('dropdownPersona').classList.add('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#contenedorTagsPersona') && !e.target.closest('#dropdownPersona')) {
+                document.getElementById('dropdownPersona').classList.add('hidden');
+            }
+            if (!e.target.closest('#contenedorTagsBodega') && !e.target.closest('#dropdownBodega')) {
+                document.getElementById('dropdownBodega').classList.add('hidden');
+            }
+        });
+
+        window.toggleSeleccion = function(tipo, id, nombre) {
+            let array = tipo === 'persona' ? seleccionPersonas : seleccionBodegas;
+            let index = array.findIndex(item => item.id === id);
+            if (index > -1) array.splice(index, 1);
+            else array.push({ id, nombre });
+            renderizarTags();
+        }
+
+        function renderizarTags() {
+            const contPersona = document.getElementById('contenedorTagsPersona');
+            contPersona.innerHTML = seleccionPersonas.length === 0 ? '<span class="text-slate-400 text-sm pl-2">Seleccionar...</span>' : '';
+            seleccionPersonas.forEach(p => {
+                contPersona.innerHTML += `<span class="tag">${p.nombre} <button onclick="event.stopPropagation(); toggleSeleccion('persona', '${p.id}', '${p.nombre}')"><i class="fa-solid fa-xmark"></i></button></span>`;
+            });
+
+            const contBodega = document.getElementById('contenedorTagsBodega');
+            contBodega.innerHTML = seleccionBodegas.length === 0 ? '<span class="text-slate-400 text-sm pl-2">Seleccionar...</span>' : '';
+            seleccionBodegas.forEach(b => {
+                contBodega.innerHTML += `<span class="tag">${b.nombre.split('-')[0]} <button onclick="event.stopPropagation(); toggleSeleccion('bodega', '${b.id}', '${b.nombre}')"><i class="fa-solid fa-xmark"></i></button></span>`;
+            });
+        }
+
+        document.getElementById('buscadorPersona').addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            const lista = document.getElementById('listaOpcionesPersona');
+            lista.innerHTML = '';
+            listaUsuarios.filter(u => u.nombre.toLowerCase().includes(texto)).forEach(u => {
+                lista.innerHTML += `<div class="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm rounded-lg transition" onclick="toggleSeleccion('persona', '${u.id}', '${u.nombre}')">${u.nombre}</div>`;
+            });
+        });
+
+        document.getElementById('buscadorBodega').addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            const lista = document.getElementById('listaOpcionesBodega');
+            lista.innerHTML = '';
+            listaBodegas.filter(b => b.nombre.toLowerCase().includes(texto)).forEach(b => {
+                lista.innerHTML += `<div class="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm rounded-lg transition" onclick="toggleSeleccion('bodega', '${b.nombre}', '${b.nombre}')">${b.nombre}</div>`;
+            });
+        });
+
+        // --- DISEÑO PREMIUM DE GRÁFICOS ---
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
-        Chart.defaults.color = '#64748b';
+        Chart.defaults.color = '#94a3b8'; // Texto un poco más claro
 
         function procesarVista(itemsAMostrar) {
             let total = itemsAMostrar.length;
-            let correctos = 0;
-            let errores = 0;
-            let pendientes = 0;
-            
+            let correctos = 0, errores = 0, pendientes = 0;
             let erroresPorFecha = {};
             let erroresPorOperador = {}; 
 
@@ -404,9 +477,7 @@
                     
                     itemsErroresGlobal.push(item);
 
-                    if (item.fecha_inventario) {
-                        erroresPorFecha[item.fecha_inventario] = (erroresPorFecha[item.fecha_inventario] || 0) + 1;
-                    }
+                    if (item.fecha_inventario) erroresPorFecha[item.fecha_inventario] = (erroresPorFecha[item.fecha_inventario] || 0) + 1;
                     erroresPorOperador[nombre] = (erroresPorOperador[nombre] || 0) + 1;
                 } else {
                     pendientes++;
@@ -418,15 +489,19 @@
             document.getElementById('resErrores').innerText = errores;
             document.getElementById('resPendientes').innerText = pendientes;
 
-            dibujarGraficoEstados(correctos, errores, pendientes);
+            dibujarGraficoEstados(correctos, errores, pendientes, total);
             dibujarGraficoOperadores(erroresPorOperador, errores);
             dibujarGraficoFechas(erroresPorFecha);
         }
 
-        function dibujarGraficoEstados(correctos, errores, pendientes) {
+        function dibujarGraficoEstados(correctos, errores, pendientes, total) {
             if (chartEstados) chartEstados.destroy();
             const ctx = document.getElementById('graficoEstados').getContext('2d');
-            if (correctos === 0 && errores === 0 && pendientes === 0) return;
+            
+            // Actualizar el texto del centro
+            document.getElementById('donutTotalText').innerText = total;
+
+            if (total === 0) return;
 
             chartEstados = new Chart(ctx, {
                 type: 'doughnut',
@@ -434,28 +509,26 @@
                     labels: ['Correctos', 'Con Errores', 'Pendientes'],
                     datasets: [{
                         data: [correctos, errores, pendientes],
-                        backgroundColor: ['#10b981', '#f43f5e', '#cbd5e1'], 
-                        borderWidth: 2,
-                        borderColor: '#ffffff',
-                        hoverOffset: 4
+                        backgroundColor: ['#10b981', '#f43f5e', '#e2e8f0'], 
+                        borderWidth: 0, // Sin bordes para que se vea más limpio
+                        hoverOffset: 6 // Efecto de que la porción "salta" al pasar el mouse
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%', 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    cutout: '78%', // Hace el hueco central más grande
                     plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: 'bold' } } },
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 11, weight: 'bold' } } 
+                        },
                         tooltip: {
-                            backgroundColor: '#1e293b', padding: 10, cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    let valor = context.raw;
-                                    let porcentaje = total > 0 ? Math.round((valor / total) * 100) : 0;
-                                    return ` ${valor} ítems (${porcentaje}%)`;
-                                }
-                            }
+                            backgroundColor: '#0f172a', padding: 12, cornerRadius: 10, titleFont: { size: 13 }, bodyFont: { size: 14, weight: 'bold' },
+                            callbacks: { label: function(context) {
+                                let porcentaje = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                                return ` ${context.raw} ítems (${porcentaje}%)`;
+                            }}
                         }
                     }
                 }
@@ -479,32 +552,32 @@
             const ctx = document.getElementById('graficoOperadores').getContext('2d');
             const operadoresOrdenados = Object.keys(erroresPorOperador).sort((a, b) => erroresPorOperador[b] - erroresPorOperador[a]);
             const valores = operadoresOrdenados.map(op => erroresPorOperador[op]);
-            const colores = ['#6366f1', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#ef4444', '#3b82f6'];
+            // Colores más profesionales
+            const colores = ['#4f46e5', '#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#f43f5e', '#64748b'];
 
             chartOperadores = new Chart(ctx, {
-                type: 'pie',
+                type: 'doughnut', // Lo cambiamos a Dona también
                 data: {
                     labels: operadoresOrdenados,
-                    datasets: [{
-                        data: valores,
-                        backgroundColor: colores,
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                    datasets: [{ 
+                        data: valores, 
+                        backgroundColor: colores, 
+                        borderWidth: 2, 
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '60%',
                     plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } },
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } },
                         tooltip: {
-                            backgroundColor: '#1e293b', padding: 10, cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    let porcentaje = totalErrores > 0 ? Math.round((context.raw / totalErrores) * 100) : 0;
-                                    return ` ${context.raw} errores (${porcentaje}%)`;
-                                }
-                            }
+                            backgroundColor: '#0f172a', padding: 10, cornerRadius: 8,
+                            callbacks: { label: function(context) {
+                                let porcentaje = totalErrores > 0 ? Math.round((context.raw / totalErrores) * 100) : 0;
+                                return ` ${context.raw} errores (${porcentaje}%)`;
+                            }}
                         }
                     }
                 }
@@ -529,46 +602,48 @@
 
                 const ctx = document.getElementById('graficoErrores').getContext('2d');
                 const gradientIndigo = ctx.createLinearGradient(0, 0, 0, 300);
-                gradientIndigo.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
-                gradientIndigo.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+                gradientIndigo.addColorStop(0, 'rgba(79, 70, 229, 0.4)'); // Un poco más suave
+                gradientIndigo.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
 
                 chartErrores = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: fechasParaGrafico,
                         datasets: [{
-                            label: 'Errores',
-                            data: erroresParaGrafico,
+                            label: 'Errores', data: erroresParaGrafico, 
                             borderColor: '#4f46e5', 
-                            backgroundColor: gradientIndigo,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#ffffff',
+                            backgroundColor: gradientIndigo, 
+                            borderWidth: 4, // Línea más gruesa
+                            pointBackgroundColor: '#ffffff', 
                             pointBorderColor: '#4f46e5',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
+                            pointBorderWidth: 3, 
+                            pointRadius: 5, 
+                            pointHoverRadius: 8, 
                             fill: true, 
                             tension: 0.4 
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: '#1e293b',
-                                titleFont: { size: 12, weight: 'bold' },
-                                bodyFont: { size: 13, weight: 'bold' },
-                                padding: 10,
-                                cornerRadius: 10,
-                                displayColors: false,
-                                callbacks: { label: function(context) { return ` ${context.raw} error(es)`; } }
+                                backgroundColor: '#0f172a', titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 10,
+                                displayColors: false, callbacks: { label: function(context) { return ` ${context.raw} error(es)`; } }
                             }
                         },
                         scales: {
-                            x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: 'bold', size: 10 } } },
-                            y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, ticks: { stepSize: 1, font: { weight: 'bold', size: 10 } }, border: { display: false } }
+                            x: { 
+                                grid: { display: false, drawBorder: false }, 
+                                ticks: { font: { weight: 'bold', size: 11 } } 
+                            },
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: '#f1f5f9', drawBorder: false }, 
+                                ticks: { stepSize: 1, font: { weight: 'bold', size: 11 } }, 
+                                border: { display: false } 
+                            }
                         }
                     }
                 });
@@ -578,39 +653,19 @@
             }
         }
 
-        // --- FILTRADO CON LÓGICA DE "TODOS" ---
+        // --- FILTRADO ---
         document.getElementById('btnFiltrar').addEventListener('click', () => {
             const desde = document.getElementById('filtroDesde').value;
             const hasta = document.getElementById('filtroHasta').value;
-            const personaInput = document.getElementById('filtroPersona').value.trim();
-            const bodegaInput = document.getElementById('filtroBodega').value.trim();
 
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
-            // Verificamos si el usuario ingresó "Todos" o lo dejó vacío
-            const esTodosPersonas = personaInput === '' || personaInput.toUpperCase().includes('TODOS');
-            const esTodasBodegas = bodegaInput === '' || bodegaInput.toUpperCase().includes('TODAS');
-
-            if(!desde && !hasta && esTodosPersonas && esTodasBodegas) {
-                procesarVista(todosLosItems);
-                return;
-            }
-
             const fechaDesdeObj = desde ? new Date(desde + 'T00:00:00') : null;
             const fechaHastaObj = hasta ? new Date(hasta + 'T23:59:59') : null;
 
-            // Lógica de búsqueda de Persona
-            let personaIdFiltro = null;
-            if (!esTodosPersonas) {
-                const entradaMayus = personaInput.toUpperCase();
-                for (const [id, nombre] of Object.entries(mapaUsuariosGlobal)) {
-                    if (nombre.toUpperCase().includes(entradaMayus)) {
-                        personaIdFiltro = id;
-                        break;
-                    }
-                }
-            }
+            const idsPersonasSeleccionadas = seleccionPersonas.map(p => p.id);
+            const nombresBodegasSeleccionadas = seleccionBodegas.map(b => b.nombre);
 
             const itemsFiltrados = todosLosItems.filter(item => {
                 let cumpleFecha = true;
@@ -619,24 +674,19 @@
                 if (fechaDesdeObj || fechaHastaObj) {
                     if (!fechaInventario) return false; 
                     const fechaItemObj = new Date(fechaInventario + 'T12:00:00');
-                    
                     if (fechaDesdeObj && fechaItemObj < fechaDesdeObj) cumpleFecha = false;
                     if (fechaHastaObj && fechaItemObj > fechaHastaObj) cumpleFecha = false;
                 }
 
                 let cumplePersona = true;
-                if (!esTodosPersonas) {
-                    if (personaIdFiltro !== null) {
-                        cumplePersona = (item.asignado_a === personaIdFiltro);
-                    } else {
-                        cumplePersona = false; // Escribió algo que no existe
-                    }
+                if (idsPersonasSeleccionadas.length > 0) {
+                    cumplePersona = idsPersonasSeleccionadas.includes(item.asignado_a);
                 }
 
                 let cumpleBodega = true;
-                if (!esTodasBodegas) {
-                    const nombreBodegaItem = (mapaBodegasVerificacion[item.verificacion_id] || '').toUpperCase();
-                    cumpleBodega = nombreBodegaItem.includes(bodegaInput.toUpperCase());
+                if (nombresBodegasSeleccionadas.length > 0) {
+                    const nombreBodegaItem = mapaBodegasVerificacion[item.verificacion_id] || '';
+                    cumpleBodega = nombresBodegasSeleccionadas.some(nombreSeleccionado => nombreBodegaItem.includes(nombreSeleccionado));
                 }
 
                 return cumpleFecha && cumplePersona && cumpleBodega;
@@ -651,11 +701,9 @@
                 const btn = document.getElementById('btnBorrarHistorial');
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando...';
                 btn.disabled = true;
-
                 try {
                     await _supabase.from('verificacion_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                     await _supabase.from('verificaciones').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    
                     alert('Historial limpiado correctamente.');
                     window.location.reload();
                 } catch (error) {
@@ -706,17 +754,9 @@
 
                     const row = worksheet.addRow({
                         bodega: item.nombre_bodega, 
-                        n: item.numero_lista,
-                        codigo: item.codigo,
-                        desc: item.descripcion,
-                        lab: item.laboratorio,
-                        asignado: item.nombre_usuario || 'Sin Asignar',
-                        conteo: item.conteo_fisico,
-                        correcta: item.cantidad_correcta,
-                        dif_real: difReal,
-                        dif_sist: item.diferencia,
-                        importe: item.dif_importe,
-                        fecha: fechaFormat
+                        n: item.numero_lista, codigo: item.codigo, desc: item.descripcion, lab: item.laboratorio,
+                        asignado: item.nombre_usuario || 'Sin Asignar', conteo: item.conteo_fisico, correcta: item.cantidad_correcta,
+                        dif_real: difReal, dif_sist: item.diferencia, importe: item.dif_importe, fecha: fechaFormat
                     });
 
                     row.getCell('conteo').alignment = { horizontal: 'center' };
@@ -733,10 +773,8 @@
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = `Errores_Historicos_${new Date().toISOString().split('T')[0]}.xlsx`;
-                a.click();
-                window.URL.revokeObjectURL(url);
+                a.href = url; a.download = `Errores_Historicos_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.click(); window.URL.revokeObjectURL(url);
             } catch (error) {
                 alert('Error al generar el Excel.');
             } finally {
