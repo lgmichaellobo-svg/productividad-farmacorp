@@ -369,8 +369,14 @@
             // Marcar localmente que ya fue calificado
             item.estado_local = 'correcto';
             
-            // Redibujar el ítem para mostrar que está guardado
-            mostrarItem(itemActualIndex);
+            // 🚨 AVANZAR AUTOMÁTICAMENTE AL SIGUIENTE
+            if (itemActualIndex < itemsPendientes.length - 1) {
+                itemActualIndex++;
+                mostrarItem(itemActualIndex);
+            } else {
+                // Si era el último, mostrar mensaje o quedarse ahí
+                mostrarItem(itemActualIndex);
+            }
         });
 
         document.getElementById('btnIncorrecto').addEventListener('click', () => {
@@ -429,9 +435,14 @@
             item.dif_importe = nuevoImporte;
             
             document.getElementById('panelIncorrecto').classList.add('hidden');
-            
-            // Redibujar
-            mostrarItem(itemActualIndex);
+
+            // 🚨 AVANZAR AUTOMÁTICAMENTE AL SIGUIENTE
+            if (itemActualIndex < itemsPendientes.length - 1) {
+                itemActualIndex++;
+                mostrarItem(itemActualIndex);
+            } else {
+                mostrarItem(itemActualIndex);
+            }
         });
 
 
