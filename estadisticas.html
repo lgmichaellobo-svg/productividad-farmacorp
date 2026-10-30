@@ -25,12 +25,10 @@
     <!-- Menú Lateral -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            
             <!-- LOGO LIMPIO -->
             <div class="w-12 h-12 flex items-center justify-center overflow-hidden logo-empresa">
                 <i class="fa-solid fa-pills text-2xl text-blue-500"></i>
             </div>
-            
             <div>
                 <h1 class="text-lg font-extrabold text-white tracking-tight nombre-empresa">Farmacorp</h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sistema Interno</p>
@@ -131,24 +129,33 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 flex flex-col lg:flex-row gap-4 items-end border border-slate-200 shadow-sm">
-                        <div class="flex-1 w-full">
+                    <!-- Filtros Actualizados con Bodega -->
+                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end border border-slate-200 shadow-sm">
+                        <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
                             <input type="date" id="filtroDesde" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
-                        <div class="flex-1 w-full">
+                        <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
-                        <div class="flex-1 w-full">
+                        <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
                             <select id="filtroPersona" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                                 <option value="todos">Todos los trabajadores</option>
                             </select>
                         </div>
-                        <button id="btnFiltrar" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md w-full lg:w-auto flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-magnifying-glass"></i> Aplicar
-                        </button>
+                        <div class="w-full flex flex-col">
+                            <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodega</label>
+                            <div class="flex gap-2">
+                                <select id="filtroBodega" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
+                                    <option value="todas">Todas las bodegas</option>
+                                </select>
+                                <button id="btnFiltrar" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition shadow-md flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -221,6 +228,7 @@
         let todosLosItems = []; 
         let mapaUsuariosGlobal = {};
         let mapaFechasVerificacion = {};
+        let mapaBodegasVerificacion = {}; // NUEVO: Para guardar qué bodega es cada verificación
         let usuarioRol = "";
 
         // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
@@ -243,7 +251,6 @@
                 html += `<a href="productividad.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="uppercase">Productividad</span></a>`;
             }
             if (tienePermiso('verificacion')) {
-                // Como estamos en estadísticas, quizás quieras que Verificación no esté resaltado, pero mantengo tu lógica
                 html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
             }
             
@@ -269,15 +276,12 @@
                 document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                 document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
 
-                // Construir el menú dinámico
                 construirMenu(usuarioDB.rol);
 
-                // Mostrar botón de borrar solo a Admin/Jefe/Supervisor
                 if (['admin', 'jefe', 'supervisor'].includes(usuarioRol)) {
                     document.getElementById('btnBorrarHistorial').classList.remove('hidden');
                 }
 
-                // Cargar configuración para el logo dinámico
                 const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
                 if (config) {
                     document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
@@ -301,14 +305,30 @@
         });
 
         async function cargarEstadisticas() {
-            const { data: verificaciones } = await _supabase.from('verificaciones').select('id, fecha_verificacion');
+            // 1. Traer Verificaciones (para mapear ID a Fecha y Bodega)
+            const { data: verificaciones } = await _supabase.from('verificaciones').select('id, fecha_verificacion, bodegas(nombre)');
             if (verificaciones) {
-                verificaciones.forEach(v => { mapaFechasVerificacion[v.id] = v.fecha_verificacion; });
+                verificaciones.forEach(v => { 
+                    mapaFechasVerificacion[v.id] = v.fecha_verificacion; 
+                    mapaBodegasVerificacion[v.id] = v.bodegas ? v.bodegas.nombre : 'Sin Bodega';
+                });
             }
 
+            // 2. Traer Bodegas para llenar el filtro
+            const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre').order('nombre');
+            if (bodegas) {
+                const selectBodega = document.getElementById('filtroBodega');
+                selectBodega.innerHTML = '<option value="todas">Todas las bodegas</option>';
+                bodegas.forEach(b => {
+                    selectBodega.innerHTML += `<option value="${b.nombre}">${b.nombre}</option>`;
+                });
+            }
+
+            // 3. Traer Ítems
             const { data: items, error: errItems } = await _supabase.from('verificacion_items').select('*');
             if (errItems) return;
 
+            // 4. Traer Usuarios
             const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
             if(usuarios) {
                 usuarios.forEach(u => mapaUsuariosGlobal[u.id] = u.nombre);
@@ -342,12 +362,14 @@
 
             itemsAMostrar.forEach(item => {
                 let nombre = item.asignado_a && mapaUsuariosGlobal[item.asignado_a] ? mapaUsuariosGlobal[item.asignado_a] : 'Sin Asignar';
+                let nombreBodega = mapaBodegasVerificacion[item.verificacion_id] || 'Sin Bodega';
                 
                 if (item.estado === 'correcto') {
                     correctos++;
                 } else if (item.estado === 'incorrecto') {
                     errores++;
                     item.nombre_usuario = nombre;
+                    item.nombre_bodega = nombreBodega; // NUEVO: Guardamos la bodega en el ítem
                     item.fecha_inventario = mapaFechasVerificacion[item.verificacion_id] || (item.fecha_verificacion ? item.fecha_verificacion.split('T')[0] : null);
                     
                     itemsErroresGlobal.push(item);
@@ -433,29 +455,41 @@
             const desde = document.getElementById('filtroDesde').value;
             const hasta = document.getElementById('filtroHasta').value;
             const personaId = document.getElementById('filtroPersona').value;
+            const bodegaNombre = document.getElementById('filtroBodega').value; // NUEVO
 
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
-            if(!desde || !hasta) {
+            if(!desde && !hasta && personaId === 'todos' && bodegaNombre === 'todas') {
                 procesarVista(todosLosItems);
                 return;
             }
 
-            const fechaDesdeObj = new Date(desde + 'T00:00:00');
-            const fechaHastaObj = new Date(hasta + 'T23:59:59');
+            const fechaDesdeObj = desde ? new Date(desde + 'T00:00:00') : null;
+            const fechaHastaObj = hasta ? new Date(hasta + 'T23:59:59') : null;
 
             const itemsFiltrados = todosLosItems.filter(item => {
+                let cumpleFecha = true;
                 const fechaInventario = mapaFechasVerificacion[item.verificacion_id];
-                if (!fechaInventario) return false; 
                 
-                const fechaItemObj = new Date(fechaInventario + 'T12:00:00');
-                const cumpleFecha = fechaItemObj >= fechaDesdeObj && fechaItemObj <= fechaHastaObj;
+                if (fechaDesdeObj || fechaHastaObj) {
+                    if (!fechaInventario) return false; 
+                    const fechaItemObj = new Date(fechaInventario + 'T12:00:00');
+                    
+                    if (fechaDesdeObj && fechaItemObj < fechaDesdeObj) cumpleFecha = false;
+                    if (fechaHastaObj && fechaItemObj > fechaHastaObj) cumpleFecha = false;
+                }
 
                 let cumplePersona = true;
                 if (personaId !== 'todos') cumplePersona = (item.asignado_a === personaId);
 
-                return cumpleFecha && cumplePersona;
+                let cumpleBodega = true; // NUEVO
+                if (bodegaNombre !== 'todas') {
+                    const nombreBodegaItem = mapaBodegasVerificacion[item.verificacion_id];
+                    cumpleBodega = (nombreBodegaItem === bodegaNombre);
+                }
+
+                return cumpleFecha && cumplePersona && cumpleBodega;
             });
 
             procesarVista(itemsFiltrados);
@@ -494,7 +528,9 @@
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet('Errores Filtrados');
 
+                // AGREGAMOS LA COLUMNA BODEGA AL EXCEL
                 worksheet.columns = [
+                    { header: 'Bodega', key: 'bodega', width: 30 }, 
                     { header: 'N° Lista', key: 'n', width: 10 },
                     { header: 'Código', key: 'codigo', width: 20 },
                     { header: 'Descripción', key: 'desc', width: 40 },
@@ -519,6 +555,7 @@
                     let fechaFormat = item.fecha_inventario ? item.fecha_inventario.split('-').reverse().join('/') : '-';
 
                     const row = worksheet.addRow({
+                        bodega: item.nombre_bodega, // NUEVO
                         n: item.numero_lista,
                         codigo: item.codigo,
                         desc: item.descripcion,
