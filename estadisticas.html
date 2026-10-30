@@ -25,7 +25,6 @@
     <!-- Menú Lateral -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex-col hidden lg:flex shadow-2xl z-20 relative flex-shrink-0 border-r border-slate-800">
         <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-            <!-- LOGO LIMPIO -->
             <div class="w-12 h-12 flex items-center justify-center overflow-hidden logo-empresa">
                 <i class="fa-solid fa-pills text-2xl text-blue-500"></i>
             </div>
@@ -35,10 +34,7 @@
             </div>
         </div>
         
-        <!-- MENÚ DINÁMICO -->
-        <nav id="menuLateral" class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto">
-            <!-- Inyectado por JS -->
-        </nav>
+        <nav id="menuLateral" class="flex-1 p-4 space-y-2 mt-2 overflow-y-auto"></nav>
         
         <div class="p-4 border-t border-slate-800">
             <button id="btnLogoutDesktop" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white py-3 rounded-xl transition font-medium shadow-md">
@@ -54,7 +50,6 @@
             
             <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
                 <div class="flex items-center gap-3 md:hidden">
-                    <!-- LOGO LIMPIO MÓVIL -->
                     <div class="w-10 h-10 flex items-center justify-center overflow-hidden logo-empresa">
                         <i class="fa-solid fa-pills text-xl text-blue-500"></i>
                     </div>
@@ -73,9 +68,7 @@
                 <a href="estadisticas.html" class="whitespace-nowrap flex-none text-center px-4 py-2 rounded-lg font-bold text-xs bg-white text-indigo-600 shadow-sm transition">Estadísticas</a>
             </div>
             
-            <!-- BOTONES DE ACCIÓN -->
             <div class="flex items-center gap-2 ml-auto xl:ml-0 w-full xl:w-auto justify-end">
-                
                 <button id="btnBorrarHistorial" class="hidden text-sm bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Limpiar Historial
                 </button>
@@ -129,7 +122,6 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <!-- Filtros Actualizados con Bodega -->
                     <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end border border-slate-200 shadow-sm">
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
@@ -139,18 +131,18 @@
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
+                        
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Persona</label>
-                            <select id="filtroPersona" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
-                                <option value="todos">Todos los trabajadores</option>
-                            </select>
+                            <input list="listaUsuarios" id="filtroPersona" placeholder="Escriba para buscar..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
+                            <datalist id="listaUsuarios"></datalist>
                         </div>
+
                         <div class="w-full flex flex-col">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodega</label>
                             <div class="flex gap-2">
-                                <select id="filtroBodega" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
-                                    <option value="todas">Todas las bodegas</option>
-                                </select>
+                                <input list="listaBodegas" id="filtroBodega" placeholder="Escriba para buscar..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
+                                <datalist id="listaBodegas"></datalist>
                                 <button id="btnFiltrar" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition shadow-md flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
@@ -195,17 +187,44 @@
                     </div>
                 </div>
 
-                <!-- Gráfico -->
+                <!-- GRÁFICOS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-up">
+                    <!-- Gráfico 1: Estado de los Ítems (Torta) -->
+                    <div class="bg-white rounded-3xl p-4 md:p-6 border border-slate-200 shadow-sm flex flex-col items-center">
+                        <h3 class="text-base font-extrabold text-slate-800 mb-4 w-full flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-500"></i> Estado General
+                        </h3>
+                        <div class="relative w-full max-w-[250px] h-64">
+                            <canvas id="graficoEstados"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico 3: Errores por Operador (Torta) -->
+                    <div class="bg-white rounded-3xl p-4 md:p-6 border border-slate-200 shadow-sm flex flex-col items-center">
+                        <h3 class="text-base font-extrabold text-slate-800 mb-4 w-full flex items-center gap-2">
+                            <i class="fa-solid fa-users text-indigo-500"></i> Errores por Operador
+                        </h3>
+                        <div id="mensajeSinErroresOperador" class="hidden w-full text-center py-10 bg-slate-50 rounded-2xl border border-slate-100 flex-grow flex flex-col justify-center">
+                            <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
+                            <p class="text-emerald-700 font-bold text-sm">Sin errores registrados en este filtro.</p>
+                        </div>
+                        <div class="relative w-full max-w-[250px] h-64" id="contenedorGraficoOperador">
+                            <canvas id="graficoOperadores"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico 4: Evolución (Línea) -->
                 <div class="bg-white rounded-3xl p-4 md:p-8 border border-slate-200 shadow-sm mb-8 animate-fade-up">
                     <div class="flex justify-between items-center mb-4 md:mb-6">
                         <h3 class="text-base md:text-lg font-extrabold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-bar text-indigo-500"></i> Errores por Fecha
+                            <i class="fa-solid fa-chart-line text-indigo-500"></i> Tendencia de Errores en el Tiempo
                         </h3>
                     </div>
                     
                     <div id="mensajeSinErrores" class="hidden text-center py-8 md:py-10 bg-slate-50 rounded-2xl border border-slate-100">
                         <i class="fa-solid fa-check-circle text-3xl md:text-4xl text-emerald-500 mb-2"></i>
-                        <p class="text-emerald-700 font-bold text-sm md:text-base">¡Excelente! No hay errores registrados.</p>
+                        <p class="text-emerald-700 font-bold text-sm md:text-base">¡Excelente! No hay errores registrados en estas fechas.</p>
                     </div>
                     <div id="contenedorGrafico" class="relative h-56 md:h-80 w-full hidden">
                         <canvas id="graficoErrores"></canvas>
@@ -224,11 +243,16 @@
         const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let itemsErroresGlobal = [];
+        
+        // Variables para los gráficos
         let chartErrores = null; 
+        let chartEstados = null;
+        let chartOperadores = null;
+
         let todosLosItems = []; 
-        let mapaUsuariosGlobal = {};
+        let mapaUsuariosGlobal = {}; 
         let mapaFechasVerificacion = {};
-        let mapaBodegasVerificacion = {}; // NUEVO: Para guardar qué bodega es cada verificación
+        let mapaBodegasVerificacion = {};
         let usuarioRol = "";
 
         // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
@@ -305,7 +329,7 @@
         });
 
         async function cargarEstadisticas() {
-            // 1. Traer Verificaciones (para mapear ID a Fecha y Bodega)
+            // 1. Traer Verificaciones
             const { data: verificaciones } = await _supabase.from('verificaciones').select('id, fecha_verificacion, bodegas(nombre)');
             if (verificaciones) {
                 verificaciones.forEach(v => { 
@@ -314,13 +338,13 @@
                 });
             }
 
-            // 2. Traer Bodegas para llenar el filtro
+            // 2. Traer Bodegas
             const { data: bodegas } = await _supabase.from('bodegas').select('id, nombre').order('nombre');
             if (bodegas) {
-                const selectBodega = document.getElementById('filtroBodega');
-                selectBodega.innerHTML = '<option value="todas">Todas las bodegas</option>';
+                const datalistBodega = document.getElementById('listaBodegas');
+                datalistBodega.innerHTML = '';
                 bodegas.forEach(b => {
-                    selectBodega.innerHTML += `<option value="${b.nombre}">${b.nombre}</option>`;
+                    datalistBodega.innerHTML += `<option value="${b.nombre}">`;
                 });
             }
 
@@ -332,10 +356,10 @@
             const { data: usuarios } = await _supabase.from('usuarios').select('id, nombre');
             if(usuarios) {
                 usuarios.forEach(u => mapaUsuariosGlobal[u.id] = u.nombre);
-                const selectPersona = document.getElementById('filtroPersona');
-                selectPersona.innerHTML = '<option value="todos">Todos los trabajadores</option>';
+                const datalistUsuario = document.getElementById('listaUsuarios');
+                datalistUsuario.innerHTML = '';
                 usuarios.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(u => {
-                    selectPersona.innerHTML += `<option value="${u.id}">${u.nombre}</option>`;
+                    datalistUsuario.innerHTML += `<option value="${u.nombre}">`;
                 });
             }
 
@@ -351,12 +375,18 @@
             }
         }
 
+        // Configuración global para Chart.js
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.color = '#64748b'; // slate-500
+
         function procesarVista(itemsAMostrar) {
             let total = itemsAMostrar.length;
             let correctos = 0;
             let errores = 0;
             let pendientes = 0;
+            
             let erroresPorFecha = {};
+            let erroresPorOperador = {}; // Para gráfico 3
 
             itemsErroresGlobal = []; 
 
@@ -369,14 +399,17 @@
                 } else if (item.estado === 'incorrecto') {
                     errores++;
                     item.nombre_usuario = nombre;
-                    item.nombre_bodega = nombreBodega; // NUEVO: Guardamos la bodega en el ítem
+                    item.nombre_bodega = nombreBodega;
                     item.fecha_inventario = mapaFechasVerificacion[item.verificacion_id] || (item.fecha_verificacion ? item.fecha_verificacion.split('T')[0] : null);
                     
                     itemsErroresGlobal.push(item);
 
+                    // Sumar para gráfico de fechas
                     if (item.fecha_inventario) {
                         erroresPorFecha[item.fecha_inventario] = (erroresPorFecha[item.fecha_inventario] || 0) + 1;
                     }
+                    // Sumar para gráfico de operador
+                    erroresPorOperador[nombre] = (erroresPorOperador[nombre] || 0) + 1;
                 } else {
                     pendientes++;
                 }
@@ -386,6 +419,113 @@
             document.getElementById('resCorrectos').innerText = correctos;
             document.getElementById('resErrores').innerText = errores;
             document.getElementById('resPendientes').innerText = pendientes;
+
+            dibujarGraficoEstados(correctos, errores, pendientes);
+            dibujarGraficoOperadores(erroresPorOperador, errores);
+            dibujarGraficoFechas(erroresPorFecha);
+        }
+
+        // --- GRÁFICO 1: ESTADO GENERAL (TORTA) ---
+        function dibujarGraficoEstados(correctos, errores, pendientes) {
+            if (chartEstados) chartEstados.destroy();
+            
+            const ctx = document.getElementById('graficoEstados').getContext('2d');
+            
+            // Si todo es cero, no dibujar
+            if (correctos === 0 && errores === 0 && pendientes === 0) return;
+
+            chartEstados = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Correctos', 'Con Errores', 'Pendientes'],
+                    datasets: [{
+                        data: [correctos, errores, pendientes],
+                        backgroundColor: ['#10b981', '#f43f5e', '#cbd5e1'], // emerald, rose, slate-300
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%', // Hace que sea una dona en vez de una torta completa
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: 'bold' } } },
+                        tooltip: {
+                            backgroundColor: '#1e293b', padding: 10, cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let valor = context.raw;
+                                    let porcentaje = total > 0 ? Math.round((valor / total) * 100) : 0;
+                                    return ` ${valor} ítems (${porcentaje}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- GRÁFICO 3: ERRORES POR OPERADOR (TORTA) ---
+        function dibujarGraficoOperadores(erroresPorOperador, totalErrores) {
+            if (chartOperadores) chartOperadores.destroy();
+
+            const contenedor = document.getElementById('contenedorGraficoOperador');
+            const mensaje = document.getElementById('mensajeSinErroresOperador');
+
+            if (totalErrores === 0 || Object.keys(erroresPorOperador).length === 0) {
+                contenedor.classList.add('hidden');
+                mensaje.classList.remove('hidden');
+                return;
+            }
+
+            contenedor.classList.remove('hidden');
+            mensaje.classList.add('hidden');
+
+            const ctx = document.getElementById('graficoOperadores').getContext('2d');
+            
+            // Ordenar de mayor a menor para que se vea mejor
+            const operadoresOrdenados = Object.keys(erroresPorOperador).sort((a, b) => erroresPorOperador[b] - erroresPorOperador[a]);
+            const valores = operadoresOrdenados.map(op => erroresPorOperador[op]);
+
+            // Generar colores variados
+            const colores = ['#6366f1', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#ef4444', '#3b82f6'];
+
+            chartOperadores = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: operadoresOrdenados,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: colores,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } },
+                        tooltip: {
+                            backgroundColor: '#1e293b', padding: 10, cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    let porcentaje = totalErrores > 0 ? Math.round((context.raw / totalErrores) * 100) : 0;
+                                    return ` ${context.raw} errores (${porcentaje}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- GRÁFICO 4: EVOLUCIÓN EN EL TIEMPO (LÍNEA) ---
+        function dibujarGraficoFechas(erroresPorFecha) {
+            if (chartErrores) chartErrores.destroy();
 
             const fechasOrdenadas = Object.keys(erroresPorFecha).sort();
             const fechasParaGrafico = [];
@@ -401,27 +541,28 @@
                 document.getElementById('mensajeSinErrores').classList.add('hidden');
                 document.getElementById('contenedorGrafico').classList.remove('hidden');
 
-                if (chartErrores) chartErrores.destroy();
-
                 const ctx = document.getElementById('graficoErrores').getContext('2d');
                 const gradientIndigo = ctx.createLinearGradient(0, 0, 0, 300);
-                gradientIndigo.addColorStop(0, '#818cf8');
-                gradientIndigo.addColorStop(1, '#4f46e5');
-
-                Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
-                Chart.defaults.color = '#94a3b8';
+                gradientIndigo.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+                gradientIndigo.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
 
                 chartErrores = new Chart(ctx, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
                         labels: fechasParaGrafico,
                         datasets: [{
                             label: 'Errores',
                             data: erroresParaGrafico,
+                            borderColor: '#4f46e5', // indigo-600
                             backgroundColor: gradientIndigo,
-                            borderRadius: 6,
-                            borderSkipped: false,
-                            maxBarThickness: 50
+                            borderWidth: 3,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#4f46e5',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true, // Rellena debajo de la línea
+                            tension: 0.4 // Curva suave
                         }]
                     },
                     options: {
@@ -451,22 +592,34 @@
             }
         }
 
+        // --- FILTRADO ---
         document.getElementById('btnFiltrar').addEventListener('click', () => {
             const desde = document.getElementById('filtroDesde').value;
             const hasta = document.getElementById('filtroHasta').value;
-            const personaId = document.getElementById('filtroPersona').value;
-            const bodegaNombre = document.getElementById('filtroBodega').value; // NUEVO
+            const personaInput = document.getElementById('filtroPersona').value.trim();
+            const bodegaInput = document.getElementById('filtroBodega').value.trim();
 
             panelFiltros.classList.add('hidden');
             iconoFlecha.classList.add('rotate-180');
 
-            if(!desde && !hasta && personaId === 'todos' && bodegaNombre === 'todas') {
+            if(!desde && !hasta && personaInput === '' && bodegaInput === '') {
                 procesarVista(todosLosItems);
                 return;
             }
 
             const fechaDesdeObj = desde ? new Date(desde + 'T00:00:00') : null;
             const fechaHastaObj = hasta ? new Date(hasta + 'T23:59:59') : null;
+
+            let personaIdFiltro = null;
+            if (personaInput !== '') {
+                const entradaMayus = personaInput.toUpperCase();
+                for (const [id, nombre] of Object.entries(mapaUsuariosGlobal)) {
+                    if (nombre.toUpperCase().includes(entradaMayus)) {
+                        personaIdFiltro = id;
+                        break;
+                    }
+                }
+            }
 
             const itemsFiltrados = todosLosItems.filter(item => {
                 let cumpleFecha = true;
@@ -481,12 +634,16 @@
                 }
 
                 let cumplePersona = true;
-                if (personaId !== 'todos') cumplePersona = (item.asignado_a === personaId);
+                if (personaIdFiltro !== null) {
+                    cumplePersona = (item.asignado_a === personaIdFiltro);
+                } else if (personaInput !== '') {
+                    cumplePersona = false; 
+                }
 
-                let cumpleBodega = true; // NUEVO
-                if (bodegaNombre !== 'todas') {
-                    const nombreBodegaItem = mapaBodegasVerificacion[item.verificacion_id];
-                    cumpleBodega = (nombreBodegaItem === bodegaNombre);
+                let cumpleBodega = true;
+                if (bodegaInput !== '') {
+                    const nombreBodegaItem = (mapaBodegasVerificacion[item.verificacion_id] || '').toUpperCase();
+                    cumpleBodega = nombreBodegaItem.includes(bodegaInput.toUpperCase());
                 }
 
                 return cumpleFecha && cumplePersona && cumpleBodega;
@@ -517,6 +674,7 @@
             }
         });
 
+        // --- DESCARGAR EXCEL ---
         document.getElementById('btnDescargarErroresFiltrados').addEventListener('click', async () => {
             if (itemsErroresGlobal.length === 0) return alert('No hay errores registrados para los filtros seleccionados.');
 
@@ -528,7 +686,6 @@
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet('Errores Filtrados');
 
-                // AGREGAMOS LA COLUMNA BODEGA AL EXCEL
                 worksheet.columns = [
                     { header: 'Bodega', key: 'bodega', width: 30 }, 
                     { header: 'N° Lista', key: 'n', width: 10 },
@@ -555,7 +712,7 @@
                     let fechaFormat = item.fecha_inventario ? item.fecha_inventario.split('-').reverse().join('/') : '-';
 
                     const row = worksheet.addRow({
-                        bodega: item.nombre_bodega, // NUEVO
+                        bodega: item.nombre_bodega, 
                         n: item.numero_lista,
                         codigo: item.codigo,
                         desc: item.descripcion,
