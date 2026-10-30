@@ -35,7 +35,6 @@
     <header class="bg-white/80 backdrop-blur-md shadow-sm px-4 py-3 flex flex-col xl:flex-row justify-between items-center z-20 border-b border-slate-200 gap-3 shrink-0">
         <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
             <div class="flex items-center gap-3">
-                <!-- LOGO LIMPIO MÓVIL -->
                 <div class="w-10 h-10 flex items-center justify-center overflow-hidden logo-empresa">
                     <i class="fa-solid fa-pills text-xl text-blue-500"></i>
                 </div>
@@ -46,7 +45,6 @@
             </a>
         </div>
 
-        <!-- Pestañas (Pendientes / Completados) -->
         <div class="flex bg-slate-100 rounded-xl p-1 w-full xl:w-auto">
             <button id="tabPendientes" class="flex-1 text-center px-6 py-2 rounded-lg font-bold text-xs bg-white text-blue-600 shadow-sm transition">Pendientes</button>
             <button id="tabCompletados" class="flex-1 text-center px-6 py-2 rounded-lg font-bold text-xs text-slate-500 hover:bg-white transition">Completados</button>
@@ -57,7 +55,6 @@
         </a>
     </header>
 
-    <!-- Área de Trabajo Principal -->
     <main class="flex-1 overflow-y-auto p-4 md:p-6 w-full max-w-2xl mx-auto flex flex-col relative">
         
         <div id="loadingState" class="text-center py-20 m-auto">
@@ -65,7 +62,6 @@
             <p class="text-slate-500 font-bold">Buscando tus ítems...</p>
         </div>
 
-        <!-- Estado de Error (Si algo falla) -->
         <div id="errorState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-rose-200 m-auto w-full">
             <div class="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-triangle-exclamation text-4xl text-rose-500"></i>
@@ -74,7 +70,6 @@
             <p class="text-slate-500 font-medium" id="errorText">Hubo un problema de conexión.</p>
         </div>
 
-        <!-- Estado Vacío (Para ambas pestañas) -->
         <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200 m-auto w-full">
             <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-check-double text-4xl text-emerald-500"></i>
@@ -196,7 +191,6 @@
         let itemActualIndex = 0;
         let usuarioActualId = null;
         
-        // Referencias DOM
         const tabPendientes = document.getElementById('tabPendientes');
         const tabCompletados = document.getElementById('tabCompletados');
         const verificacionUI = document.getElementById('verificacionUI');
@@ -273,11 +267,18 @@
         function mostrarItem(index) {
             localStorage.setItem('ultimo_index_pendiente_' + usuarioActualId, index);
 
+            // Si el índice se sale de la lista (porque ya terminó)
             if (index >= itemsPendientes.length) {
                 localStorage.removeItem('ultimo_index_pendiente_' + usuarioActualId);
                 verificacionUI.classList.add('hidden');
                 mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
                 return;
+            }
+
+            // Si el índice es negativo (por si acaso)
+            if (index < 0) {
+                itemActualIndex = 0;
+                index = 0;
             }
 
             const item = itemsPendientes[index];
@@ -287,10 +288,11 @@
             void tarjeta.offsetWidth;
             tarjeta.classList.add('animate-item');
 
+            // Bloquear botón Anterior si estamos en el índice 0
             document.getElementById('btnAnterior').disabled = (index === 0);
 
             document.getElementById('indiceActual').innerText = index + 1;
-            document.getElementById('barraProgreso').style.width = `${(index / itemsPendientes.length) * 100}%`;
+            document.getElementById('barraProgreso').style.width = `${((index + 1) / itemsPendientes.length) * 100}%`;
 
             document.getElementById('itemNumLista').innerText = item.numero_lista || '-';
             document.getElementById('itemLab').innerText = item.laboratorio || 'Sin Lab';
@@ -320,7 +322,10 @@
         // --- LÓGICA DE BOTONES ---
 
         document.getElementById('btnAnterior').addEventListener('click', () => {
-            if (itemActualIndex > 0) { itemActualIndex--; mostrarItem(itemActualIndex); }
+            if (itemActualIndex > 0) { 
+                itemActualIndex--; 
+                mostrarItem(itemActualIndex); 
+            }
         });
 
         document.getElementById('btnCorrecto').addEventListener('click', async () => {
@@ -340,9 +345,22 @@
             btn.innerHTML = originalHTML;
             btn.disabled = false;
             
+            // 🚨 CORRECCIÓN AQUÍ: Eliminar el ítem y avanzar
             itemsPendientes.splice(itemActualIndex, 1);
             document.getElementById('totalItems').innerText = itemsPendientes.length;
-            mostrarItem(itemActualIndex); 
+            
+            // Si borramos el último, retrocedemos el índice para no salirnos
+            if (itemActualIndex >= itemsPendientes.length) {
+                itemActualIndex = itemsPendientes.length - 1;
+            }
+            
+            // Si ya no quedan ítems, mostrar vacío
+            if (itemsPendientes.length === 0) {
+                 mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
+                 verificacionUI.classList.add('hidden');
+            } else {
+                 mostrarItem(itemActualIndex);
+            }
         });
 
         document.getElementById('btnIncorrecto').addEventListener('click', () => {
@@ -385,9 +403,20 @@
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
             btn.disabled = false;
 
+            // 🚨 CORRECCIÓN AQUÍ: Eliminar el ítem y avanzar
             itemsPendientes.splice(itemActualIndex, 1);
             document.getElementById('totalItems').innerText = itemsPendientes.length;
-            mostrarItem(itemActualIndex);
+
+            if (itemActualIndex >= itemsPendientes.length) {
+                itemActualIndex = itemsPendientes.length - 1;
+            }
+
+            if (itemsPendientes.length === 0) {
+                 mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
+                 verificacionUI.classList.add('hidden');
+            } else {
+                 mostrarItem(itemActualIndex);
+            }
         });
 
 
