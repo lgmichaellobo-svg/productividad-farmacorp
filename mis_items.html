@@ -70,7 +70,7 @@
             <p class="text-slate-500 font-medium" id="errorText">Hubo un problema de conexión.</p>
         </div>
 
-        <!-- PANTALLA DE ÉXITO (Cuando termina) -->
+        <!-- PANTALLA DE ÉXITO -->
         <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200 m-auto w-full animate-fade-up">
             <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-check-double text-4xl text-emerald-500"></i>
@@ -149,7 +149,7 @@
                 </button>
             </div>
 
-            <!-- BOTÓN DE TERMINAR (Oculto por defecto, aparece al final) -->
+            <!-- BOTÓN DE TERMINAR (Oculto por defecto) -->
             <button id="btnTerminar" class="hidden w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-5 rounded-3xl transition-all shadow-xl flex items-center justify-center gap-3 text-lg animate-fade-up">
                 <i class="fa-solid fa-flag-checkered text-xl"></i> Terminar Revisión
             </button>
@@ -266,6 +266,7 @@
                 return;
             }
 
+            // Mantenemos la posición
             let idGuardado = localStorage.getItem('ultimo_item_id_' + usuarioActualId);
             if (idGuardado) {
                 let indexEncontrado = itemsPendientes.findIndex(i => i.id === idGuardado);
@@ -304,8 +305,16 @@
             tarjeta.className = 'bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-6 relative animate-item transition-colors duration-300';
             btnCorrecto.className = 'bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-4 md:py-6 rounded-3xl transition-all shadow-lg shadow-emerald-500/30 flex flex-col items-center justify-center gap-1 md:gap-2 group';
             btnIncorrecto.className = 'bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-4 md:py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-1 md:gap-2 group';
-            btnTerminar.classList.add('hidden');
-            document.getElementById('accionesCorrecto').classList.remove('hidden');
+            
+            // 🚨 LA MAGIA: Si es el ÚLTIMO ítem y YA está calificado, mostramos el botón Terminar.
+            // Si es el ÚLTIMO ítem pero NO está calificado, mostramos los botones normales.
+            if (index === itemsPendientes.length - 1 && estaCalificado) {
+                btnTerminar.classList.remove('hidden');
+                document.getElementById('accionesCorrecto').classList.add('hidden');
+            } else {
+                btnTerminar.classList.add('hidden');
+                document.getElementById('accionesCorrecto').classList.remove('hidden');
+            }
 
             // Pintar si ya está calificado
             if (estaCalificado === 'correcto') {
@@ -319,16 +328,9 @@
                 btnIncorrecto.innerHTML = `<div class="w-10 h-10 md:w-12 md:h-12 bg-rose-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fa-solid fa-xmark text-xl md:text-2xl"></i></div><span class="text-sm md:text-lg">INCORRECTO</span>`;
             }
 
-            // 🚨 LÓGICA CLAVE: SI ES EL ÚLTIMO ÍTEM Y YA ESTÁ CALIFICADO, MOSTRAR BOTÓN DE TERMINAR 🚨
-            if (index === itemsPendientes.length - 1) {
-                btnTerminar.classList.remove('hidden'); // Mostrar botón de terminar
-                document.getElementById('accionesCorrecto').classList.add('hidden'); // Ocultar botones normales
-                document.getElementById('btnSiguiente').disabled = true; // Bloquear flecha
-            } else {
-                document.getElementById('btnSiguiente').disabled = false;
-            }
-
             document.getElementById('btnAnterior').disabled = (index === 0);
+            document.getElementById('btnSiguiente').disabled = (index === itemsPendientes.length - 1);
+
             document.getElementById('indiceActual').innerText = index + 1;
             document.getElementById('barraProgreso').style.width = `${((index + 1) / itemsPendientes.length) * 100}%`;
 
@@ -371,8 +373,19 @@
             }
         });
 
-        // 🚨 BOTÓN DE TERMINAR 🚨
-        document.getElementById('btnTerminar').addEventListener('click', () => {
+        // 🚨 BOTÓN DE TERMINAR (Con guardado de seguridad) 🚨
+        document.getElementById('btnTerminar').addEventListener('click', async () => {
+            const item = itemsPendientes[itemActualIndex];
+            
+            // Si por alguna razón el último ítem no se guardó antes, lo guardamos como correcto ahora
+            if (!item.estado_local) {
+                await _supabase.from('verificacion_items').update({ 
+                    estado: 'correcto', 
+                    cantidad_correcta: item.conteo_fisico,
+                    verificado_por: usuarioActualId
+                }).eq('id', item.id);
+            }
+
             verificacionUI.classList.add('hidden');
             mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
         });
@@ -391,11 +404,11 @@
 
             item.estado_local = 'correcto';
             
-            // Si es el último, mostrar el botón de terminar
+            // Si es el último, redibujamos para mostrar el botón "Terminar".
+            // Si no, avanzamos al siguiente.
             if (itemActualIndex === itemsPendientes.length - 1) {
                 mostrarItem(itemActualIndex);
             } else {
-                // Si no es el último, avanzar
                 itemActualIndex++;
                 mostrarItem(itemActualIndex);
             }
