@@ -127,8 +127,8 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <!-- 🚨 AQUI ESTA LA CORRECCIÓN (relative z-50) 🚨 -->
-                    <div id="panelFiltros" class="hidden relative z-50 bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start border border-slate-200 shadow-sm">
+                    <!-- PANEL DE FILTROS SIN Z-INDEX (se lo damos a los hijos) -->
+                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start border border-slate-200 shadow-sm relative">
                         
                         <!-- Fechas -->
                         <div class="w-full">
@@ -140,21 +140,22 @@
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         
-                        <!-- Multi-select Personas -->
-                        <div class="w-full relative">
+                        <!-- 🚨 MULTI-SELECT PERSONAS (CON Z-INDEX ALTO) 🚨 -->
+                        <div class="w-full relative z-50">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Personas</label>
                             <div id="contenedorTagsPersona" class="min-h-[42px] w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
                                 <span class="text-slate-400 text-sm pl-2">Seleccionar...</span>
                             </div>
                             
-                            <div id="dropdownPersona" class="hidden absolute z-50 top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
+                            <!-- DROPDOWN CON Z-[9999] -->
+                            <div id="dropdownPersona" class="hidden absolute z-[9999] top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
                                 <input type="text" id="buscadorPersona" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
                                 <div id="listaOpcionesPersona" class="space-y-1"></div>
                             </div>
                         </div>
 
-                        <!-- Multi-select Bodegas -->
-                        <div class="w-full relative">
+                        <!-- 🚨 MULTI-SELECT BODEGAS (CON Z-INDEX ALTO) 🚨 -->
+                        <div class="w-full relative z-50">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodegas</label>
                             <div class="flex gap-2">
                                 <div id="contenedorTagsBodega" class="min-h-[42px] flex-grow px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
@@ -165,7 +166,8 @@
                                 </button>
                             </div>
 
-                            <div id="dropdownBodega" class="hidden absolute z-50 top-full right-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto p-2">
+                            <!-- DROPDOWN CON Z-[9999] -->
+                            <div id="dropdownBodega" class="hidden absolute z-[9999] top-full right-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
                                 <input type="text" id="buscadorBodega" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
                                 <div id="listaOpcionesBodega" class="space-y-1"></div>
                             </div>
@@ -209,17 +211,14 @@
                     </div>
                 </div>
 
-                <!-- GRÁFICOS (Diseño Premium) -->
+                <!-- GRÁFICOS -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-up">
-                    
-                    <!-- Gráfico 1: Estado (Dona con total en el centro) -->
                     <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col items-center">
                         <h3 class="text-base font-extrabold text-slate-800 mb-2 w-full flex items-center gap-2">
                             <i class="fa-solid fa-chart-pie text-indigo-500"></i> Estado General
                         </h3>
                         <div class="relative w-full max-w-[220px] h-64 flex justify-center items-center">
                             <canvas id="graficoEstados"></canvas>
-                            <!-- Texto central de la dona -->
                             <div class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none pb-8">
                                 <span class="text-3xl font-black text-slate-800" id="donutTotalText">0</span>
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ítems</span>
@@ -227,7 +226,6 @@
                         </div>
                     </div>
 
-                    <!-- Gráfico 3: Operadores (Anillo) -->
                     <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col items-center">
                         <h3 class="text-base font-extrabold text-slate-800 mb-2 w-full flex items-center gap-2">
                             <i class="fa-solid fa-users text-indigo-500"></i> Errores por Operador
@@ -242,7 +240,6 @@
                     </div>
                 </div>
 
-                <!-- Gráfico 4: Evolución (Área/Línea) -->
                 <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xl shadow-slate-200/40 mb-8 animate-fade-up">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-base md:text-lg font-extrabold text-slate-800 flex items-center gap-2">
