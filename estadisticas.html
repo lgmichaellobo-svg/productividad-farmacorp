@@ -127,8 +127,7 @@
                         <i id="iconoFlecha" class="fa-solid fa-chevron-up text-slate-400 chevron-rotate rotate-180"></i>
                     </button>
 
-                    <!-- 🚨 PANEL DE FILTROS CON Z-INDEX ALTÍSIMO 🚨 -->
-                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start border border-slate-200 shadow-sm relative z-[9999]">
+                    <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start border border-slate-200 shadow-sm">
                         
                         <!-- Fechas -->
                         <div class="w-full">
@@ -140,21 +139,16 @@
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         
-                        <!-- MULTI-SELECT PERSONAS -->
-                        <div class="w-full relative">
+                        <!-- CONTENEDOR PERSONAS (Sin relative para evitar cortes) -->
+                        <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Personas</label>
                             <div id="contenedorTagsPersona" class="min-h-[42px] w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
                                 <span class="text-slate-400 text-sm pl-2">Seleccionar...</span>
                             </div>
-                            
-                            <div id="dropdownPersona" class="hidden absolute z-[10000] top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
-                                <input type="text" id="buscadorPersona" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
-                                <div id="listaOpcionesPersona" class="space-y-1"></div>
-                            </div>
                         </div>
 
-                        <!-- MULTI-SELECT BODEGAS -->
-                        <div class="w-full relative">
+                        <!-- CONTENEDOR BODEGAS (Sin relative para evitar cortes) -->
+                        <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodegas</label>
                             <div class="flex gap-2">
                                 <div id="contenedorTagsBodega" class="min-h-[42px] flex-grow px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
@@ -164,17 +158,12 @@
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
                             </div>
-
-                            <div id="dropdownBodega" class="hidden absolute z-[10000] top-full right-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
-                                <input type="text" id="buscadorBodega" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
-                                <div id="listaOpcionesBodega" class="space-y-1"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tarjetas de Resumen -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-8 animate-fade-up relative z-10">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-8 animate-fade-up">
                     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col relative overflow-hidden transition-transform hover:-translate-y-1">
                         <div class="absolute top-0 right-0 w-16 h-16 bg-slate-50 rounded-bl-full -z-10"></div>
                         <p class="text-[10px] md:text-xs text-slate-400 font-extrabold uppercase tracking-wider mb-2">Total Revisados</p>
@@ -210,7 +199,7 @@
                 </div>
 
                 <!-- GRÁFICOS -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-up relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-up">
                     <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col items-center">
                         <h3 class="text-base font-extrabold text-slate-800 mb-2 w-full flex items-center gap-2">
                             <i class="fa-solid fa-chart-pie text-indigo-500"></i> Estado General
@@ -238,7 +227,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xl shadow-slate-200/40 mb-8 animate-fade-up relative z-10">
+                <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xl shadow-slate-200/40 mb-8 animate-fade-up">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-base md:text-lg font-extrabold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-indigo-500"></i> Tendencia de Errores
@@ -258,6 +247,17 @@
 
         </div>
     </main>
+
+    <!-- 🚨 AQUÍ ESTÁ LA MAGIA: Menús flotantes absolutos (fuera de la caja principal) 🚨 -->
+    <div id="dropdownPersona" class="hidden fixed z-[9999] w-64 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
+        <input type="text" id="buscadorPersona" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
+        <div id="listaOpcionesPersona" class="space-y-1"></div>
+    </div>
+
+    <div id="dropdownBodega" class="hidden fixed z-[9999] w-64 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
+        <input type="text" id="buscadorBodega" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
+        <div id="listaOpcionesBodega" class="space-y-1"></div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -389,15 +389,34 @@
             });
         }
 
-        document.getElementById('contenedorTagsPersona').addEventListener('click', () => {
-            document.getElementById('dropdownPersona').classList.toggle('hidden');
+        // 🚨 MAGIA PARA POSICIONAR LOS MENÚS AL HACER CLIC 🚨
+        document.getElementById('contenedorTagsPersona').addEventListener('click', (e) => {
+            const drop = document.getElementById('dropdownPersona');
+            const rect = e.currentTarget.getBoundingClientRect();
+            
+            // Posicionar debajo del input
+            drop.style.top = (rect.bottom + 5) + 'px';
+            drop.style.left = rect.left + 'px';
+            drop.style.width = rect.width + 'px';
+            
+            drop.classList.toggle('hidden');
             document.getElementById('dropdownBodega').classList.add('hidden');
         });
-        document.getElementById('contenedorTagsBodega').addEventListener('click', () => {
-            document.getElementById('dropdownBodega').classList.toggle('hidden');
+
+        document.getElementById('contenedorTagsBodega').addEventListener('click', (e) => {
+            const drop = document.getElementById('dropdownBodega');
+            const rect = e.currentTarget.getBoundingClientRect();
+            
+            // Posicionar debajo del input
+            drop.style.top = (rect.bottom + 5) + 'px';
+            drop.style.left = rect.left + 'px';
+            drop.style.width = rect.width + 'px';
+
+            drop.classList.toggle('hidden');
             document.getElementById('dropdownPersona').classList.add('hidden');
         });
 
+        // Cerrar menús al hacer clic fuera
         document.addEventListener('click', (e) => {
             if (!e.target.closest('#contenedorTagsPersona') && !e.target.closest('#dropdownPersona')) {
                 document.getElementById('dropdownPersona').classList.add('hidden');
