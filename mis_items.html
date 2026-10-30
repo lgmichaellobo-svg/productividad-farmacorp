@@ -70,12 +70,16 @@
             <p class="text-slate-500 font-medium" id="errorText">Hubo un problema de conexión.</p>
         </div>
 
-        <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200 m-auto w-full">
+        <!-- PANTALLA DE ÉXITO (Cuando termina) -->
+        <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200 m-auto w-full animate-fade-up">
             <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm">
                 <i class="fa-solid fa-check-double text-4xl text-emerald-500"></i>
             </div>
             <h3 class="text-2xl font-extrabold text-slate-800 mb-2" id="emptyTitle">¡Todo al día!</h3>
             <p class="text-slate-500 font-medium" id="emptyText">No tienes ítems pendientes de verificar en este momento.</p>
+            <a href="app.html" class="mt-6 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-md">
+                <i class="fa-solid fa-house"></i> Volver al Inicio
+            </a>
         </div>
 
         <!-- UI DE VERIFICACIÓN -->
@@ -338,6 +342,21 @@
             document.getElementById('emptyText').innerText = texto;
         }
 
+        // Función auxiliar para saber si ya se terminaron todos
+        function verificarFinDeLista() {
+            // Si el índice es el último de la lista, mostramos la pantalla de éxito
+            if (itemActualIndex >= itemsPendientes.length - 1) {
+                // Verificamos si todos los ítems en la lista ya tienen estado_local
+                const todosCalificados = itemsPendientes.every(i => i.estado_local !== undefined);
+                if (todosCalificados) {
+                    verificacionUI.classList.add('hidden');
+                    mostrarEstadoVacio("¡Excelente trabajo!", "Has terminado de revisar todos tus ítems.");
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // --- LÓGICA DE BOTONES ---
         document.getElementById('btnAnterior').addEventListener('click', () => {
             if (itemActualIndex > 0) { 
@@ -374,8 +393,10 @@
                 itemActualIndex++;
                 mostrarItem(itemActualIndex);
             } else {
-                // Si era el último, mostrar mensaje o quedarse ahí
-                mostrarItem(itemActualIndex);
+                // Si era el último, comprobar si ya terminó todo y mostrar pantalla de fin
+                if(!verificarFinDeLista()) {
+                    mostrarItem(itemActualIndex);
+                }
             }
         });
 
@@ -383,7 +404,6 @@
             document.getElementById('panelIncorrecto').classList.remove('hidden');
             setTimeout(() => { 
                 document.getElementById('inputCantidadCorrecta').focus(); 
-                // Prellenar con el conteo actual o la cantidad correcta si ya se guardó
                 const item = itemsPendientes[itemActualIndex];
                 if(item.cantidad_correcta !== null) {
                     document.getElementById('inputCantidadCorrecta').value = item.cantidad_correcta;
@@ -441,7 +461,9 @@
                 itemActualIndex++;
                 mostrarItem(itemActualIndex);
             } else {
-                mostrarItem(itemActualIndex);
+                if(!verificarFinDeLista()) {
+                    mostrarItem(itemActualIndex);
+                }
             }
         });
 
