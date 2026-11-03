@@ -174,6 +174,7 @@
         let verificacionesActivas = [];
         let itemsErroresGlobal = [];
         let usuarioLogueado = null;
+        let idVerificacionActual = null; // Variable global para el Realtime
 
         // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
         async function construirMenu(rol) {
@@ -239,7 +240,6 @@
             try {
                 let query = _supabase
                     .from('verificaciones')
-                    // Usamos !bodega_id para forzar la relación y traer el nombre de la bodega
                     .select(`id, nombre_archivo, fecha_verificacion, bodegas!bodega_id (nombre)`)
                     .eq('estado', 'en curso')
                     .order('fecha_verificacion', { ascending: false });
@@ -279,7 +279,6 @@
             const puedeEliminar = ['admin', 'jefe', 'supervisor'].includes(usuarioLogueado.rol);
 
             verificacionesActivas.forEach(v => {
-                // Aquí leemos el nombre de la bodega que viene de la relación
                 let nombreBodega = v.bodegas ? v.bodegas.nombre : 'Bodega no especificada';
                 let fechaFormat = v.fecha_verificacion ? v.fecha_verificacion.split('-').reverse().join('/') : 'Sin fecha';
 
@@ -355,7 +354,10 @@
             }
         }
 
+        // FUNCIÓN PRINCIPAL PARA CARGAR EL DETALLE Y LOS PROGRESOS
         window.abrirDetalle = async function(id) {
+            idVerificacionActual = id; // Guardamos el ID para el Realtime
+
             const verif = verificacionesActivas.find(v => v.id === id);
 
             document.getElementById('listaVerificacionesPanel').classList.add('hidden');
@@ -422,7 +424,7 @@
                 let colorBarra = porcentaje === 100 ? 'bg-emerald-500' : 'bg-indigo-500';
                 
                 contenedor.innerHTML += `
-                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition animate-fade-up">
                         <div class="flex justify-between items-center mb-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center font-black text-lg border border-slate-300 shadow-sm">${nombre.charAt(0)}</div>
@@ -455,6 +457,7 @@
             document.getElementById('detalleVerificacion').classList.add('hidden');
             document.getElementById('btnDescargarErrores').classList.add('hidden');
             document.getElementById('listaVerificacionesPanel').classList.remove('hidden');
+            idVerificacionActual = null; // Limpiamos el ID al volver a la lista
         });
 
         document.getElementById('btnDescargarErrores').addEventListener('click', async () => {
@@ -532,7 +535,41 @@
         document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
         document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
 
-        // Inicializar
+        // ====================================================================
+        // MAGIA EN TIEMPO REAL: ESCUCHAR CAMBIOS EN LA BASE DE DATOS
+        // ====================================================================
+        
+        // 1. Escuchar cambios en los ítems (Verificaciones)
+        _supabase
+            .channel('cambios-en-progreso')
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'verificacion_items' },
+                (payload) => {
+                    console.log('¡Ítem actualizado en tiempo real!', payload);
+                    
+                    // Si estamos viendo una verificación, actualizamos la vista
+                    if (idVerificacionActual && !document.getElementById('detalleVerificacion').classList.contains('hidden')) {
+                        window.abrirDetalle(idVerificacionActual);
+                    }
+                }
+            )
+            .subscribe();
+
+        // 2. Escuchar cambios en la tabla de verificaciones (Creación/Eliminación/Finalización)
+        _supabase
+            .channel('cambios-en-verificaciones')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'verificaciones' },
+                (payload) => {
+                    console.log('¡Verificación actualizada!', payload);
+                    cargarVerificacionesActivas();
+                }
+            )
+            .subscribe();
+
+        // Inicializar la app
         checkUser();
     </script>
 </body>
