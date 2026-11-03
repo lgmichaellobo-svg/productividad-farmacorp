@@ -375,13 +375,17 @@
             const item = itemsPendientes[itemActualIndex];
             
             if (!item.estado_local) {
-                // SE AGREGA FECHA_VERIFICACION AQUI
                 await _supabase.from('verificacion_items').update({ 
                     estado: 'correcto', 
                     cantidad_correcta: item.conteo_fisico,
                     verificado_por: usuarioActualId,
                     fecha_verificacion: new Date().toISOString()
                 }).eq('id', item.id);
+
+                // AVISO EN TIEMPO REAL (BROADCAST)
+                _supabase.channel('progreso-global').send({
+                    type: 'broadcast', event: 'actualizacion', payload: { mensaje: 'actualizado' }
+                });
             }
 
             verificacionUI.classList.add('hidden');
@@ -394,13 +398,17 @@
             
             btnCorrecto.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-2xl"></i>';
 
-            // SE AGREGA FECHA_VERIFICACION AQUI
             await _supabase.from('verificacion_items').update({ 
                 estado: 'correcto', 
                 cantidad_correcta: item.conteo_fisico,
                 verificado_por: usuarioActualId,
                 fecha_verificacion: new Date().toISOString()
             }).eq('id', item.id);
+
+            // AVISO EN TIEMPO REAL (BROADCAST)
+            _supabase.channel('progreso-global').send({
+                type: 'broadcast', event: 'actualizacion', payload: { mensaje: 'actualizado' }
+            });
 
             item.estado_local = 'correcto';
             
@@ -448,7 +456,6 @@
             const nuevaDiferencia = cantReal - item.saldo_sistema;
             const nuevoImporte = nuevaDiferencia * costoUnitario;
 
-            // SE AGREGA FECHA_VERIFICACION AQUI
             await _supabase.from('verificacion_items').update({ 
                 estado: 'incorrecto', 
                 cantidad_correcta: cantReal,
@@ -457,6 +464,11 @@
                 verificado_por: usuarioActualId,
                 fecha_verificacion: new Date().toISOString()
             }).eq('id', item.id);
+
+            // AVISO EN TIEMPO REAL (BROADCAST)
+            _supabase.channel('progreso-global').send({
+                type: 'broadcast', event: 'actualizacion', payload: { mensaje: 'actualizado' }
+            });
 
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
             btn.disabled = false;
