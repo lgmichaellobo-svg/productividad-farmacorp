@@ -306,8 +306,6 @@
             btnCorrecto.className = 'bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-4 md:py-6 rounded-3xl transition-all shadow-lg shadow-emerald-500/30 flex flex-col items-center justify-center gap-1 md:gap-2 group';
             btnIncorrecto.className = 'bg-white border-2 border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-4 md:py-6 rounded-3xl transition-all shadow-sm flex flex-col items-center justify-center gap-1 md:gap-2 group';
             
-            // 🚨 LA MAGIA: Si es el ÚLTIMO ítem y YA está calificado, mostramos el botón Terminar.
-            // Si es el ÚLTIMO ítem pero NO está calificado, mostramos los botones normales.
             if (index === itemsPendientes.length - 1 && estaCalificado) {
                 btnTerminar.classList.remove('hidden');
                 document.getElementById('accionesCorrecto').classList.add('hidden');
@@ -373,16 +371,16 @@
             }
         });
 
-        // 🚨 BOTÓN DE TERMINAR (Con guardado de seguridad) 🚨
         document.getElementById('btnTerminar').addEventListener('click', async () => {
             const item = itemsPendientes[itemActualIndex];
             
-            // Si por alguna razón el último ítem no se guardó antes, lo guardamos como correcto ahora
             if (!item.estado_local) {
+                // SE AGREGA FECHA_VERIFICACION AQUI
                 await _supabase.from('verificacion_items').update({ 
                     estado: 'correcto', 
                     cantidad_correcta: item.conteo_fisico,
-                    verificado_por: usuarioActualId
+                    verificado_por: usuarioActualId,
+                    fecha_verificacion: new Date().toISOString()
                 }).eq('id', item.id);
             }
 
@@ -396,16 +394,16 @@
             
             btnCorrecto.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-2xl"></i>';
 
+            // SE AGREGA FECHA_VERIFICACION AQUI
             await _supabase.from('verificacion_items').update({ 
                 estado: 'correcto', 
                 cantidad_correcta: item.conteo_fisico,
-                verificado_por: usuarioActualId
+                verificado_por: usuarioActualId,
+                fecha_verificacion: new Date().toISOString()
             }).eq('id', item.id);
 
             item.estado_local = 'correcto';
             
-            // Si es el último, redibujamos para mostrar el botón "Terminar".
-            // Si no, avanzamos al siguiente.
             if (itemActualIndex === itemsPendientes.length - 1) {
                 mostrarItem(itemActualIndex);
             } else {
@@ -450,12 +448,14 @@
             const nuevaDiferencia = cantReal - item.saldo_sistema;
             const nuevoImporte = nuevaDiferencia * costoUnitario;
 
+            // SE AGREGA FECHA_VERIFICACION AQUI
             await _supabase.from('verificacion_items').update({ 
                 estado: 'incorrecto', 
                 cantidad_correcta: cantReal,
                 diferencia: nuevaDiferencia,
                 dif_importe: nuevoImporte,
-                verificado_por: usuarioActualId
+                verificado_por: usuarioActualId,
+                fecha_verificacion: new Date().toISOString()
             }).eq('id', item.id);
 
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar';
@@ -468,7 +468,6 @@
             
             document.getElementById('panelIncorrecto').classList.add('hidden');
 
-            // Si es el último, mostrar botón de terminar
             if (itemActualIndex === itemsPendientes.length - 1) {
                 mostrarItem(itemActualIndex);
             } else {
