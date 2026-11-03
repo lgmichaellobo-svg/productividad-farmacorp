@@ -189,7 +189,6 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'index.html'; return; }
             
-            // ESTA ES LA LÍNEA CLAVE PARA QUE REALTIME FUNCIONE CON RLS
             _supabase.realtime.setAuth(session.access_token);
 
             const { data: usuarioDB } = await _supabase.from('usuarios').select('id, nombre, rol').eq('email', session.user.email).single();
@@ -222,7 +221,7 @@
                     .eq('estado', 'en curso')
                     .order('fecha_verificacion', { ascending: false });
 
-                // LÓGICA CORREGIDA: Admin, Jefe y Supervisor ven todo. Los demás solo lo suyo.
+                // Lógica: Admin, Jefe y Supervisor ven todo. Los demás solo lo suyo.
                 if (usuarioLogueado && !['admin', 'jefe', 'supervisor'].includes(usuarioLogueado.rol)) {
                     query = query.eq('creado_por', usuarioLogueado.id);
                 }
@@ -499,17 +498,21 @@
         document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
 
         // ====================================================================
-        // ACTUALIZACIÓN EN TIEMPO REAL
+        // ACTUALIZACIÓN EN TIEMPO REAL (USANDO BROADCAST)
         // ====================================================================
-        _supabase
-            .channel('cambios-en-progreso')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'verificacion_items' }, (payload) => {
-                console.log('Evento Realtime recibido:', payload);
+        
+        const canalProgreso = _supabase.channel('progreso-global');
+
+        canalProgreso
+            .on('broadcast', { event: 'actualizacion' }, (payload) => {
+                console.log('¡Aviso de actualización recibido!', payload);
                 if (idVerificacionActual && !document.getElementById('detalleVerificacion').classList.contains('hidden')) {
                     window.abrirDetalle(idVerificacionActual);
                 }
             })
-            .subscribe();
+            .subscribe((status) => {
+                console.log('Estado del canal de progreso:', status);
+            });
 
         _supabase
             .channel('cambios-en-verificaciones')
