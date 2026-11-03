@@ -189,6 +189,9 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'index.html'; return; }
             
+            // ESTA ES LA LÍNEA CLAVE PARA QUE REALTIME FUNCIONE CON RLS
+            _supabase.realtime.setAuth(session.access_token);
+
             const { data: usuarioDB } = await _supabase.from('usuarios').select('id, nombre, rol').eq('email', session.user.email).single();
             if (usuarioDB) {
                 usuarioLogueado = usuarioDB;
@@ -208,7 +211,7 @@
                     }
                 }
             }
-            cargarVerificacionesActivas();
+            await cargarVerificacionesActivas();
         }
 
         async function cargarVerificacionesActivas() {
@@ -340,15 +343,13 @@
                 let nombre = item.asignado_a && mapaUsuarios[item.asignado_a] ? mapaUsuarios[item.asignado_a] : 'Sin Asignar';
                 
                 if (!usuariosStats[nombre]) {
-                    // Variables para el cronómetro
                     usuariosStats[nombre] = { total: 0, correctos: 0, errores: 0, pendientes: 0, primerRegistro: null, ultimoRegistro: null };
                 }
                 usuariosStats[nombre].total++;
 
-                // Lógica del Cronómetro (leyendo la columna fecha_verificacion de Supabase)
+                // Lógica del Cronómetro
                 if (item.estado !== 'pendiente' && item.fecha_verificacion) {
                     const fechaItem = new Date(item.fecha_verificacion); 
-                    
                     if (!usuariosStats[nombre].primerRegistro || fechaItem < usuariosStats[nombre].primerRegistro) {
                         usuariosStats[nombre].primerRegistro = fechaItem;
                     }
@@ -408,7 +409,6 @@
                             </div>
                             <div class="text-right flex flex-col items-end">
                                 <span class="text-2xl font-black ${porcentaje === 100 ? 'text-emerald-500' : 'text-indigo-600'}">${porcentaje}%</span>
-                                <!-- TIEMPO INYECTADO AQUI -->
                                 <span class="text-[10px] font-bold text-slate-400 mt-1 bg-slate-100 px-2 py-0.5 rounded-md">${tiempoTexto}</span>
                             </div>
                         </div>
@@ -498,6 +498,7 @@
         _supabase
             .channel('cambios-en-progreso')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'verificacion_items' }, (payload) => {
+                console.log('Evento Realtime recibido:', payload);
                 if (idVerificacionActual && !document.getElementById('detalleVerificacion').classList.contains('hidden')) {
                     window.abrirDetalle(idVerificacionActual);
                 }
