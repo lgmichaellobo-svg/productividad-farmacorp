@@ -222,7 +222,8 @@
                     .eq('estado', 'en curso')
                     .order('fecha_verificacion', { ascending: false });
 
-                if (usuarioLogueado && ['encargado', 'mixto'].includes(usuarioLogueado.rol)) {
+                // LÓGICA CORREGIDA: Admin, Jefe y Supervisor ven todo. Los demás solo lo suyo.
+                if (usuarioLogueado && !['admin', 'jefe', 'supervisor'].includes(usuarioLogueado.rol)) {
                     query = query.eq('creado_por', usuarioLogueado.id);
                 }
 
@@ -232,7 +233,12 @@
                 if (!verificaciones || verificaciones.length === 0) {
                     document.getElementById('mensajeEstado').classList.add('hidden');
                     document.getElementById('mensajeVacio').classList.remove('hidden');
-                    document.getElementById('mensajeVacioTexto').innerText = "No tienes verificaciones activas a tu nombre.";
+                    
+                    if (usuarioLogueado && !['admin', 'jefe', 'supervisor'].includes(usuarioLogueado.rol)) {
+                        document.getElementById('mensajeVacioTexto').innerText = "No tienes verificaciones activas a tu nombre.";
+                    } else {
+                        document.getElementById('mensajeVacioTexto').innerText = "No hay verificaciones activas en el sistema.";
+                    }
                     return;
                 }
 
