@@ -279,6 +279,9 @@
         let datosRevision = [];     
         let datosCruzados = [];     
         let usuariosDBGlobal = [];
+        
+        // VARIABLE CLAVE PARA GUARDAR EL ID CORRECTO DEL USUARIO
+        let usuarioIdDB = null; 
 
         // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
         async function construirMenu(rol) {
@@ -410,7 +413,7 @@
             });
         });
 
-        // --- 3. Leer Revisión (CON CORRECCIÓN DE FECHA) ---
+        // --- 3. Leer Revisión ---
         excelRevision.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -434,7 +437,6 @@
                                 if(String(fila[k]).trim() !== "") { 
                                     let valorFecha = fila[k];
                                     
-                                    // VALIDACIÓN: Si es un número (fecha serial de Excel), lo convertimos
                                     if (typeof valorFecha === 'number') {
                                         const fechaJS = new Date(Math.round((valorFecha - 25569) * 86400 * 1000));
                                         const year = fechaJS.getUTCFullYear();
@@ -609,7 +611,7 @@
             datosCruzados = [];
         });
 
-        // --- 6. Guardar en Supabase (BÚSQUEDA A PRUEBA DE BALAS) ---
+        // --- 6. Guardar en Supabase (CON EL ID CORRECTO DEL USUARIO) ---
         btnProcesar.addEventListener('click', async () => {
             const msj = document.getElementById('mensajeGuardado');
             const bodegaNombre = document.getElementById('bodegaNombre').value;
@@ -619,48 +621,40 @@
             if (bodegaNombre === "No detectada" || fecha === "No detectada") {
                 return alert("No se pudo detectar la fecha o bodega del Excel de Revisión.");
             }
+            
+            if(!usuarioIdDB) {
+                return alert("Error: No se ha cargado el ID del usuario. Recargue la página.");
+            }
 
             btnProcesar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
             btnProcesar.disabled = true;
             msj.classList.add('hidden');
 
             try {
-                // 1. Limpieza extrema del código de la bodega
-                // Quitamos todo lo que esté después de un guion y TODOS los espacios en blanco
                 const codigoBaseExcel = bodegaNombre.split('-')[0].replace(/\s+/g, '').toUpperCase();
-
-                // 2. Traemos TODAS las bodegas
                 const { data: todasLasBodegas, error: errTraer } = await _supabase.from('bodegas').select('id, nombre');
                 if (errTraer) throw errTraer;
 
                 let bodegaId = null;
 
-                // 3. Buscamos comparando textos 100% limpios
                 if (todasLasBodegas) {
                     const bodegaEncontrada = todasLasBodegas.find(b => {
-                        // Aplicamos la misma limpieza al nombre de la base de datos
                         const nombreDBLimpio = b.nombre.split('-')[0].replace(/\s+/g, '').toUpperCase();
                         return nombreDBLimpio === codigoBaseExcel;
                     });
                     
                     if (bodegaEncontrada) {
                         bodegaId = bodegaEncontrada.id;
-                        console.log("Bodega enlazada con éxito:", bodegaEncontrada.nombre);
                     }
                 }
 
-                // 4. Si realmente no existe, la crea.
                 if (!bodegaId) {
-                    console.log("No se encontró coincidencia, creando nueva bodega: ", bodegaNombre);
                     const { data: nuevaBodega, error: errBod } = await _supabase.from('bodegas').insert([{ nombre: bodegaNombre }]).select().single();
                     if (errBod) throw errBod;
                     bodegaId = nuevaBodega.id;
                 }
 
-                // OBTENER ID DEL USUARIO ACTUAL
-                const { data: { session } } = await _supabase.auth.getSession();
-
-                // GUARDAR VERIFICACIÓN (Sin umbral_importe para evitar errores)
+                // GUARDAR VERIFICACIÓN USANDO usuarioIdDB
                 const { data: verificacion, error: errorVerif } = await _supabase
                     .from('verificaciones')
                     .insert([{ 
@@ -668,7 +662,7 @@
                         bodega_id: bodegaId, 
                         fecha_verificacion: fecha,
                         estado: 'en curso',
-                        creado_por: session.user.id 
+                        creado_por: usuarioIdDB // <-- AQUI SE USA EL ID CORRECTO
                     }])
                     .select().single();
                 if (errorVerif) throw errorVerif;
@@ -713,14 +707,16 @@
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (!session) { window.location.href = 'index.html'; return; }
                 
-                // 1. Traer datos del usuario
+                // 1. Traer datos del usuario (AQUÍ CAPTURAMOS EL ID REAL)
                 const { data: usuarioDB, error: errUsr } = await _supabase
                     .from('usuarios')
-                    .select('nombre, rol')
+                    .select('id, nombre, rol')
                     .eq('email', session.user.email)
                     .single();
                 
                 if (usuarioDB) {
+                    usuarioIdDB = usuarioDB.id; // <-- GUARDAMOS EL ID
+                    
                     document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
                     document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                     document.getElementById('userRoleDisplay').innerText = usuarioDB.rol.toUpperCase();
