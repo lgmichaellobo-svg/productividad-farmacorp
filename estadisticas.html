@@ -139,7 +139,7 @@
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         
-                        <!-- CONTENEDOR PERSONAS (Sin relative para evitar cortes) -->
+                        <!-- CONTENEDOR PERSONAS -->
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Personas</label>
                             <div id="contenedorTagsPersona" class="min-h-[42px] w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
@@ -147,7 +147,7 @@
                             </div>
                         </div>
 
-                        <!-- CONTENEDOR BODEGAS (Sin relative para evitar cortes) -->
+                        <!-- CONTENEDOR BODEGAS -->
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodegas</label>
                             <div class="flex gap-2">
@@ -248,7 +248,7 @@
         </div>
     </main>
 
-    <!-- 🚨 AQUÍ ESTÁ LA MAGIA: Menús flotantes absolutos (fuera de la caja principal) 🚨 -->
+    <!-- Menús flotantes absolutos -->
     <div id="dropdownPersona" class="hidden fixed z-[9999] w-64 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
         <input type="text" id="buscadorPersona" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
         <div id="listaOpcionesPersona" class="space-y-1"></div>
@@ -257,6 +257,31 @@
     <div id="dropdownBodega" class="hidden fixed z-[9999] w-64 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
         <input type="text" id="buscadorBodega" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
         <div id="listaOpcionesBodega" class="space-y-1"></div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL PARA SELECCIONAR BODEGA A ELIMINAR   -->
+    <!-- ========================================== -->
+    <div id="modalBorrarBodega" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 animate-fade-up">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-extrabold text-slate-800">Limpiar Historial</h3>
+                <button id="btnCerrarModalBorrar" class="text-slate-400 hover:text-rose-500 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <p class="text-sm text-slate-500 mb-4 font-medium">Selecciona la bodega de la cual deseas eliminar todos los registros y estadísticas. <strong class="text-rose-500">Esta acción no se puede deshacer.</strong></p>
+            
+            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2">Bodega a eliminar</label>
+            <select id="selectBodegaBorrar" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-rose-100 focus:border-rose-500 outline-none transition font-medium text-slate-700 mb-6">
+                <option value="">Cargando bodegas...</option>
+            </select>
+
+            <div class="flex gap-3">
+                <button id="btnCancelarBorrar" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">Cancelar</button>
+                <button id="btnConfirmarBorrar" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-rose-500/30">Eliminar Datos</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -389,16 +414,13 @@
             });
         }
 
-        // 🚨 MAGIA PARA POSICIONAR LOS MENÚS AL HACER CLIC 🚨
+        // MAGIA PARA POSICIONAR LOS MENÚS AL HACER CLIC
         document.getElementById('contenedorTagsPersona').addEventListener('click', (e) => {
             const drop = document.getElementById('dropdownPersona');
             const rect = e.currentTarget.getBoundingClientRect();
-            
-            // Posicionar debajo del input
             drop.style.top = (rect.bottom + 5) + 'px';
             drop.style.left = rect.left + 'px';
             drop.style.width = rect.width + 'px';
-            
             drop.classList.toggle('hidden');
             document.getElementById('dropdownBodega').classList.add('hidden');
         });
@@ -406,12 +428,9 @@
         document.getElementById('contenedorTagsBodega').addEventListener('click', (e) => {
             const drop = document.getElementById('dropdownBodega');
             const rect = e.currentTarget.getBoundingClientRect();
-            
-            // Posicionar debajo del input
             drop.style.top = (rect.bottom + 5) + 'px';
             drop.style.left = rect.left + 'px';
             drop.style.width = rect.width + 'px';
-
             drop.classList.toggle('hidden');
             document.getElementById('dropdownPersona').classList.add('hidden');
         });
@@ -708,21 +727,83 @@
             procesarVista(itemsFiltrados);
         });
 
-        // --- BOTÓN PARA BORRAR TODO EL HISTORIAL ---
-        document.getElementById('btnBorrarHistorial').addEventListener('click', async () => {
-            if (confirm("⚠️ ¿Estás seguro de borrar TODAS las verificaciones y los ítems registrados? Esta acción no se puede deshacer y limpiará todos los datos.")) {
-                const btn = document.getElementById('btnBorrarHistorial');
+        // ==========================================
+        // LÓGICA DE BORRADO POR BODEGA (MODIFICADO)
+        // ==========================================
+        
+        // 1. Abrir Modal
+        document.getElementById('btnBorrarHistorial').addEventListener('click', () => {
+            const select = document.getElementById('selectBodegaBorrar');
+            select.innerHTML = '<option value="">Seleccione una bodega...</option>';
+            
+            // Llenar el select con las bodegas que ya cargaste al inicio
+            if(listaBodegas && listaBodegas.length > 0) {
+                listaBodegas.forEach(b => {
+                    select.innerHTML += `<option value="${b.id}">${b.nombre}</option>`;
+                });
+            } else {
+                select.innerHTML = '<option value="">No hay bodegas registradas</option>';
+            }
+
+            document.getElementById('modalBorrarBodega').classList.remove('hidden');
+        });
+
+        // 2. Cerrar Modal
+        document.getElementById('btnCerrarModalBorrar').addEventListener('click', () => {
+            document.getElementById('modalBorrarBodega').classList.add('hidden');
+        });
+        document.getElementById('btnCancelarBorrar').addEventListener('click', () => {
+            document.getElementById('modalBorrarBodega').classList.add('hidden');
+        });
+
+        // 3. Confirmar y Borrar
+        document.getElementById('btnConfirmarBorrar').addEventListener('click', async () => {
+            const bodegaId = document.getElementById('selectBodegaBorrar').value;
+            
+            if (!bodegaId) {
+                alert("Por favor, selecciona una bodega.");
+                return;
+            }
+
+            const nombreBodega = document.getElementById('selectBodegaBorrar').options[document.getElementById('selectBodegaBorrar').selectedIndex].text;
+
+            if (confirm(`⚠️ ¿Estás seguro de borrar TODOS los registros de la bodega: ${nombreBodega}? Esta acción no se puede deshacer.`)) {
+                const btn = document.getElementById('btnConfirmarBorrar');
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Borrando...';
                 btn.disabled = true;
+
                 try {
-                    await _supabase.from('verificacion_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    await _supabase.from('verificaciones').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    alert('Historial limpiado correctamente.');
+                    // Paso 1: Obtener los IDs de las verificaciones que pertenecen a esta bodega
+                    const { data: verificacionesABorrar, error: errVer } = await _supabase
+                        .from('verificaciones')
+                        .select('id')
+                        .eq('bodega_id', bodegaId);
+
+                    if (errVer) throw errVer;
+
+                    if (verificacionesABorrar && verificacionesABorrar.length > 0) {
+                        const idsVerificaciones = verificacionesABorrar.map(v => v.id);
+
+                        // Paso 2: Borrar los ítems asociados a esas verificaciones
+                        await _supabase
+                            .from('verificacion_items')
+                            .delete()
+                            .in('verificacion_id', idsVerificaciones);
+
+                        // Paso 3: Borrar las verificaciones de esa bodega
+                        await _supabase
+                            .from('verificaciones')
+                            .delete()
+                            .eq('bodega_id', bodegaId);
+                    }
+
+                    alert('Historial de la bodega limpiado correctamente.');
                     window.location.reload();
+
                 } catch (error) {
+                    console.error(error);
                     alert('Error al borrar: ' + error.message);
-                } finally {
-                    btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Limpiar Historial';
+                    btn.innerHTML = 'Eliminar Datos';
                     btn.disabled = false;
                 }
             }
