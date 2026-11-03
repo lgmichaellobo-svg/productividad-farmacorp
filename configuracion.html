@@ -486,11 +486,22 @@
             registrarAuditoria('Cambio de Rol', `Cambió el rol de ${nombreUsuario} a ${nuevoRol.toUpperCase()}`);
         }
 
+        // SE ACTUALIZÓ ESTA FUNCIÓN PARA USAR LA RPC QUE BORRA DE AUTH Y PUBLIC
         window.eliminarUsuario = async (id, nombreUsuario) => {
-            if(confirm('¿Estás seguro de eliminar a este usuario?')) {
-                await _supabase.from('usuarios').delete().eq('id', id);
-                cargarUsuarios();
-                registrarAuditoria('Eliminó Usuario', `Eliminó al usuario ${nombreUsuario}`);
+            if(confirm('¿Estás seguro de eliminar a este usuario? Esto borrará su acceso al sistema permanentemente.')) {
+                try {
+                    // Llamamos a la función RPC que creamos en Supabase
+                    const { error } = await _supabase.rpc('eliminar_usuario_completo', { id_usuario: id });
+                    
+                    if (error) throw error;
+                    
+                    alert('Usuario eliminado correctamente.');
+                    cargarUsuarios();
+                    registrarAuditoria('Eliminó Usuario', `Eliminó al usuario ${nombreUsuario}`);
+                } catch (error) {
+                    console.error("Error al eliminar:", error);
+                    alert("No se pudo eliminar el usuario. Es posible que tenga verificaciones o ítems asociados en el sistema. Error: " + error.message);
+                }
             }
         }
 
