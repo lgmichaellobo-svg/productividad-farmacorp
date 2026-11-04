@@ -143,9 +143,11 @@
 
             const userEmail = session.user.email;
 
-            const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', userEmail).single();
+            // 1. Buscamos si el usuario ya existe en la tabla con su correo
+            const { data: usuarioDB } = await _supabase.from('usuarios').select('nombre, rol').eq('email', userEmail).maybeSingle();
 
-            if (usuarioDB && usuarioDB.nombre) {
+            if (usuarioDB) {
+                // SI EXISTE: Cargamos todo normal
                 document.getElementById('userNameDisplay').innerText = usuarioDB.nombre;
                 document.getElementById('userNameMobile').innerText = usuarioDB.nombre;
                 
@@ -153,11 +155,9 @@
                 if (usuarioDB.rol === 'mixto') rolBonito = "ENCARGADO / ASISTENTE";
                 document.getElementById('userRoleDisplay').innerText = rolBonito;
                 
-                // Cargar permisos y configuración de diseño ANTES de construir el menú
                 const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
                 if (config) {
                     permisosGlobales = config;
-                    
                     document.querySelectorAll('.nombre-empresa').forEach(el => el.innerText = config.nombre_empresa || 'Farmacorp');
                     if (config.logo_url) {
                         document.querySelectorAll('.logo-empresa').forEach(el => {
@@ -170,6 +170,7 @@
                 construirTarjetas(usuarioDB.rol);
 
             } else {
+                // SI NO EXISTE: Mostramos modal, pero ahora con la lógica corregida
                 document.getElementById('userNameDisplay').innerText = userEmail;
                 document.getElementById('userNameMobile').innerText = userEmail;
                 document.getElementById('userRoleDisplay').innerText = "Nuevo Usuario";
@@ -197,9 +198,6 @@
                 html += `<a href="verificacion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> <span class="uppercase">Verificación</span></a>`;
             }
             
-            // NOTA: Se eliminaron "Progreso" y "Estadísticas" de aquí para que no salgan en el menú lateral.
-            // Esos módulos se manejan internamente dentro de la pantalla de Verificación.
-
             if (rol === 'admin') {
                 html += `<a href="configuracion.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition font-semibold text-sm"><i class="fa-solid fa-gear w-5 text-center"></i> <span class="uppercase">Configuración</span></a>`;
             }
@@ -271,10 +269,27 @@
             const select = document.getElementById('selectNombreVinculacion');
             modal.classList.remove('hidden');
 
-            const { data: nombresDisponibles } = await _supabase.from('usuarios').select('id, nombre').is('email', null).order('nombre');
+            // Buscamos a los usuarios que NO tengan email (para que los nuevos puedan reclamar su nombre)
+            const { data: nombresDisponibles, error } = await _supabase
+                .from('usuarios')
+                .select('id, nombre')
+                .is('email', null) 
+                .order('nombre');
+            
             select.innerHTML = '<option value="">Selecciona tu nombre...</option>';
+            
+            if (error) {
+                console.error("Error al cargar nombres:", error);
+                select.innerHTML = '<option value="">Error al cargar la lista</option>';
+                return;
+            }
+
             if (nombresDisponibles && nombresDisponibles.length > 0) {
-                nombresDisponibles.forEach(u => { select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`; });
+                nombresDisponibles.forEach(u => { 
+                    select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`; 
+                });
+            } else {
+                select.innerHTML = '<option value="">No hay usuarios pre-registrados disponibles</option>';
             }
         }
 
