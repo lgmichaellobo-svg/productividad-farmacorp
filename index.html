@@ -138,7 +138,6 @@
                 msg.innerText = 'Enviando correo...';
                 msg.className = 'mt-5 text-center text-sm font-bold block p-3 rounded-lg bg-blue-100 text-blue-700';
 
-                // Asegúrate de que 'actualizar_password.html' sea el nombre exacto de tu archivo
                 const { error } = await _supabase.auth.resetPasswordForEmail(email.trim(), {
                     redirectTo: window.location.origin + '/actualizar_password.html',
                 });
@@ -153,7 +152,7 @@
             }
         });
 
-        // Lógica de Registro
+        // Lógica de Registro (MODIFICADA)
         formRegistro.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnRegistro');
@@ -165,8 +164,16 @@
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
 
-            // 1. Crear el usuario en el sistema de Auth
-            const { data: authData, error: authError } = await _supabase.auth.signUp({ email, password });
+            // 1. Crear el usuario en el sistema de Auth ENVIANDO EL NOMBRE EN LA METADATA
+            const { data: authData, error: authError } = await _supabase.auth.signUp({ 
+                email, 
+                password,
+                options: {
+                    data: {
+                        nombre_completo: nombre // <-- AQUI ENVIAMOS EL NOMBRE AL TRIGGER
+                    }
+                }
+            });
 
             if (authError) {
                 msg.innerText = 'Error al crear cuenta: ' + authError.message;
@@ -176,30 +183,8 @@
                 return;
             }
 
-            // 2. Vincular el nombre en la tabla 'usuarios'
+            // 2. Ya no hacemos el insert manual. El Trigger de Supabase se encarga de todo.
             if (authData.user) {
-                const nuevoId = authData.user.id;
-
-                const { data: usuarioExistente } = await _supabase
-                    .from('usuarios')
-                    .select('id')
-                    .eq('nombre', nombre)
-                    .single();
-
-                if (usuarioExistente) {
-                    await _supabase.from('usuarios').update({ 
-                        id: nuevoId,
-                        email: email 
-                    }).eq('id', usuarioExistente.id);
-                } else {
-                    await _supabase.from('usuarios').insert([{
-                        id: nuevoId,
-                        nombre: nombre,
-                        email: email,
-                        rol: 'mixto' 
-                    }]);
-                }
-
                 msg.innerText = '¡Cuenta creada con éxito! Ya puedes iniciar sesión.';
                 msg.className = 'mt-5 text-center text-sm font-bold block p-3 rounded-lg bg-emerald-100 text-emerald-700';
                 btn.innerHTML = 'Registrarme';
