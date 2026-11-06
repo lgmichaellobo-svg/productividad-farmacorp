@@ -282,6 +282,25 @@
         let usuariosDBGlobal = [];
         let usuarioIdDB = null; 
 
+        // Función para guardar el estado actual en la sesión
+        function guardarEstado() {
+            const rangosGuardados = [];
+            document.querySelectorAll('.rango-row').forEach(row => {
+                rangosGuardados.push({
+                    userId: row.querySelector('.rango-user').value,
+                    desde: row.querySelector('.rango-desde').value,
+                    hasta: row.querySelector('.rango-hasta').value
+                });
+            });
+
+            const estado = {
+                fecha: document.getElementById('fechaVerificacion').value,
+                bodega: document.getElementById('bodegaNombre').value,
+                rangos: rangosGuardados
+            };
+            sessionStorage.setItem('estado_verificacion', JSON.stringify(estado));
+        }
+
         async function construirMenu(rol) {
             const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
             
@@ -332,22 +351,22 @@
             }
         }
 
-        function agregarFilaRango() {
+        function agregarFilaRango(userId = '', desde = '', hasta = '') {
             const div = document.createElement('div');
             div.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100 rango-row animate-fade-up';
             
             let opciones = '<option value="">Seleccione...</option>';
             usuariosDBGlobal.forEach(u => {
-                opciones += `<option value="${u.id}">${u.nombre}</option>`;
+                opciones += `<option value="${u.id}" ${userId === u.id ? 'selected' : ''}>${u.nombre}</option>`;
             });
 
             div.innerHTML = `
                 <select class="w-1/2 px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-indigo-500 rango-user">
                     ${opciones}
                 </select>
-                <input type="number" placeholder="Desde" class="w-14 px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-indigo-500 rango-desde">
+                <input type="number" placeholder="Desde" value="${desde}" class="w-14 px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-indigo-500 rango-desde">
                 <span class="text-slate-400 text-xs">-</span>
-                <input type="number" placeholder="Hasta" class="w-14 px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-indigo-500 rango-hasta">
+                <input type="number" placeholder="Hasta" value="${hasta}" class="w-14 px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-indigo-500 rango-hasta">
                 <button class="text-rose-500 hover:text-rose-700 ml-auto btn-eliminar-rango" title="Eliminar">
                     <i class="fa-solid fa-trash-can text-sm"></i>
                 </button>
@@ -355,11 +374,13 @@
 
             div.querySelector('.btn-eliminar-rango').addEventListener('click', () => {
                 div.remove();
+                guardarEstado(); // Guardar al eliminar
                 if (datosCruzados.length > 0) procesarAsignacionYTabla();
             });
 
             div.querySelectorAll('input, select').forEach(el => {
                 el.addEventListener('input', () => {
+                    guardarEstado(); // Guardar al cambiar un input
                     if (datosCruzados.length > 0) procesarAsignacionYTabla();
                 });
             });
@@ -367,7 +388,10 @@
             contenedorRangos.appendChild(div);
         }
 
-        btnAgregarRango.addEventListener('click', agregarFilaRango);
+        btnAgregarRango.addEventListener('click', () => {
+            agregarFilaRango();
+            guardarEstado(); // Guardar al agregar nueva fila
+        });
 
         function leerExcel(file, callback) {
             const reader = new FileReader();
@@ -492,12 +516,14 @@
                      }
                 }
 
-                // AQUI ESTA LA MAGIA: Solo asigna si los campos están vacíos
-                if (!document.getElementById('fechaVerificacion').value) {
-                    document.getElementById('fechaVerificacion').value = fechaEncontrada || "";
+                // Solo asigna si los campos están vacíos
+                if (!document.getElementById('fechaVerificacion').value && fechaEncontrada) {
+                    document.getElementById('fechaVerificacion').value = fechaEncontrada;
+                    guardarEstado(); 
                 }
-                if (!document.getElementById('bodegaNombre').value) {
-                    document.getElementById('bodegaNombre').value = bodegaEncontrada || "";
+                if (!document.getElementById('bodegaNombre').value && bodegaEncontrada) {
+                    document.getElementById('bodegaNombre').value = bodegaEncontrada;
+                    guardarEstado();
                 }
 
                 let filaInicio = -1;
@@ -626,6 +652,9 @@
             if (datosCruzados.length > 0) procesarAsignacionYTabla();
         });
 
+        document.getElementById('fechaVerificacion').addEventListener('change', guardarEstado);
+        document.getElementById('bodegaNombre').addEventListener('input', guardarEstado);
+
         btnCambiarArchivo.addEventListener('click', () => {
             columnaSubida.classList.add('lg:col-span-12', 'xl:col-span-8', 'max-w-2xl');
             columnaSubida.classList.remove('lg:col-span-5', 'xl:col-span-4', 'max-w-none');
@@ -719,6 +748,8 @@
                 const { error: errorItems } = await _supabase.from('verificacion_items').insert(itemsParaInsertar);
                 if (errorItems) throw errorItems;
 
+                sessionStorage.removeItem('estado_verificacion'); // Limpiamos la memoria al guardar exitosamente
+
                 btnProcesar.classList.add('hidden');
                 document.getElementById('panelExito').classList.remove('hidden');
                 
@@ -764,6 +795,27 @@
                     }
                 }
 
+                // Recuperar datos guardados
+                const estadoGuardado = sessionStorage.getItem('estado_verificacion');
+                if (estadoGuardado) {
+                    try {
+                        const estado = JSON.parse(estadoGuardado);
+                        if (estado.fecha) document.getElementById('fechaVerificacion').value = estado.fecha;
+                        if (estado.bodega) document.getElementById('bodegaNombre').value = estado.bodega;
+                        
+                        // Esperar un momento a que los usuarios estén cargados para pintar los rangos
+                        setTimeout(() => {
+                            if (estado.rangos && estado.rangos.length > 0) {
+                                estado.rangos.forEach(r => {
+                                    agregarFilaRango(r.userId, r.desde, r.hasta);
+                                });
+                            }
+                        }, 300);
+                    } catch (e) {
+                        console.error("Error al restaurar estado", e);
+                    }
+                }
+
             } catch (error) {
                 console.error("Error al cargar usuario:", error);
                 document.getElementById('userNameDisplay').innerText = "Error";
@@ -775,8 +827,10 @@
         document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
         document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
 
-        cargarUsuarios();
-        checkUser();
+        // Cargar usuarios primero, y luego verificar sesión
+        cargarUsuarios().then(() => {
+            checkUser();
+        });
     </script>
 </body>
 </html>
