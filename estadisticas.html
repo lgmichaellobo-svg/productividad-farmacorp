@@ -19,7 +19,6 @@
         .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* Estilos para las etiquetas de selección múltiple */
         .tag { display: inline-flex; align-items: center; background-color: #e0e7ff; color: #3730a3; font-size: 0.75rem; font-weight: bold; padding: 0.25rem 0.5rem; border-radius: 0.375rem; margin: 0.125rem; }
         .tag button { margin-left: 0.25rem; color: #4f46e5; }
         .tag button:hover { color: #312e81; }
@@ -129,7 +128,6 @@
 
                     <div id="panelFiltros" class="hidden bg-white p-4 md:p-5 rounded-2xl mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start border border-slate-200 shadow-sm">
                         
-                        <!-- Fechas -->
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
                             <input type="date" id="filtroDesde" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
@@ -139,7 +137,6 @@
                             <input type="date" id="filtroHasta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition font-medium text-slate-700">
                         </div>
                         
-                        <!-- CONTENEDOR PERSONAS -->
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Personas</label>
                             <div id="contenedorTagsPersona" class="min-h-[42px] w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1 items-center cursor-pointer">
@@ -147,7 +144,6 @@
                             </div>
                         </div>
 
-                        <!-- CONTENEDOR BODEGAS -->
                         <div class="w-full">
                             <label class="block text-[10px] md:text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bodegas</label>
                             <div class="flex gap-2">
@@ -227,10 +223,11 @@
                     </div>
                 </div>
 
+                <!-- GRÁFICO DE TENDENCIA POR BODEGA -->
                 <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xl shadow-slate-200/40 mb-8 animate-fade-up">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-base md:text-lg font-extrabold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-line text-indigo-500"></i> Tendencia de Errores
+                            <i class="fa-solid fa-chart-line text-indigo-500"></i> Tendencia de Errores por Bodega
                         </h3>
                     </div>
                     
@@ -238,7 +235,7 @@
                         <i class="fa-solid fa-check-circle text-4xl text-emerald-500 mb-2"></i>
                         <p class="text-emerald-700 font-bold">¡Excelente! No hay errores en estas fechas.</p>
                     </div>
-                    <div id="contenedorGrafico" class="relative h-64 md:h-80 w-full hidden">
+                    <div id="contenedorGrafico" class="relative h-80 md:h-96 w-full hidden">
                         <canvas id="graficoErrores"></canvas>
                     </div>
                 </div>
@@ -248,7 +245,6 @@
         </div>
     </main>
 
-    <!-- Menús flotantes absolutos -->
     <div id="dropdownPersona" class="hidden fixed z-[9999] w-64 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2">
         <input type="text" id="buscadorPersona" placeholder="Buscar..." class="w-full px-3 py-1.5 mb-2 border border-slate-200 rounded-lg text-sm outline-none">
         <div id="listaOpcionesPersona" class="space-y-1"></div>
@@ -259,9 +255,6 @@
         <div id="listaOpcionesBodega" class="space-y-1"></div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL PARA SELECCIONAR BODEGA A ELIMINAR   -->
-    <!-- ========================================== -->
     <div id="modalBorrarBodega" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 animate-fade-up">
             <div class="flex justify-between items-center mb-4">
@@ -306,7 +299,6 @@
         let seleccionPersonas = [];
         let seleccionBodegas = [];
 
-        // --- FUNCIÓN PARA CONSTRUIR EL MENÚ DINÁMICO ---
         async function construirMenu(rol) {
             const { data: config } = await _supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
             const tienePermiso = (modulo) => {
@@ -399,7 +391,6 @@
             }
         }
 
-        // --- LÓGICA DE SELECCIÓN MÚLTIPLE (TAGS) ---
         function renderizarOpcionesFiltros() {
             const listaPersonas = document.getElementById('listaOpcionesPersona');
             listaPersonas.innerHTML = '';
@@ -414,7 +405,6 @@
             });
         }
 
-        // MAGIA PARA POSICIONAR LOS MENÚS AL HACER CLIC
         document.getElementById('contenedorTagsPersona').addEventListener('click', (e) => {
             const drop = document.getElementById('dropdownPersona');
             const rect = e.currentTarget.getBoundingClientRect();
@@ -435,7 +425,6 @@
             document.getElementById('dropdownPersona').classList.add('hidden');
         });
 
-        // Cerrar menús al hacer clic fuera
         document.addEventListener('click', (e) => {
             if (!e.target.closest('#contenedorTagsPersona') && !e.target.closest('#dropdownPersona')) {
                 document.getElementById('dropdownPersona').classList.add('hidden');
@@ -485,14 +474,13 @@
             });
         });
 
-        // --- DISEÑO PREMIUM DE GRÁFICOS ---
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
         Chart.defaults.color = '#94a3b8';
 
         function procesarVista(itemsAMostrar) {
             let total = itemsAMostrar.length;
             let correctos = 0, errores = 0, pendientes = 0;
-            let erroresPorFecha = {};
+            let erroresPorFechaBodega = {}; // { "fecha": { "bodega": count } }
             let erroresPorOperador = {}; 
 
             itemsErroresGlobal = []; 
@@ -511,7 +499,12 @@
                     
                     itemsErroresGlobal.push(item);
 
-                    if (item.fecha_inventario) erroresPorFecha[item.fecha_inventario] = (erroresPorFecha[item.fecha_inventario] || 0) + 1;
+                    if (item.fecha_inventario) {
+                        if (!erroresPorFechaBodega[item.fecha_inventario]) {
+                            erroresPorFechaBodega[item.fecha_inventario] = {};
+                        }
+                        erroresPorFechaBodega[item.fecha_inventario][nombreBodega] = (erroresPorFechaBodega[item.fecha_inventario][nombreBodega] || 0) + 1;
+                    }
                     erroresPorOperador[nombre] = (erroresPorOperador[nombre] || 0) + 1;
                 } else {
                     pendientes++;
@@ -525,7 +518,7 @@
 
             dibujarGraficoEstados(correctos, errores, pendientes, total);
             dibujarGraficoOperadores(erroresPorOperador, errores);
-            dibujarGraficoFechas(erroresPorFecha);
+            dibujarGraficoTendencia(erroresPorFechaBodega);
         }
 
         function dibujarGraficoEstados(correctos, errores, pendientes, total) {
@@ -552,10 +545,7 @@
                     maintainAspectRatio: false, 
                     cutout: '78%', 
                     plugins: {
-                        legend: { 
-                            position: 'bottom', 
-                            labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 11, weight: 'bold' } } 
-                        },
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 11, weight: 'bold' } } },
                         tooltip: {
                             backgroundColor: '#0f172a', padding: 12, cornerRadius: 10, titleFont: { size: 13 }, bodyFont: { size: 14, weight: 'bold' },
                             callbacks: { label: function(context) {
@@ -591,13 +581,7 @@
                 type: 'doughnut', 
                 data: {
                     labels: operadoresOrdenados,
-                    datasets: [{ 
-                        data: valores, 
-                        backgroundColor: colores, 
-                        borderWidth: 2, 
-                        borderColor: '#ffffff',
-                        hoverOffset: 4
-                    }]
+                    datasets: [{ data: valores, backgroundColor: colores, borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4 }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
@@ -616,76 +600,99 @@
             });
         }
 
-        function dibujarGraficoFechas(erroresPorFecha) {
+        // GRÁFICO DE TENDENCIA MULTILÍNEA
+        function dibujarGraficoTendencia(erroresPorFechaBodega) {
             if (chartErrores) chartErrores.destroy();
-            const fechasOrdenadas = Object.keys(erroresPorFecha).sort();
-            const fechasParaGrafico = [];
-            const erroresParaGrafico = [];
-
-            fechasOrdenadas.forEach(fecha => {
-                let [y, m, d] = fecha.split('-');
-                fechasParaGrafico.push(`${d}/${m}`);
-                erroresParaGrafico.push(erroresPorFecha[fecha]);
+            
+            const fechasUnicas = Object.keys(erroresPorFechaBodega).sort();
+            const bodegasUnicas = new Set();
+            
+            fechasUnicas.forEach(fecha => {
+                Object.keys(erroresPorFechaBodega[fecha]).forEach(bod => bodegasUnicas.add(bod));
             });
 
-            if (fechasParaGrafico.length > 0) {
-                document.getElementById('mensajeSinErrores').classList.add('hidden');
-                document.getElementById('contenedorGrafico').classList.remove('hidden');
-
-                const ctx = document.getElementById('graficoErrores').getContext('2d');
-                const gradientIndigo = ctx.createLinearGradient(0, 0, 0, 300);
-                gradientIndigo.addColorStop(0, 'rgba(79, 70, 229, 0.4)'); 
-                gradientIndigo.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
-
-                chartErrores = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: fechasParaGrafico,
-                        datasets: [{
-                            label: 'Errores', data: erroresParaGrafico, 
-                            borderColor: '#4f46e5', 
-                            backgroundColor: gradientIndigo, 
-                            borderWidth: 4, 
-                            pointBackgroundColor: '#ffffff', 
-                            pointBorderColor: '#4f46e5',
-                            pointBorderWidth: 3, 
-                            pointRadius: 5, 
-                            pointHoverRadius: 8, 
-                            fill: true, 
-                            tension: 0.4 
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#0f172a', titleFont: { size: 14, weight: 'bold' },
-                                bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 10,
-                                displayColors: false, callbacks: { label: function(context) { return ` ${context.raw} error(es)`; } }
-                            }
-                        },
-                        scales: {
-                            x: { 
-                                grid: { display: false, drawBorder: false }, 
-                                ticks: { font: { weight: 'bold', size: 11 } } 
-                            },
-                            y: { 
-                                beginAtZero: true, 
-                                grid: { color: '#f1f5f9', drawBorder: false }, 
-                                ticks: { stepSize: 1, font: { weight: 'bold', size: 11 } }, 
-                                border: { display: false } 
-                            }
-                        }
-                    }
-                });
-            } else {
+            if (fechasUnicas.length === 0) {
                 document.getElementById('mensajeSinErrores').classList.remove('hidden');
                 document.getElementById('contenedorGrafico').classList.add('hidden');
+                return;
             }
+
+            document.getElementById('mensajeSinErrores').classList.add('hidden');
+            document.getElementById('contenedorGrafico').classList.remove('hidden');
+
+            const coloresLineas = ['#4f46e5', '#10b981', '#f43f5e', '#f59e0b', '#0ea5e9', '#8b5cf6', '#ec4899', '#14b8a6'];
+            let indexColor = 0;
+
+            const datasets = [];
+            bodegasUnicas.forEach(bodega => {
+                const dataPorFecha = fechasUnicas.map(fecha => {
+                    return erroresPorFechaBodega[fecha][bodega] || 0;
+                });
+
+                datasets.push({
+                    label: bodega,
+                    data: dataPorFecha,
+                    borderColor: coloresLineas[indexColor % coloresLineas.length],
+                    backgroundColor: coloresLineas[indexColor % coloresLineas.length],
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    tension: 0.4, // Curva suave
+                    fill: false
+                });
+                indexColor++;
+            });
+
+            const fechasFormateadas = fechasUnicas.map(fecha => {
+                let [y, m, d] = fecha.split('-');
+                return `${d}/${m}`;
+            });
+
+            const ctx = document.getElementById('graficoErrores').getContext('2d');
+            chartErrores = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: fechasFormateadas,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 11, weight: 'bold' } } 
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a', 
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 13, weight: 'bold' }, 
+                            padding: 12, 
+                            cornerRadius: 10,
+                            callbacks: { 
+                                label: function(context) { 
+                                    return ` ${context.dataset.label}: ${context.raw} error(es)`; 
+                                } 
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { display: false, drawBorder: false }, 
+                            ticks: { font: { weight: 'bold', size: 11 } } 
+                        },
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9', drawBorder: false }, 
+                            ticks: { stepSize: 1, font: { weight: 'bold', size: 11 } }, 
+                            border: { display: false } 
+                        }
+                    }
+                }
+            });
         }
 
-        // --- FILTRADO ---
         document.getElementById('btnFiltrar').addEventListener('click', () => {
             const desde = document.getElementById('filtroDesde').value;
             const hasta = document.getElementById('filtroHasta').value;
@@ -727,16 +734,10 @@
             procesarVista(itemsFiltrados);
         });
 
-        // ==========================================
-        // LÓGICA DE BORRADO POR BODEGA (MODIFICADO)
-        // ==========================================
-        
-        // 1. Abrir Modal
         document.getElementById('btnBorrarHistorial').addEventListener('click', () => {
             const select = document.getElementById('selectBodegaBorrar');
             select.innerHTML = '<option value="">Seleccione una bodega...</option>';
             
-            // Llenar el select con las bodegas que ya cargaste al inicio
             if(listaBodegas && listaBodegas.length > 0) {
                 listaBodegas.forEach(b => {
                     select.innerHTML += `<option value="${b.id}">${b.nombre}</option>`;
@@ -748,7 +749,6 @@
             document.getElementById('modalBorrarBodega').classList.remove('hidden');
         });
 
-        // 2. Cerrar Modal
         document.getElementById('btnCerrarModalBorrar').addEventListener('click', () => {
             document.getElementById('modalBorrarBodega').classList.add('hidden');
         });
@@ -756,7 +756,6 @@
             document.getElementById('modalBorrarBodega').classList.add('hidden');
         });
 
-        // 3. Confirmar y Borrar
         document.getElementById('btnConfirmarBorrar').addEventListener('click', async () => {
             const bodegaId = document.getElementById('selectBodegaBorrar').value;
             
@@ -773,7 +772,6 @@
                 btn.disabled = true;
 
                 try {
-                    // Paso 1: Obtener los IDs de las verificaciones que pertenecen a esta bodega
                     const { data: verificacionesABorrar, error: errVer } = await _supabase
                         .from('verificaciones')
                         .select('id')
@@ -784,13 +782,11 @@
                     if (verificacionesABorrar && verificacionesABorrar.length > 0) {
                         const idsVerificaciones = verificacionesABorrar.map(v => v.id);
 
-                        // Paso 2: Borrar los ítems asociados a esas verificaciones
                         await _supabase
                             .from('verificacion_items')
                             .delete()
                             .in('verificacion_id', idsVerificaciones);
 
-                        // Paso 3: Borrar las verificaciones de esa bodega
                         await _supabase
                             .from('verificaciones')
                             .delete()
@@ -809,7 +805,6 @@
             }
         });
 
-        // --- DESCARGAR EXCEL ---
         document.getElementById('btnDescargarErroresFiltrados').addEventListener('click', async () => {
             if (itemsErroresGlobal.length === 0) return alert('No hay errores registrados para los filtros seleccionados.');
 
@@ -881,7 +876,6 @@
         document.getElementById('btnLogoutDesktop').addEventListener('click', logoutFunc);
         document.getElementById('btnLogoutMobile').addEventListener('click', logoutFunc);
 
-        // Inicializar
         checkUser();
     </script>
 </body>
